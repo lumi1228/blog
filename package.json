@@ -1,0 +1,19 @@
+{
+  "name": "lumi-blog",
+  "version": "1.0.0",
+  "description": "Lumi's front-end notes and insights 🚀. Sharing front-end interview frameworks, development experiences, and technical tips. Built for front-end developers—welcome to explore!",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "docs:dev": "vuepress dev docs",
+    "docs:build": "vuepress build docs"
+  },
+  "author": "lumi",
+  "license": "MIT",
+  "devDependencies": {
+    "@vuepress/bundler-vite": "^2.0.0-rc.26",
+    "@vuepress/theme-default": "^2.0.0-rc.118",
+    "sass-embedded": "^1.93.3",
+    "vuepress": "^2.0.0-rc.26"
+  }
+}
