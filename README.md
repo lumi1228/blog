@@ -10,5 +10,16 @@ Lumi's front-end notes and insights 🚀. Sharing front-end interview frameworks
 ## 本地运行
 
 ```
-npm run docs:dev
+npm run dev
+```
+
+## 打包构建
+
+```
+npm run build
+```
+
+## 部署
+```
+./deploy.sh
 ```
