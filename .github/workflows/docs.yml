@@ -1,5 +1,9 @@
 name: docs
 
+# 添加权限配置
+permissions:
+  contents: write  # 允许读写仓库内容（关键）
+
 on:
   # 每当 push 到 main 分支时触发部署
   push:
