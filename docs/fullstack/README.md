@@ -54,6 +54,6 @@ description: 页面的描述
 
 ### 项目架构
 
- <!-- ![体系概览](static/image/1-1.jpg)  -->
+ ![体系概览](/images/1-1.jpg) 
 
 

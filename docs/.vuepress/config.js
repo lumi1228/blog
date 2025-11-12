@@ -20,19 +20,41 @@ export default defineUserConfig({
       {
         text: '全栈进阶',
         children: [
-          // { text: '使用Node.js', link: '/fullstack/' },
-          { text: 'L1-大前端思维', link: '/fullstack/' ,
+          {
+            text: '大前端思维',
             children: [
-              { text: ' 认识大前端，全栈开发初体验', link: '/fullstack/L1/01.meet-fullstack.md' },
-              { text: ' 企业级标准的开发环境搭建', link: '/fullstack/' },
-              { text: ' NoSQL数据库的设计与集成', link: '/fullstack/' },
-              { text: ' 登陆鉴权后端通用方案', link: '/fullstack/' },
+              { text: '认识大前端，全栈开发初体验', link: '/fullstack/L1/01.meet-fullstack.md' },
+              { text: '企业级标准的开发环境搭建', link: '/fullstack/' },
+              { text: 'NoSQL数据库的设计与集成', link: '/fullstack/' },
+              { text: '登陆鉴权后端通用方案', link: '/fullstack/' },
             ]
           },
-          { text: 'L2-项目全流程DevOps', link: '/fullstack/' },
-          { text: 'L3-PC端进阶前后端开发实战', link: '/fullstack/' },
-          { text: 'L3-CMS后台管理系统开发实战', link: '/fullstack/' },
-          { text: '数据库', link: '/fullstack/' },
+          {
+            text: '项目全流程DevOps',
+            children: [
+              { text: '文档管理与缺陷控制', link: '/fullstack/' },
+              { text: '版本管理', link: '/fullstack/' },
+              { text: '自动化流程', link: '/fullstack/' },
+            ]
+          },
+          {
+            text: 'PC端进阶前后端开发实战',
+            children: [
+              { text: '首页模块', link: '/fullstack/' },
+              { text: '用户中心', link: '/fullstack/' },
+              { text: '发帖/回帖模块', link: '/fullstack/' },
+              { text: '消息中间件', link: '/fullstack/' },
+            ]
+          },
+          {
+            text: 'CMS后台管理系统开发实战',
+            children: [
+              { text: '组件化思想进阶', link: '/fullstack/' },
+              { text: '前端权限设计方案', link: '/fullstack/' },
+              { text: '基于角色与菜单的权限设计', link: '/fullstack/' },
+              { text: '首页可视化图表与日志服务', link: '/fullstack/' },
+            ]
+          },
         ]
       },
       { text: 'GitHub', link: 'https://github.com/lumi1228' },
