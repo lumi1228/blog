@@ -54,6 +54,6 @@ description: 页面的描述
 
 ### 项目架构
 
-![技术栈](/blog/images/l1-technology-stack.jpg)
+![技术栈](/images/l1-technology-stack.jpg)
 
 
