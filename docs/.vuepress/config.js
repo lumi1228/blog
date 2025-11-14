@@ -21,12 +21,16 @@ export default defineUserConfig({
         text: '全栈进阶',
         children: [
           {
+            text: '全栈总览',
+            link: '/fullstack/README.md' 
+          },
+          {
             text: '前端进阶全栈基础',
             children: [
-              { text: '前端困境与全栈破局', link: '/fullstack/L1/README.md' },
-              { text: '企业级标准的开发环境搭建', link: '/fullstack/' },
-              { text: 'NoSQL数据库的设计与集成', link: '/fullstack/' },
-              { text: '登陆鉴权后端通用方案', link: '/fullstack/' },
+              { text: '前端困境与全栈破局', link: '/fullstack/L1/01.meet-fullstack.md' },
+              { text: '企业级标准的开发环境搭建', link: '/fullstack/L1/02.project-require.md' },
+              { text: 'NoSQL数据库的设计与集成', link: '/fullstack/L1/03.frontend-engineering.md' },
+              { text: '登陆鉴权后端通用方案', link: '/fullstack/L1/04.backend-authentication.md' },
             ]
           },
           {
@@ -65,7 +69,9 @@ export default defineUserConfig({
           text: '认识大前端，全栈开发初体验',
           children: [
             { text: '一、前端困境与全栈破局', link: '/fullstack/L1/01.meet-fullstack.md' },
-            { text: '二、项目需求分析', link: '/fullstack/L1/02.project-require.md' },
+            { text: '二、项目需求分析与工具', link: '/fullstack/L1/02.project-require.md' },
+            { text: '三、工程化之webpack', link: '/fullstack/L1/03.tool-webpack.md' },
+            { text: '前端工程化概览', link: '/fullstack/L1/overview-engineering.md' },
           ]
         }
       ]
