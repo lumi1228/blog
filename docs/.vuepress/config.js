@@ -70,7 +70,9 @@ export default defineUserConfig({
           children: [
             { text: '一、前端困境与全栈破局', link: '/fullstack/L1/01.meet-fullstack.md' },
             { text: '二、项目需求分析与工具', link: '/fullstack/L1/02.project-require.md' },
-            { text: '三、工程化之webpack', link: '/fullstack/L1/03.tool-webpack.md' },
+            { text: '三、打包工具之webpack', link: '/fullstack/L1/03.tool-webpack.md' },
+            { text: '四、自动化工具之Gulp', link: '/fullstack/L1/04.tool-gulp.md' },
+            { text: '五、脚手架生成器之Yeoman「待更新」', link: '/fullstack/L1/05.tool-yeoman.md' },
             { text: '前端工程化概览', link: '/fullstack/L1/overview-engineering.md' },
           ]
         }
