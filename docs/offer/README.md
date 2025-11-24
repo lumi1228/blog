@@ -1,52 +1,85 @@
 # 前端面试概览
 
-### 逐步更新，敬请期待～
+<style scoped>
+.offer-hero {
+  margin: 28px 0 36px;
+  padding: 48px 40px;
+  border-radius: 30px;
+  background: linear-gradient(120deg, rgba(88,28,135,.92), rgba(2,6,23,.95));
+  color: #f8fafc;
+  box-shadow: 0 40px 60px rgba(15,23,42,.5);
+  border: 1px solid rgba(248,113,113,.35);
+}
+.offer-hero h2 {
+  margin: 0 0 12px;
+  font-size: 36px;
+}
+.offer-hero p {
+  margin: 6px 0;
+  font-size: 18px;
+  line-height: 1.8;
+}
+.offer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(260px,1fr));
+  gap: 18px;
+  margin-top: 22px;
+}
+.offer-card {
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(15,23,42,.7);
+  border: 1px solid rgba(248,113,113,.3);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.offer-card span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: #fca5a5;
+  margin-bottom: 6px;
+}
+.offer-section {
+  margin: 40px 0 10px;
+  font-size: 22px;
+  position: relative;
+  color: #f472b6;
+}
+.offer-section::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+  width: 80px;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg,#f472b6,#c084fc);
+}
+.offer-list {
+  margin: 16px 0 0;
+  padding-left: 18px;
+  color: #e2e8f0;
+  line-height: 1.8;
+}
+</style>
 
-## 01. 基础理论
-
-1.1 HTML 语义化与可访问性  
-1.2 DOM/BOM、事件模型、渲染与回流重绘  
-1.3 CSS 盒模型、布局（Flex/Grid）、响应式与主题  
-1.4 浏览器存储与安全策略（跨域、CSP、SameSite）
-
-## 02. JavaScript 与 TypeScript
-
-2.1 语言核心：作用域、闭包、原型链、this、事件循环  
-2.2 异步与并发：Promise、async/await、宏微任务调度  
-2.3 TypeScript：类型系统、泛型、装饰器、常见设计模式  
-2.4 手写题库：深拷贝、节流防抖、发布订阅、柯里化等
-
-## 03. 框架与组件体系
-
-3.1 React：Hooks、状态管理、虚拟 DOM、Concurrent 特性  
-3.2 Vue：组合式 API、响应式追踪、Diff 策略、生态插件  
-3.3 常见框架对比、选型与性能调优  
-3.4 组件设计模式、表单体系、跨端方案（小程序、RN 等）
-
-## 04. 工程化与质量保障
-
-4.1 构建与打包：Webpack、Vite、Rollup、模块联邦  
-4.2 包管理与 Monorepo：npm/yarn/pnpm、TurboRepo、Changeset  
-4.3 代码质量：ESLint/Prettier、Commit 规范、Git 策略  
-4.4 测试矩阵：单元/集成/E2E、Mock、CI/CD、灰度与回滚
-
-## 05. 性能优化与安全
-
-5.1 Web 性能指标（FCP/LCP/CLS/TTI）与监控平台  
-5.2 资源优化：分包、懒加载、图片与缓存策略、SSR/SSG  
-5.3 Runtime 优化：长列表、虚拟滚动、Web Worker、离线化  
-5.4 安全防护：XSS、CSRF、点击劫持、OAuth/JWT、内容安全策略
-
-## 06. 网络、后端协作与全栈实践
-
-6.1 HTTP/HTTPS、缓存策略、HTTP/2、QUIC、GraphQL、gRPC  
-6.2 BFF/Serverless/Node.js 实践、接口聚合与降级容错  
-6.3 WebSocket/SSE 实时通信、消息队列协作  
-6.4 DevOps 思维：日志采集、可观测、告警与排障流程
-
-## 07. 项目经验与软技能
-
-7.1 STAR 法则拆解代表项目（背景/任务/行动/结果）  
-7.2 需求协作、排期、Code Review、多人协作规范  
-7.3 面试行为题、冲突解决、驱动与影响力案例  
-7.4 现场笔试/手写/系统设计模拟与复盘清单
+<div class="offer-hero">
+  <h2>逐步更新，敬请期待～</h2>
+  <p>此处汇总前端面试全景目录，覆盖基础理论、框架、工程化、性能、安全、后端协作与软技能。按模块链接逐步释出内容，帮助你系统备战。</p>
+  <div class="offer-grid">
+    <div class="offer-card">
+      <span>📚 Foundation</span>
+      HTML/CSS/JS & 浏览器机制的基础题库与讲解。
+    </div>
+    <div class="offer-card">
+      <span>⚙️ Engineering</span>
+      框架、工程链路、性能与安全的综合问答。
+    </div>
+    <div class="offer-card">
+      <span>🧠 Soft Skills</span>
+      项目故事、协作经验、行为与系统设计题。
+    </div>
+  </div>
+</div>

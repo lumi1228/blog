@@ -1,11 +1,10 @@
 # lumi-blog
 
-> EN | 中文双语介绍，方便快速了解仓库定位。
 
 ## Overview · 项目概览
 
-- English：A curated collection of front‑end & full‑stack learning notes. Covers interview playbooks, engineering practices, DevOps workflow, and roadmap planning—built with VuePress 2 + Vite.
-- 中文：聚焦前端进阶与全栈实践的知识库，包含面试目录、工程化工具链、DevOps 流程与成长路线。使用 VuePress 2 & Vite 构建，可直接部署为静态站点。
+- A curated collection of front‑end & full‑stack learning notes. Covers interview playbooks, engineering practices, DevOps workflow, and roadmap planning—built with VuePress 2 + Vite.
+- 聚焦前端进阶与全栈实践的知识库，包含面试目录、工程化工具链、DevOps 流程与成长路线。使用 VuePress 2 & Vite 构建，可直接部署为静态站点。
 
 ## Highlights · 项目亮点
 

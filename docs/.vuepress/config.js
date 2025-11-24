@@ -6,7 +6,7 @@ export default defineUserConfig({
   bundler: viteBundler(),
   base: '/blog/',  
   lang: 'zh-CN',
-  title: 'lumi-blog',
+  title: 'Lumi\'s Blog',
   description: '这是我的第一个 VuePress 站点',
   theme: defaultTheme({
     navbar: [
@@ -14,7 +14,7 @@ export default defineUserConfig({
       {
         text: '前端基础',
         children: [
-          { text: 'Introduction', link: '/guide/' },
+          { text: '概览', link: '/fontend/README.md' },
         ]
       },
       {
