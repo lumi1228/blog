@@ -37,6 +37,7 @@ export default defineUserConfig({
               { text: '自动化工具之gulp', link: '/fullstack/class2/04.tool-gulp.md' },
               { text: '脚手架生成器之Yeoman「持续更新」', link: '/fullstack/class2/05.tool-yeoman.md' },
               { text: 'koa-web框架', link: '/fullstack/class2/06.koa-framework.md' },
+              // { text: '开发环境搭建', link: '/fullstack/class2/06.koa-framework.md' },
             ]
             // 工程化与工具链：原有 webpack/gulp/Yeoman 属于前端工程，
             // 建议换成跨端/后端/DevOps向的工具，如包管理、CI/CD、容器化、监控告警等。
