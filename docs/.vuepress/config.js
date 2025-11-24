@@ -11,12 +11,12 @@ export default defineUserConfig({
   theme: defaultTheme({
     navbar: [
       { text: 'Home', link: '/' },
-      // {
-      //   text: '前端基础',
-      //   children: [
-      //     { text: 'Introduction', link: '/guide/' },
-      //   ]
-      // },
+      {
+        text: '前端基础',
+        children: [
+          { text: 'Introduction', link: '/guide/' },
+        ]
+      },
       {
         text: '全栈进阶',
         children: [
@@ -105,6 +105,12 @@ export default defineUserConfig({
           //     { text: '首页可视化图表与日志服务', link: '/fullstack/' },
           //   ]
           // },
+        ]
+      },
+      {
+        text: '剑指Offer',
+        children: [
+          { text: '面试概览', link: '/offer/README.md' },
         ]
       },
       { text: 'GitHub', link: 'https://github.com/lumi1228' },

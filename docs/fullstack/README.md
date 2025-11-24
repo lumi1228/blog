@@ -6,15 +6,10 @@ description: 页面的描述
 
 # full-stack-notes
 
-> 课程对标阿里P6，从前端工程师直达大前端;一个业务场景深度打通全端+全栈+全流程，打通PC、管理后台、WebApp、uniapp小程序、移动App、跨端桌面应用和服务端接口
-> 课程地址：https://class.imooc.com/sc/130/learn
-> 电子书地址：https://www.imooc.com/read/87
+> 对标阿里P6，从前端工程师直达大前端;一个业务场景深度打通全端+全栈+全流程，打通PC、管理后台、WebApp、uniapp小程序、移动App、跨端桌面应用和服务端接口
 
 
-
-
-
-### 课程目录
+### 目录
 
 ```
 ├── 阶段一：解锁“大前端思维”                     # 入门与通识
