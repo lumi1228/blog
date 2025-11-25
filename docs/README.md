@@ -8,8 +8,8 @@
   margin: 24px 0 32px;
   min-height: 380px;
   color: #fff;
-  border: 1px solid rgba(147,51,234,.35);
-  box-shadow: 0 35px 80px rgba(49,46,129,.85);
+  border: 1px solid rgba(139,92,246,.3);
+  box-shadow: 0 20px 50px rgba(15,23,42,.6);
   animation: hero-glow 8s ease-in-out infinite alternate;
 }
 .hero-wrap::before,
@@ -19,7 +19,7 @@
   width: 220px;
   height: 220px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(147,51,234,.35), transparent 70%);
+  background: radial-gradient(circle, rgba(139,92,246,.25), rgba(99,102,241,.2), transparent 70%);
   filter: blur(2px);
   animation: orb 12s linear infinite;
   pointer-events: none;
@@ -34,14 +34,14 @@
   animation-delay: 4s;
 }
 .hero-glass {
-  backdrop-filter: blur(22px);
-  background: rgba(32,10,68,.85);
+  backdrop-filter: blur(20px);
+  background: rgba(15,23,42,.75);
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 36px;
   align-items: start;
   padding: 48px;
-  border: 1px solid rgba(192,132,252,.2);
+  border: 1px solid rgba(139,92,246,.25);
 }
 .hero-profile {
   display: flex;
@@ -54,8 +54,8 @@
   height: 160px;
   border-radius: 50%;
   padding: 5px;
-  background: linear-gradient(135deg, rgba(217,70,239,.95), rgba(147,51,234,.9), rgba(99,102,241,.85));
-  box-shadow: 0 15px 40px rgba(139,92,246,.5), 0 0 30px rgba(217,70,239,.3);
+  background: linear-gradient(135deg, rgba(139,92,246,.95), rgba(99,102,241,.9), rgba(59,130,246,.85));
+  box-shadow: 0 15px 40px rgba(139,92,246,.4), 0 0 30px rgba(99,102,241,.3);
   position: relative;
 }
 .hero-avatar::before {
@@ -63,7 +63,7 @@
   position: absolute;
   inset: -3px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(217,70,239,.6), rgba(147,51,234,.4));
+  background: linear-gradient(135deg, rgba(139,92,246,.5), rgba(99,102,241,.3));
   filter: blur(8px);
   z-index: -1;
   animation: avatar-glow 3s ease-in-out infinite alternate;
@@ -83,14 +83,14 @@
   gap: 8px;
   padding: 16px;
   border-radius: 16px;
-  background: rgba(49,28,90,.6);
-  border: 1px solid rgba(192,132,252,.3);
+  background: rgba(15,23,42,.7);
+  border: 1px solid rgba(139,92,246,.3);
   backdrop-filter: blur(8px);
 }
 .hero-text h1 {
   font-size: 46px;
   margin: 0 0 16px;
-  background: linear-gradient(135deg, #f0abfc, #d946ef, #a855f7);
+  background: linear-gradient(135deg, #a78bfa, #8b5cf6, #6366f1, #3b82f6);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -100,18 +100,18 @@
 .hero-text p {
   margin: 8px 0;
   font-size: 16px;
-  color: rgba(243,232,255,.9);
+  color: rgba(226,232,240,.9);
   line-height: 1.7;
 }
 .hero-quote-icon {
   font-size: 32px;
-  color: rgba(217,70,239,.8);
-  filter: drop-shadow(0 0 8px rgba(217,70,239,.5));
+  color: rgba(139,92,246,.8);
+  filter: drop-shadow(0 0 8px rgba(139,92,246,.5));
 }
 .hero-quote {
   margin: 0;
   font-size: 14px;
-  color: rgba(249,208,255,.95);
+  color: rgba(196,181,253,.95);
   font-style: italic;
   line-height: 1.7;
   text-align: center;
@@ -152,7 +152,7 @@
   content: '';
   width: 72px;
   height: 3px;
-  background: linear-gradient(90deg,#22d3ee,#2563eb);
+  background: linear-gradient(90deg,#a78bfa,#8b5cf6,#6366f1);
   position: absolute;
   left: 0;
   bottom: -8px;
@@ -166,24 +166,24 @@
 .card {
   border-radius: 18px;
   padding: 22px;
-  background: rgba(32,16,56,.9);
-  color: #f3e8ff;
-  border: 1px solid rgba(192,132,252,.25);
-  box-shadow: 0 16px 30px rgba(49,28,90,.4);
+  background: rgba(15,23,42,.9);
+  color: #e2e8f0;
+  border: 1px solid rgba(139,92,246,.25);
+  box-shadow: 0 16px 30px rgba(15,23,42,.5);
   transition: transform .35s ease, border .35s ease, box-shadow .35s ease;
   position: relative;
   overflow: hidden;
 }
 .card:hover {
   transform: translateY(-4px);
-  border-color: rgba(217,70,239,.6);
-  box-shadow: 0 22px 35px rgba(91,33,182,.55);
+  border-color: rgba(139,92,246,.5);
+  box-shadow: 0 22px 35px rgba(15,23,42,.6);
 }
 .card::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(120deg, rgba(217,70,239,.25), transparent 70%);
+  background: linear-gradient(120deg, rgba(139,92,246,.15), rgba(99,102,241,.1), transparent 70%);
   opacity: 0;
   transition: opacity .35s ease;
 }
@@ -191,12 +191,12 @@
 .card h3 { margin: 0 0 8px; font-size: 18px; }
 .card p { margin: 0 0 12px; font-size: 14px; color: #94a3b8; }
 .card a {
-  color: #38bdf8;
+  color: #a78bfa;
   text-decoration: none;
   font-weight: 600;
 }
 .timeline {
-  border-left: 3px solid rgba(217,70,239,.35);
+  border-left: 3px solid rgba(139,92,246,.35);
   padding-left: 20px;
   margin-top: 16px;
   position: relative;
@@ -208,7 +208,7 @@
   top: 0;
   bottom: 0;
   width: 4px;
-  background: linear-gradient(180deg, rgba(192,132,252,.4), rgba(147,51,234,.5));
+  background: linear-gradient(180deg, rgba(139,92,246,.4), rgba(99,102,241,.5));
   animation: pulse 3s ease-in-out infinite;
 }
 .timeline-item {
@@ -222,35 +222,35 @@
   top: 4px;
   width: 14px;
   height: 14px;
-  background: #d946ef;
+  background: #8b5cf6;
   border-radius: 50%;
-  box-shadow: 0 0 0 10px rgba(217,70,239,.2);
+  box-shadow: 0 0 0 10px rgba(139,92,246,.2);
 }
 .cta-primary {
-  background: linear-gradient(135deg, #d946ef, #8b5cf6, #6366f1);
-  color: #1f123d;
-  box-shadow: 0 12px 35px rgba(139,92,246,.5), 0 0 20px rgba(217,70,239,.3);
+  background: linear-gradient(135deg, #a78bfa, #8b5cf6, #6366f1, #3b82f6);
+  color: #0f172a;
+  box-shadow: 0 8px 20px rgba(139,92,246,.4), 0 0 12px rgba(99,102,241,.3);
   font-weight: 700;
 }
 .cta-primary:hover { 
   transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 16px 40px rgba(139,92,246,.6), 0 0 30px rgba(217,70,239,.4);
+  box-shadow: 0 10px 25px rgba(139,92,246,.5), 0 0 18px rgba(99,102,241,.4);
 }
 .cta-secondary {
-  border: 1px solid rgba(192,132,252,.5);
-  color: #f0abfc;
+  border: 1px solid rgba(139,92,246,.4);
+  color: #e2e8f0;
   backdrop-filter: blur(8px);
-  background: rgba(49,28,90,.4);
+  background: rgba(15,23,42,.5);
 }
 .cta-secondary:hover { 
-  border-color: rgba(217,70,239,.8);
-  background: rgba(49,28,90,.6);
-  color: #fbcfe8;
+  border-color: rgba(139,92,246,.6);
+  background: rgba(15,23,42,.7);
+  color: #f1f5f9;
 }
 
 @keyframes hero-glow {
-  from { box-shadow: 0 25px 60px rgba(49,46,129,.8), 0 0 40px rgba(147,51,234,.3); }
-  to { box-shadow: 0 40px 80px rgba(91,33,182,.85), 0 0 60px rgba(217,70,239,.5); }
+  from { box-shadow: 0 20px 50px rgba(15,23,42,.6), 0 0 20px rgba(139,92,246,.15); }
+  to { box-shadow: 0 25px 60px rgba(15,23,42,.7), 0 0 30px rgba(139,92,246,.25); }
 }
 @keyframes avatar-glow {
   from { opacity: .4; transform: scale(1); }
@@ -371,7 +371,7 @@
 - [项目需求分析与工具](./fullstack/class3/02.project-require.md)
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 
 const heroImages = [
   // docs/.vuepress/public/images/lumi/*
@@ -410,14 +410,22 @@ const heroImage = ref(heroImages[0])
 const heroAvatar = ref(heroImages[0])
 const heroQuote = ref(quotes[0])
 
-if (typeof window !== 'undefined') {
+const initRandom = () => {
   const pickedImage = pickRandom(heroImages)
   heroImage.value = pickedImage
   heroAvatar.value = pickedImage
   heroQuote.value = pickRandom(quotes)
 }
 
+if (typeof window !== 'undefined') {
+  initRandom()
+}
+
+onMounted(() => {
+  initRandom()
+})
+
 const heroStyle = computed(() => ({
-  background: `linear-gradient(135deg, rgba(10,15,35,.92), rgba(67,56,202,.8)), url(${heroImage.value}) center/cover`
+  background: `linear-gradient(180deg, rgba(55,48,163,.7), rgba(30,27,75,.75), rgba(15,23,42,.85)), url(${heroImage.value}) center/cover`
 }))
 </script>
