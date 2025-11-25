@@ -92,7 +92,7 @@
   margin: 0 0 16px;
   background: linear-gradient(135deg, #a78bfa, #8b5cf6, #6366f1, #3b82f6);
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  /* -webkit-text-fill-color: transparent; */
   background-clip: text;
   font-weight: 700;
   letter-spacing: -0.5px;
@@ -131,10 +131,11 @@
   font-weight: 600;
   transition: all .25s ease;
   text-decoration: none;
+  color: #fff;
 }
 .cta-primary {
   background: #22d3ee;
-  color: #0f172a;
+  color: #fff;
   box-shadow: 0 12px 30px rgba(45,212,191,.45);
 }
 .cta-primary:hover { transform: translateY(-2px) scale(1.01); }
