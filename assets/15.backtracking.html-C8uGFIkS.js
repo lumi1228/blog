@@ -1,0 +1,13 @@
+import{_ as n,a as s,d as e,g as l}from"./app-DWSbfguz.js";const i={};function r(t,a){return l(),s("div",null,[...a[0]||(a[0]=[e(`<h2 id="_1-回溯算法是什么" tabindex="-1"><a class="header-anchor" href="#_1-回溯算法是什么"><span>1. 回溯算法是什么</span></a></h2><ul><li>回溯是一种<strong>渐进式</strong>寻找并构建问题解决方式的策略。</li><li>回溯算法会先从一个可能的动作开始解决问题，如果不行，就回溯并选择另一个动作，直到将问题解决。</li><li>什么问题适合用： <ul><li>有很多路。（矩阵、树路径、组合）</li><li>这些路里，有死路，也有出路</li><li>通常需要<strong>递归</strong>来模拟所有路</li></ul></li></ul><h2 id="_2-应用场景" tabindex="-1"><a class="header-anchor" href="#_2-应用场景"><span>2. 应用场景</span></a></h2><h4 id="场景一-全排列" tabindex="-1"><a class="header-anchor" href="#场景一-全排列"><span>场景一：全排列</span></a></h4><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">  对一个数组，输出所有的排列组合</span>
+<span class="line">  输入：[1,2,3]</span>
+<span class="line">  输出：[</span>
+<span class="line">    [1,2,3],</span>
+<span class="line">    [1,3,2],</span>
+<span class="line">    [2,1,3],</span>
+<span class="line">    [2,3,1],</span>
+<span class="line">    ...</span>
+<span class="line">  ]</span>
+<span class="line">  用递归模拟出所有情况。</span>
+<span class="line">  遇到包含重复元素，就回溯、</span>
+<span class="line">  收集所有到达递归终点的情况，并返回。</span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h2 id="_3-算法题" tabindex="-1"><a class="header-anchor" href="#_3-算法题"><span>3.算法题</span></a></h2><ul><li><a href="https://leetcode-cn.com/problems/permutations/" target="_blank" rel="noopener noreferrer">🧡 46. 全排列</a> 📌 二刷补注释</li><li><a href="https://leetcode-cn.com/problems/subsets/" target="_blank" rel="noopener noreferrer">🧡 78. 子集</a>📌 二刷补注释</li></ul>`,7)])])}const d=n(i,[["render",r]]),o=JSON.parse('{"path":"/fontend/class2/15.backtracking.html","title":"","lang":"zh-CN","frontmatter":{},"git":{"updatedTime":1764157357000,"contributors":[{"name":"lumi","username":"lumi","email":"lumiya1228@gmail.com","commits":1,"url":"https://github.com/lumi"}],"changelog":[{"hash":"1860e17827d3aabac151c579edaf9fdcd3a988c3","time":1764157357000,"email":"lumiya1228@gmail.com","author":"lumi","message":"docs: expand front-end class2 section with new topics on data structures and algorithms"}]},"filePathRelative":"fontend/class2/15.backtracking.md"}');export{d as comp,o as data};

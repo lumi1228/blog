@@ -1,0 +1,164 @@
+import{_ as s,a,d as e,g as p}from"./app-DWSbfguz.js";const l={};function t(i,n){return p(),a("div",null,[...n[0]||(n[0]=[e(`<h3 id="_1-什么是链表" tabindex="-1"><a class="header-anchor" href="#_1-什么是链表"><span>1. 什么是链表</span></a></h3><ul><li>链表是多个元素组成的一种物理结构，类似于数组</li><li>元素存储不连续，用next指针连在一起</li><li>链表节点的数据结构{value,next?,prev?}</li><li>javascript 没有链表数据结构，用Object模拟链表；</li><li>链表常用操作：修改next，遍历链表</li><li>遍历链表，插入、删除</li></ul><h4 id="基本使用示例" tabindex="-1"><a class="header-anchor" href="#基本使用示例"><span>基本使用示例：</span></a></h4><div class="code-block-with-title"><div class="code-block-title-bar" data-title="链表创建示例"><span>链表创建示例</span></div><div class="language-javascript line-numbers-mode" data-highlighter="prismjs" data-ext="js"><pre><code class="language-javascript"><span class="line"><span class="token keyword">function</span> <span class="token function">creatLinkList</span><span class="token punctuation">(</span><span class="token parameter">arr</span><span class="token punctuation">)</span><span class="token punctuation">{</span></span>
+<span class="line">  <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token operator">!</span>arr <span class="token operator">||</span> <span class="token operator">!</span>arr<span class="token punctuation">.</span>length<span class="token punctuation">)</span> <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">Error</span><span class="token punctuation">(</span><span class="token string">&#39;arr is empty!&#39;</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span>
+<span class="line">  <span class="token keyword">const</span> length <span class="token operator">=</span> arr<span class="token punctuation">.</span>length</span>
+<span class="line">  <span class="token comment">//从后往前遍历数组</span></span>
+<span class="line">  <span class="token comment">//获取最后一个值</span></span>
+<span class="line">  <span class="token keyword">let</span> curNode <span class="token operator">=</span><span class="token punctuation">{</span></span>
+<span class="line">    <span class="token literal-property property">value</span><span class="token operator">:</span>arr<span class="token punctuation">[</span>length<span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">]</span></span>
+<span class="line">  <span class="token punctuation">}</span></span>
+<span class="line">  <span class="token comment">// 若只有一个元素，则直接返回当前节点</span></span>
+<span class="line">  <span class="token keyword">if</span><span class="token punctuation">(</span>length <span class="token operator">===</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">{</span></span>
+<span class="line">    <span class="token keyword">return</span> curNode</span>
+<span class="line">  <span class="token punctuation">}</span></span>
+<span class="line">  <span class="token comment">// 若多个元素，则从后遍历数组，依次这是链表值</span></span>
+<span class="line">  <span class="token keyword">for</span><span class="token punctuation">(</span><span class="token keyword">let</span> i <span class="token operator">=</span> length<span class="token operator">-</span><span class="token number">2</span> <span class="token punctuation">;</span> i <span class="token operator">&gt;=</span><span class="token number">0</span><span class="token punctuation">;</span> i<span class="token operator">--</span><span class="token punctuation">)</span><span class="token punctuation">{</span></span>
+<span class="line">    <span class="token comment">//重新定义节点，并赋值当前节点的next</span></span>
+<span class="line">    curNode <span class="token operator">=</span><span class="token punctuation">{</span></span>
+<span class="line">      <span class="token literal-property property">value</span><span class="token operator">:</span>arr<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">,</span></span>
+<span class="line">      <span class="token literal-property property">next</span><span class="token operator">:</span>curNode</span>
+<span class="line">    <span class="token punctuation">}</span></span>
+<span class="line">  <span class="token punctuation">}</span></span>
+<span class="line">  <span class="token keyword">return</span> curNode</span>
+<span class="line"><span class="token punctuation">}</span></span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div></div><div class="code-block-with-title"><div class="code-block-title-bar" data-title="链表实现队列示例"><span>链表实现队列示例</span></div><div class="language-javascript line-numbers-mode" data-highlighter="prismjs" data-ext="js"><pre><code class="language-javascript"><span class="line"><span class="token comment">// 实现思路：</span></span>
+<span class="line"><span class="token comment">// * 用单向链表，但是要同时记录head和tail「头、尾」</span></span>
+<span class="line"><span class="token comment">// * 要从tail入队，从head出队，否则出队时tail不好定位</span></span>
+<span class="line"><span class="token comment">// * length 要实时记录，不可便利链表获取</span></span>
+<span class="line"></span>
+<span class="line"><span class="token keyword">class</span> <span class="token class-name">MyQueue</span><span class="token punctuation">{</span></span>
+<span class="line">  <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">{</span></span>
+<span class="line">    <span class="token keyword">this</span><span class="token punctuation">.</span>head <span class="token operator">=</span> <span class="token keyword">null</span></span>
+<span class="line">    <span class="token keyword">this</span><span class="token punctuation">.</span>tail <span class="token operator">=</span> <span class="token keyword">null</span></span>
+<span class="line">    <span class="token keyword">this</span><span class="token punctuation">.</span>length <span class="token operator">=</span> <span class="token number">0</span></span>
+<span class="line">  <span class="token punctuation">}</span></span>
+<span class="line">  <span class="token function">add</span><span class="token punctuation">(</span><span class="token parameter">n</span><span class="token punctuation">)</span><span class="token punctuation">{</span></span>
+<span class="line">    <span class="token keyword">let</span> newNode <span class="token operator">=</span><span class="token punctuation">{</span></span>
+<span class="line">      <span class="token literal-property property">value</span> <span class="token operator">:</span> n<span class="token punctuation">,</span></span>
+<span class="line">      <span class="token literal-property property">next</span><span class="token operator">:</span><span class="token keyword">null</span></span>
+<span class="line">    <span class="token punctuation">}</span></span>
+<span class="line">    <span class="token comment">//若链表为空，头尾节点均指向新节点</span></span>
+<span class="line">    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span>length <span class="token operator">===</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span></span>
+<span class="line">      <span class="token keyword">this</span><span class="token punctuation">.</span>head <span class="token operator">=</span> newNode</span>
+<span class="line">      <span class="token keyword">this</span><span class="token punctuation">.</span>tail <span class="token operator">=</span>  newNode</span>
+<span class="line">    <span class="token punctuation">}</span><span class="token keyword">else</span><span class="token punctuation">{</span></span>
+<span class="line">      <span class="token comment">// 入队</span></span>
+<span class="line">      <span class="token keyword">this</span><span class="token punctuation">.</span>tail<span class="token punctuation">.</span>next <span class="token operator">=</span> newNode</span>
+<span class="line">      <span class="token comment">// tail指向新的尾节点</span></span>
+<span class="line">      <span class="token keyword">this</span><span class="token punctuation">.</span>tail<span class="token operator">=</span>newNode</span>
+<span class="line">    <span class="token punctuation">}</span></span>
+<span class="line">    <span class="token keyword">this</span><span class="token punctuation">.</span>length <span class="token operator">++</span></span>
+<span class="line">    </span>
+<span class="line">  <span class="token punctuation">}</span></span>
+<span class="line">  <span class="token keyword">delete</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">{</span></span>
+<span class="line">    <span class="token keyword">let</span> headNode <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>head</span>
+<span class="line">    <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token operator">!</span>headNode <span class="token operator">||</span> <span class="token keyword">this</span><span class="token punctuation">.</span>length <span class="token operator">&lt;=</span><span class="token number">0</span> <span class="token punctuation">)</span> <span class="token keyword">return</span> <span class="token keyword">null</span></span>
+<span class="line">    </span>
+<span class="line">    <span class="token comment">// 取值</span></span>
+<span class="line">    <span class="token keyword">let</span> value <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>head<span class="token punctuation">.</span>value</span>
+<span class="line">    <span class="token comment">// head指向新的头节点</span></span>
+<span class="line">    <span class="token keyword">this</span><span class="token punctuation">.</span>head <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>head<span class="token punctuation">.</span>next</span>
+<span class="line">    <span class="token keyword">this</span><span class="token punctuation">.</span>length <span class="token operator">--</span></span>
+<span class="line">  <span class="token punctuation">}</span></span>
+<span class="line">  <span class="token function">getLength</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">{</span></span>
+<span class="line">    <span class="token comment">// length要单独处理，不能遍历获取，否则时间复杂度太高</span></span>
+<span class="line">    <span class="token keyword">return</span> <span class="token keyword">this</span><span class="token punctuation">.</span>length</span>
+<span class="line">  <span class="token punctuation">}</span></span>
+<span class="line"></span>
+<span class="line"><span class="token punctuation">}</span></span>
+<span class="line"></span>
+<span class="line"><span class="token keyword">let</span> queue1 <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">MyQueue</span><span class="token punctuation">(</span><span class="token punctuation">)</span></span>
+<span class="line">queue1<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span></span>
+<span class="line">queue1<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span></span>
+<span class="line">queue1<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span></span>
+<span class="line">console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>queue1<span class="token punctuation">)</span></span>
+<span class="line">queue1<span class="token punctuation">.</span><span class="token function">delete</span><span class="token punctuation">(</span><span class="token punctuation">)</span></span>
+<span class="line">queue1<span class="token punctuation">.</span><span class="token function">delete</span><span class="token punctuation">(</span><span class="token punctuation">)</span></span>
+<span class="line">console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>queue1<span class="token punctuation">)</span></span>
+<span class="line">console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>queue1<span class="token punctuation">.</span><span class="token function">getLength</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span></span>
+<span class="line"></span>
+<span class="line"><span class="token comment">// 链表和数组性能分析</span></span>
+<span class="line"><span class="token comment">// 空间复杂度都是 O(n)</span></span>
+<span class="line"><span class="token comment">// 入队 时间复杂度：链表  O(1)、数组 O(1)</span></span>
+<span class="line"><span class="token comment">// 出队 时间复杂度：链表  O(1)、数组 O(n)</span></span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div></div><div class="code-block-with-title"><div class="code-block-title-bar" data-title="反转单向链表示例"><span>反转单向链表示例</span></div><div class="language-javascript line-numbers-mode" data-highlighter="prismjs" data-ext="js"><pre><code class="language-javascript"><span class="line"><span class="token comment">//反转单向链表，并返回反转后的headnode</span></span>
+<span class="line"><span class="token comment">// 实现思路：</span></span>
+<span class="line"><span class="token comment">// 反转，将节点next指向前一个节点</span></span>
+<span class="line"><span class="token comment">// 很容易造成nextNode丢失</span></span>
+<span class="line"><span class="token comment">// 需要三个指针 prevNode curNode nextNode</span></span>
+<span class="line"><span class="token keyword">function</span> <span class="token function">reverseLinkList</span><span class="token punctuation">(</span><span class="token parameter">listNode</span><span class="token punctuation">)</span> <span class="token punctuation">{</span></span>
+<span class="line">  <span class="token comment">// 定义三个指针，初始值nextNode 指向头节点</span></span>
+<span class="line">  <span class="token keyword">let</span> prevNode  <span class="token operator">=</span> <span class="token keyword">undefined</span></span>
+<span class="line">  <span class="token keyword">let</span> curNode  <span class="token operator">=</span> <span class="token keyword">undefined</span></span>
+<span class="line">  <span class="token keyword">let</span> nextNode  <span class="token operator">=</span> listNode</span>
+<span class="line"></span>
+<span class="line">  <span class="token keyword">while</span><span class="token punctuation">(</span>nextNode<span class="token punctuation">)</span><span class="token punctuation">{</span></span>
+<span class="line">    <span class="token comment">// 只有一个元素 删掉next 防止循环引用</span></span>
+<span class="line">    <span class="token keyword">if</span><span class="token punctuation">(</span>curNode <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span>prevNode<span class="token punctuation">)</span> <span class="token keyword">delete</span> curNode<span class="token punctuation">.</span>next</span>
+<span class="line"></span>
+<span class="line">    <span class="token comment">//反转指针</span></span>
+<span class="line">    <span class="token keyword">if</span><span class="token punctuation">(</span>curNode <span class="token operator">&amp;&amp;</span> prevNode<span class="token punctuation">)</span> curNode<span class="token punctuation">.</span>next <span class="token operator">=</span> prevNode</span>
+<span class="line"></span>
+<span class="line">    <span class="token comment">//整体向后移动</span></span>
+<span class="line">    prevNode <span class="token operator">=</span> curNode </span>
+<span class="line">    curNode <span class="token operator">=</span> nextNode </span>
+<span class="line">    nextNode <span class="token operator">=</span> nextNode<span class="token punctuation">.</span>next</span>
+<span class="line">  <span class="token punctuation">}</span></span>
+<span class="line">  <span class="token comment">// 补充最后一个，当nextNode，curNode未设置next</span></span>
+<span class="line">  curNode<span class="token punctuation">.</span>next <span class="token operator">=</span> prevNode</span>
+<span class="line">  <span class="token keyword">return</span> curNode</span>
+<span class="line"><span class="token punctuation">}</span></span>
+<span class="line"></span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div></div><div class="code-block-with-title"><div class="code-block-title-bar" data-title="遍历链表"><span>遍历链表</span></div><div class="language-javascript line-numbers-mode" data-highlighter="prismjs" data-ext="js"><pre><code class="language-javascript"><span class="line"><span class="token keyword">let</span> linkList2 <span class="token operator">=</span> <span class="token function">creatLinkList</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">,</span><span class="token number">2</span><span class="token punctuation">,</span><span class="token number">3</span><span class="token punctuation">,</span><span class="token number">4</span><span class="token punctuation">]</span><span class="token punctuation">)</span></span>
+<span class="line">console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>linkList2<span class="token punctuation">)</span></span>
+<span class="line"></span>
+<span class="line"><span class="token keyword">const</span> a<span class="token operator">=</span><span class="token punctuation">{</span><span class="token literal-property property">val</span><span class="token operator">:</span><span class="token string">&#39;a&#39;</span><span class="token punctuation">}</span></span>
+<span class="line"><span class="token keyword">const</span> b<span class="token operator">=</span><span class="token punctuation">{</span><span class="token literal-property property">val</span><span class="token operator">:</span><span class="token string">&#39;b&#39;</span><span class="token punctuation">}</span></span>
+<span class="line"><span class="token keyword">const</span> c<span class="token operator">=</span><span class="token punctuation">{</span><span class="token literal-property property">val</span><span class="token operator">:</span><span class="token string">&#39;c&#39;</span><span class="token punctuation">}</span></span>
+<span class="line"><span class="token keyword">const</span> d<span class="token operator">=</span><span class="token punctuation">{</span><span class="token literal-property property">val</span><span class="token operator">:</span><span class="token string">&#39;d&#39;</span><span class="token punctuation">}</span></span>
+<span class="line">a<span class="token punctuation">.</span>next<span class="token operator">=</span>b</span>
+<span class="line">b<span class="token punctuation">.</span>next<span class="token operator">=</span>c</span>
+<span class="line">c<span class="token punctuation">.</span>next<span class="token operator">=</span>d</span>
+<span class="line"></span>
+<span class="line"><span class="token comment">//遍历链表</span></span>
+<span class="line"><span class="token keyword">let</span> p<span class="token operator">=</span>a</span>
+<span class="line"><span class="token keyword">while</span><span class="token punctuation">(</span>p<span class="token punctuation">)</span><span class="token punctuation">{</span></span>
+<span class="line">    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>p<span class="token punctuation">.</span>val<span class="token punctuation">)</span></span>
+<span class="line">    p<span class="token operator">=</span>p<span class="token punctuation">.</span>next</span>
+<span class="line"><span class="token punctuation">}</span><span class="token comment">//a b c d </span></span>
+<span class="line"></span>
+<span class="line"><span class="token comment">// 插入 e</span></span>
+<span class="line"><span class="token keyword">const</span> e<span class="token operator">=</span><span class="token punctuation">{</span><span class="token literal-property property">val</span><span class="token operator">:</span><span class="token string">&#39;e&#39;</span><span class="token punctuation">}</span></span>
+<span class="line">c<span class="token punctuation">.</span>next<span class="token operator">=</span>e</span>
+<span class="line">e<span class="token punctuation">.</span>next<span class="token operator">=</span>d</span>
+<span class="line"></span>
+<span class="line"> <span class="token comment">//删除 e</span></span>
+<span class="line">c<span class="token punctuation">.</span>next<span class="token operator">=</span>d</span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div></div><h3 id="_2-链表-vs-数组" tabindex="-1"><a class="header-anchor" href="#_2-链表-vs-数组"><span>2.链表 VS 数组</span></a></h3><ul><li>都是有序结构</li><li>链表：查询慢 O(n), 新增删除快 O(1)[React Fiber使用了链表]</li><li>数组：查询快 O(1), 新增删除慢 O(n)</li></ul><h5 id="_2-1-链表和数组-哪个实现队列更快" tabindex="-1"><a class="header-anchor" href="#_2-1-链表和数组-哪个实现队列更快"><span>2-1.链表和数组，哪个实现队列更快?</span></a></h5><ul><li>数组是连续存储，push很快、shift很慢</li><li>链表是非连续存储，add、delete很快、查找很慢</li></ul><h5 id="_2-2-扩展" tabindex="-1"><a class="header-anchor" href="#_2-2-扩展"><span>2-2.扩展</span></a></h5><blockquote><p>对象是无序结构、map是有序结构 数组是有序结构、set是无序结构</p></blockquote><h3 id="_3-前端与链表" tabindex="-1"><a class="header-anchor" href="#_3-前端与链表"><span>3. 前端与链表</span></a></h3><h5 id="_3-1-js中的原型链" tabindex="-1"><a class="header-anchor" href="#_3-1-js中的原型链"><span>3-1.JS中的原型链</span></a></h5><blockquote><p>原型链本质是链表<br> 原型链上的节点是各种原型对象，比如 Function.prototype、Object.prototype<br> 原型链通过 <strong>proto</strong> 属性连接各种原型对象</p></blockquote><ul><li>obj -&gt; Object.prototype -&gt; null</li><li>func -&gt; Function.prototype -&gt; Object.prototype -&gt; null</li><li>arr -&gt; Array.prototype -&gt; Object.prototype -&gt; null</li></ul><h5 id="_3-2-使用链表指针获取-json-的节点值" tabindex="-1"><a class="header-anchor" href="#_3-2-使用链表指针获取-json-的节点值"><span>3-2.使用链表指针获取 JSON 的节点值</span></a></h5><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">const json={</span>
+<span class="line">    a:{b:{c:1}},</span>
+<span class="line">    d:{e:2}</span>
+<span class="line">}</span>
+<span class="line">const path=[&#39;a&#39;,&#39;b&#39;]</span>
+<span class="line">let p=json;</span>
+<span class="line">path.forEach(k=&gt;{</span>
+<span class="line">    p=p[k]</span>
+<span class="line">})</span>
+<span class="line">console.log(p)</span>
+<span class="line">// {c: 1}</span>
+<span class="line">// undefined</span>
+<span class="line"></span>
+<span class="line">// 时间复杂度 O(n)</span>
+<span class="line">// 空间复杂度 O(1)</span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h5 id="_3-3-扩展-手写instanceof方法" tabindex="-1"><a class="header-anchor" href="#_3-3-扩展-手写instanceof方法"><span>3-3.扩展-手写instanceOf方法</span></a></h5><ul><li>编写一个 instanceOf 方法，可以判断一个变量是否是另一个变量的实例。</li></ul><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">const instanceOf=(A,B)=&gt;{</span>
+<span class="line">    while (A &amp;&amp; B){</span>
+<span class="line">        if (A.__proto__ === B.prototype) {</span>
+<span class="line">            return true</span>
+<span class="line">        }</span>
+<span class="line">        A=A.__proto__</span>
+<span class="line">    }</span>
+<span class="line">    return false</span>
+<span class="line">}</span>
+<span class="line"></span>
+<span class="line">const obj={}</span>
+<span class="line">console.log(instanceOf(obj, Object))//true</span>
+<span class="line"></span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="_4-算法题" tabindex="-1"><a class="header-anchor" href="#_4-算法题"><span>4.算法题</span></a></h3><ul><li><a href="https://leetcode-cn.com/problems/palindrome-linked-list/" target="_blank" rel="noopener noreferrer">234.回文链表</a>🌟🌟🌟🌟 📌</li><li><a href="https://leetcode-cn.com/problems/reverse-linked-list/" target="_blank" rel="noopener noreferrer">206.反转链表「MC100/剑指24」</a>🌟🌟🌟🌟 📌</li><li><a href="https://leetcode-cn.com/problems/delete-node-in-a-linked-list/" target="_blank" rel="noopener noreferrer">237. 删除链表中的节点</a></li><li><a href="https://leetcode-cn.com/problems/remove-duplicates-from-sorted-list/" target="_blank" rel="noopener noreferrer">83. 删除排序链表中的重复元素</a></li><li><a href="https://leetcode-cn.com/problems/linked-list-cycle/" target="_blank" rel="noopener noreferrer">141. 环形链表</a></li><li><a href="https://leetcode-cn.com/problems/merge-two-sorted-lists/" target="_blank" rel="noopener noreferrer">21. 合并两个有序链表</a>[<a href="https://leetcode-cn.com/problems/he-bing-liang-ge-pai-xu-de-lian-biao-lcof/" target="_blank" rel="noopener noreferrer">同剑指25</a>] 🌟🌟</li><li><a href="https://leetcode-cn.com/problems/lian-biao-zhong-dao-shu-di-kge-jie-dian-lcof/" target="_blank" rel="noopener noreferrer">剑指 Offer 22. 链表中倒数第k个节点</a> [<a href="https://leetcode-cn.com/problems/kth-node-from-end-of-list-lcci/" target="_blank" rel="noopener noreferrer">面试题02.02</a>]</li><li><a href="https://leetcode-cn.com/problems/intersection-of-two-linked-lists/" target="_blank" rel="noopener noreferrer">160. 相交链表</a> [<a href="https://leetcode-cn.com/problems/liang-ge-lian-biao-de-di-yi-ge-gong-gong-jie-dian-lcof/" target="_blank" rel="noopener noreferrer">同剑指52</a>]</li><li><a href="https://leetcode-cn.com/problems/middle-of-the-linked-list/" target="_blank" rel="noopener noreferrer">876. 链表的中间结点</a></li><li><a href="https://leetcode-cn.com/problems/design-hashset/" target="_blank" rel="noopener noreferrer">705. 设计哈希集合</a>💛</li><li><a href="https://leetcode-cn.com/problems/add-two-numbers/" target="_blank" rel="noopener noreferrer">🧡 2. 两数相加</a></li></ul>`,24)])])}const o=s(l,[["render",t]]),r=JSON.parse('{"path":"/fontend/class2/05.linked-list.html","title":"","lang":"zh-CN","frontmatter":{},"git":{"updatedTime":1764157357000,"contributors":[{"name":"lumi","username":"lumi","email":"lumiya1228@gmail.com","commits":1,"url":"https://github.com/lumi"}],"changelog":[{"hash":"1860e17827d3aabac151c579edaf9fdcd3a988c3","time":1764157357000,"email":"lumiya1228@gmail.com","author":"lumi","message":"docs: expand front-end class2 section with new topics on data structures and algorithms"}]},"filePathRelative":"fontend/class2/05.linked-list.md"}');export{o as comp,r as data};
