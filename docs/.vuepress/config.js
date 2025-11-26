@@ -14,7 +14,9 @@ export default defineUserConfig({
       {
         text: '前端基础',
         children: [
-          { text: '概览', link: '/fontend/README.md' },
+          { text: '概览', link: '/fontend/navigate.md' },
+          { text: 'Javascript基础', link: '/fontend/class1/01.javascript.md' },
+          { text: '数据结构与算法', link: '/fontend/class2/01.data-structure.md' },
         ]
       },
       {
@@ -107,15 +109,58 @@ export default defineUserConfig({
           // },
         ]
       },
+     
       {
         text: '剑指Offer',
         children: [
           { text: '面试概览', link: '/offer/README.md' },
+          { text: '笔试部分', 
+            children: [
+              { text: '笔试分类概览', link: '/offer/class0/README.md' },
+            ]
+          },
+          { text: '基础八股文', 
+            children: [
+              { text: '概览', link: '/fontend/README.md' },
+            ]
+          },
+          { text: '框架与原理', 
+            children: [
+              { text: '概览', link: '/fontend/README.md' },
+            ]
+          },
+          { text: '项目与技术深度', 
+            children: [
+              { text: '概览', link: '/fontend/README.md' },
+            ]
+          },
+          { text: 'HR面与综合考察', 
+            children: [
+              { text: '概览', link: '/fontend/README.md' },
+            ]
+          },
         ]
       },
       { text: 'GitHub', link: 'https://github.com/lumi1228' },
     ],
     sidebar: {
+      '/fontend/class1': [
+        {
+          text: 'Javascript基础',
+          children: [
+            { text: 'JavaScript 简介', link: '/fontend/class1/02.javascript-introduce.md' },
+            { text: '基本概念', link: '/fontend/class1/03.basic-concept.md' },
+            { text: '数据类型', link: '/fontend/class1/04.data-type.md' },
+            { text: '操作符', link: '/fontend/class1/05.operator.md' },
+            { text: '变量、作用域和内存', link: '/fontend/class1/06.variable-scope-memory.md' },
+            { text: '面向对象的程序', link: '/fontend/class1/07.object-oriented-program.md' },
+            { text: '面向对象的程序之创建对象', link: '/fontend/class1/08.create-object.md' },
+            { text: '面向对象的程序设计之继承', link: '/fontend/class1/09.inheritance.md' },
+            { text: '函数表达式', link: '/fontend/class1/10.function-expression.md' },
+
+          ]
+        }
+      ],
       '/fullstack/class2/': [
         {
           text: '工程化工具',
