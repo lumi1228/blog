@@ -161,6 +161,28 @@ export default defineUserConfig({
           ]
         }
       ],
+      '/fontend/class2': [
+        {
+          text: '数据结构与算法',
+          children: [
+            { text: '数据结构与算法简介', link: '/fontend/class2/01.data-structure.md' },
+            { text: '时间与空间复杂度', link: '/fontend/class2/02.time-space-complexity.md' },
+            { text: '栈', link: '/fontend/class2/03.stack.md' },
+            { text: '队列', link: '/fontend/class2/04.queue.md' },
+            { text: '链表', link: '/fontend/class2/05.linked-list.md' },
+            { text: '集合', link: '/fontend/class2/06.set.md' },
+            { text: '字典', link: '/fontend/class2/07.dictionary.md' },
+            { text: '树', link: '/fontend/class2/08.tree.md' },
+            { text: '图', link: '/fontend/class2/09.graph.md' },
+            { text: '堆', link: '/fontend/class2/10.heap.md' },
+            { text: '排序搜索', link: '/fontend/class2/11.sort-search.md' },
+            { text: '分而治之', link: '/fontend/class2/12.divide-and-conquer.md' },
+            { text: '动态规划', link: '/fontend/class2/13.dynamic-programming.md' },
+            { text: '贪心算法', link: '/fontend/class2/14.greedy-algorithm.md' },
+            { text: '回溯算法', link: '/fontend/class2/15.backtracking.md' },
+          ]
+        }
+      ],
       '/fullstack/class2/': [
         {
           text: '工程化工具',
