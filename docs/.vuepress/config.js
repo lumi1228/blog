@@ -6,8 +6,7 @@ import { sidebar } from './sidebar.js'
 export default defineUserConfig({
   bundler: viteBundler(),
   colorMode: 'light',//'auto' | 'light' | 'dark'
-  // home: '/blog/',
-  base: '/',  
+  base: '/blog/',  
   lang: 'zh-CN',
   title: 'Lumi\'s Blog',
   description: '这是我的第一个 VuePress 站点',
@@ -16,7 +15,7 @@ export default defineUserConfig({
     navbar: [
       { text: 'Home', link: '/' },
       {
-        text: '前端基础',
+        text: '前端强化',
         prefix: '/fontend/',
         children: [
           { text: '概览', link: 'navigate.md' },
