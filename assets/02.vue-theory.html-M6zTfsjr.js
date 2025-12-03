@@ -1,0 +1,211 @@
+import{_ as n,a as e,d as a,g as i}from"./app-BXqgnaz2.js";const l={};function p(d,s){return i(),e("div",null,[...s[0]||(s[0]=[a(`<blockquote><p><a href="https://www.mianshipai.com/docs/second-exam/vue-inner.html" target="_blank" rel="noopener noreferrer">Vue 原理 -SY</a><br><a href="https://juejin.cn/book/6844733705089449991?scrollMenuIndex=1" target="_blank" rel="noopener noreferrer">剖析 Vue.js 内部运行机制 -掘金</a></p></blockquote><h3 id="_1、响应式原理🌟🌟🌟🌟🌟" tabindex="-1"><a class="header-anchor" href="#_1、响应式原理🌟🌟🌟🌟🌟"><span>1、响应式原理🌟🌟🌟🌟🌟</span></a></h3><p><a href="https://juejin.cn/post/7540323814777962530" target="_blank" rel="noopener noreferrer">参考：Vue 响应式原理-掘金</a></p><blockquote><p>核心目标是实现「数据驱动视图」—— 当数据发生变化时，依赖该数据的视图会自动更新，无需手动操作 DOM。</p></blockquote><p>Vue 2 采用 🎯Object.defineProperty 对数据进行劫持，结合🎯「发布 - 订阅模式」实现响应式，核心流程包括数据劫持、依赖收集和触发更新三个环节。</p><p>Vue 3 的响应式系统基于 🎯 Proxy 代理和 🎯Effect 副作用机制实现，核心是建立“数据变化-副作用执行”的自动关联，流程可分为初始化、依赖收集、触发更新三个阶段。</p><details><summary>详细描述</summary><h4 id="vue-2-的响应式" tabindex="-1"><a class="header-anchor" href="#vue-2-的响应式"><span>Vue 2 的响应式</span></a></h4><p>🎯 初始化阶段：</p><p>（1）通过 Object.defineProperty 为每个属性添加 get 和 set 拦截器，将普通对象转为响应式对象；<br> （2）同时为每个属性创建对应的 Dep 实例（依赖管理器），用于存储依赖该属性的 Watcher。</p><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">// 递归将对象转为响应式</span>
+<span class="line">function observe(obj) {</span>
+<span class="line">  if (typeof obj !== &#39;object&#39; || obj === null) {</span>
+<span class="line">    return; // 非对象类型无需处理</span>
+<span class="line">  }</span>
+<span class="line">  // 遍历对象属性，逐个劫持</span>
+<span class="line">  Object.keys(obj).forEach(key =&gt; {</span>
+<span class="line">    defineReactive(obj, key, obj[key]);</span>
+<span class="line">  });</span>
+<span class="line">}</span>
+<span class="line"></span>
+<span class="line">// 劫持单个属性</span>
+<span class="line">function defineReactive(obj, key, val) {</span>
+<span class="line">  // 递归处理子对象（如 data 中的嵌套对象）</span>
+<span class="line">  observe(val);</span>
+<span class="line"></span>
+<span class="line">  // 依赖管理器：收集依赖当前属性的订阅者</span>
+<span class="line">  const dep = new Dep();</span>
+<span class="line"></span>
+<span class="line">  Object.defineProperty(obj, key, {</span>
+<span class="line">    get() {</span>
+<span class="line">      // 读取属性时，收集依赖（当前活跃的 Watcher）</span>
+<span class="line">      if (Dep.target) {</span>
+<span class="line">        dep.addSub(Dep.target); // 将 Watcher 加入依赖列表</span>
+<span class="line">      }</span>
+<span class="line">      return val;</span>
+<span class="line">    },</span>
+<span class="line">    set(newVal) {</span>
+<span class="line">      if (newVal === val) return; // 值未变化则不处理</span>
+<span class="line">      val = newVal;</span>
+<span class="line">      observe(newVal); // 新值如果是对象，需要递归劫持</span>
+<span class="line">      // 修改属性时，通知所有依赖更新</span>
+<span class="line">      dep.notify();</span>
+<span class="line">    }</span>
+<span class="line">  });</span>
+<span class="line">}</span>
+<span class="line"></span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>🎯 依赖收集阶段： 当组件首次渲染时，会执行渲染函数，过程中会读取 data 中的属性，触发 get 拦截器。此时 Dep.target 指向当前组件的 Watcher，Dep 会将该 Watcher 加入订阅列表，完成依赖收集。</p><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">// Dep 类：每个响应式属性对应一个 Dep 实例，用于存储依赖该属性的所有 Watcher。</span>
+<span class="line"></span>
+<span class="line">class Dep {</span>
+<span class="line">  static target = null; // 静态属性，指向当前活跃的 Watcher</span>
+<span class="line">  subs = []; // 存储订阅者（Watcher）</span>
+<span class="line"></span>
+<span class="line">  // 添加订阅者</span>
+<span class="line">  addSub(sub) {</span>
+<span class="line">    this.subs.push(sub);</span>
+<span class="line">  }</span>
+<span class="line"></span>
+<span class="line">  // 通知所有订阅者更新</span>
+<span class="line">  notify() {</span>
+<span class="line">    this.subs.forEach(sub =&gt; sub.update());</span>
+<span class="line">  }</span>
+<span class="line">}</span>
+<span class="line"></span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">// Watcher 类：组件的渲染逻辑、watch 选项、computed 属性等都会被包装成 Watcher。当依赖的数据变化时，Watcher 会触发更新（如重新渲染组件）。</span>
+<span class="line"></span>
+<span class="line">class Watcher {</span>
+<span class="line">  constructor(vm, expOrFn, cb) {</span>
+<span class="line">    this.vm = vm; // 当前组件实例</span>
+<span class="line">    this.cb = cb; // 更新时执行的回调（如重新渲染）</span>
+<span class="line">    this.getter = expOrFn; // 依赖的表达式或渲染函数</span>
+<span class="line">    this.get(); // 初始化时触发 get，收集依赖</span>
+<span class="line">  }</span>
+<span class="line"></span>
+<span class="line">  get() {</span>
+<span class="line">    Dep.target = this; // 标记当前活跃的 Watcher</span>
+<span class="line">    this.getter.call(this.vm); // 执行渲染函数，触发数据的 get 拦截</span>
+<span class="line">    Dep.target = null; // 重置，避免重复收集</span>
+<span class="line">  }</span>
+<span class="line"></span>
+<span class="line">  // 数据变化时触发更新</span>
+<span class="line">  update() {</span>
+<span class="line">    this.cb(); // 如重新执行渲染函数</span>
+<span class="line">  }</span>
+<span class="line">}</span>
+<span class="line"></span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>🎯 触发更新阶段：</p><p>当修改响应式数据时，会触发 set 拦截器，Dep 会调用 notify() 方法，通知所有订阅的 Watcher 执行 update()，最终触发组件重新渲染或 watch 回调，实现「数据变 → 视图变」。 (Watcher 会通过异步队列（避免频繁更新）触发最终操作)</p><h4 id="vue-2-响应式的局限性" tabindex="-1"><a class="header-anchor" href="#vue-2-响应式的局限性"><span>Vue 2 响应式的局限性</span></a></h4><p>由于 Object.defineProperty 的设计限制，Vue 2 存在以下问题：</p><ul><li>无法监听对象新增 / 删除的属性：只能劫持初始化时已存在的属性，新增属性需通过 this.$set(obj, key, val) 手动触发响应式。</li><li>无法监听数组的部分操作：数组的索引修改（如 arr[0] = 1）、length 变化不会触发 set，因此 Vue 2 重写了数组的 7 个方法（push、pop、splice 等）以支持响应式。</li><li>深层对象递归劫持的性能问题：初始化时需递归劫持所有嵌套对象，数据结构复杂时可能影响性能。</li></ul><h4 id="vue-3-的响应式-待补充" tabindex="-1"><a class="header-anchor" href="#vue-3-的响应式-待补充"><span>Vue 3 的响应式 -待补充</span></a></h4><blockquote><p>Vue 3.x 使用 Proxy通过代理对象拦截整个对象的操作，无需递归初始化所有属性，性能更好。 Vue 3 的响应式系统基于 Proxy 代理和 Effect 副作用机制实现，核心是建立“数据变化-副作用执行”的自动关联，流程可分为初始化、依赖收集、触发更新三个阶段。</p></blockquote><p>🎯 数据劫持：Proxy 拦截整个对象</p><p>Proxy 可以创建一个对象的代理，直接拦截对象的读取、修改、新增、删除等操作，无需逐个拦截属性，支持更全面的响应式劫持。</p><h4 id="vue-3-响应式的优势" tabindex="-1"><a class="header-anchor" href="#vue-3-响应式的优势"><span>Vue 3 响应式的优势</span></a></h4><ul><li>支持对象新增 / 删除属性：Proxy 能拦截 set（新增）和 deleteProperty（删除）操作，无需手动调用 $set。</li><li>原生支持数组响应式：可监听数组索引修改、length 变化等，无需重写数组方法。</li><li>懒递归劫持：嵌套对象只有在被访问时才会创建代理，初始化性能更优。</li><li>支持复杂数据结构：如 Map、Set 等，Proxy 可拦截其 set、delete 等操作。</li></ul></details><h3 id="_2、「异步更新」nexttick原理与实现🌟🌟🌟" tabindex="-1"><a class="header-anchor" href="#_2、「异步更新」nexttick原理与实现🌟🌟🌟"><span>2、「异步更新」NextTick原理与实现🌟🌟🌟</span></a></h3><p><a href="https://zhuanlan.zhihu.com/p/1917948435497190788" target="_blank" rel="noopener noreferrer">参考：因为不会手写nextTick又被面试官diss了</a></p><details><summary>结果</summary> 实现 nextTick 的基本思路： <p>异步执行：确保回调是在当前任务完成之后执行的。<br> 队列管理：如果多次调用 nextTick，确保它们按照顺序执行，而不是并发执行。<br> 立即执行：如果可能的话，在微任务队列中立即执行（利用 Promise）。</p><p>前置知识：</p><ul><li>MutationObserver 是 JavaScript 内置的一个 API，用于监听 DOM 元素的变化并在变化发生时执行回调函数。它是 HTML5 新增的特性，主要用于高效追踪 DOM 结构的修改（如节点增删、属性变化等）</li></ul><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line"></span>
+<span class="line"></span>
+<span class="line">function nextTick(fn) {</span>
+<span class="line">  // 函数返回一个 Promise，允许调用者通过 .then() 来处理结果</span>
+<span class="line">  return new Promise((resolve, reject) =&gt; {</span>
+<span class="line">    // 判断dom 是否已经渲染完毕</span>
+<span class="line">    // 判断浏览器是否支持MutationObserver</span>
+<span class="line">    if (typeof MutationObserver !== &#39;undefined&#39;) {</span>
+<span class="line">      let app = document.getElementById(&#39;app&#39;)</span>
+<span class="line">      // MutationObserver 构造函数，接受一个回调函数作为参数</span>
+<span class="line">      const observer = new MutationObserver(() =&gt; {</span>
+<span class="line">        // 当观察到变化时，执行传入的回调 fn()</span>
+<span class="line">        // 执行完回调后断开观察</span>
+<span class="line">        observer.disconnect()</span>
+<span class="line">        const result = fn ? fn() : undefined</span>
+<span class="line">        resolve(result)</span>
+<span class="line">      })</span>
+<span class="line">      observer.observe(app, { attributes: true, childList: true, subtree: true }) // 监听app的子节点变化</span>
+<span class="line">      // resolve()</span>
+<span class="line">    } else {</span>
+<span class="line">      setTimeout(() =&gt; {</span>
+<span class="line">        const result = fn ? fn() : undefined</span>
+<span class="line">        resolve(result)</span>
+<span class="line">      }, 0)</span>
+<span class="line">    }</span>
+<span class="line">  })</span>
+<span class="line">}</span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div></details><h3 id="_3、「缓存机制」keep-alive的使用与实现🌟🌟🌟🌟🌟" tabindex="-1"><a class="header-anchor" href="#_3、「缓存机制」keep-alive的使用与实现🌟🌟🌟🌟🌟"><span>3、「缓存机制」keep-alive的使用与实现🌟🌟🌟🌟🌟</span></a></h3><p><a href="">参考：SY</a></p><p>keep-alive 是 Vue 提供的一个内置组件，用来缓存组件的状态，避免在切换组件时重新渲染和销毁，从而提高性能。</p><details><summary>场景 &amp; 使用 &amp; 实现</summary><p>使用场景：</p><ol><li>频繁切换的组件 当需要频繁切换多个组件（如标签页、导航切换）时，使用 keep-alive 可以缓存不活跃的组件，避免每次切换都重新渲染。</li></ol><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">&lt;keep-alive&gt;</span>
+<span class="line">  &lt;component :is=&quot;currentComponent&quot;&gt;&lt;/component&gt;</span>
+<span class="line">&lt;/keep-alive&gt;</span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><ol start="2"><li><p>需要临时保留状态的组件， 如搜索页面切换到详情页后返回，保留之前的搜索关键词和结果列表。</p></li><li><p>性能敏感的组件 对于渲染成本高的组件（如包含大量数据的表格、复杂的图表），使用 keep-alive 可以避免重复计算和 DOM 操作，减少性能消耗。</p></li><li><p>路由切换场景</p></li></ol><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">&lt;keep-alive&gt;</span>
+<span class="line">  &lt;router-view v-if=&quot;$route.meta.keepAlive&quot;&gt;&lt;/router-view&gt;</span>
+<span class="line">&lt;/keep-alive&gt;</span>
+<span class="line">&lt;router-view v-if=&quot;!$route.meta.keepAlive&quot;&gt;&lt;/router-view&gt;</span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>使用：</p><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">&lt;template&gt;</span>
+<span class="line">  &lt;keep-alive&gt;</span>
+<span class="line">    &lt;component :is=&quot;currentComponent&quot; /&gt;</span>
+<span class="line">  &lt;/keep-alive&gt;</span>
+<span class="line">&lt;/template&gt;</span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>实现：</p><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">//  Map 数据结构是因为它可以通过 key 快速查找和操作缓存的组件</span>
+<span class="line">//  _activeCache 是一个 &quot;状态标记容器&quot;，它的核心意义是：</span>
+<span class="line">在众多缓存的组件中，快速定位和管理 &quot;当前正在使用&quot; 的组件，为后续的缓存优化、状态管理、生命周期控制等功能提供基础。</span>
+<span class="line"></span>
+<span class="line">const KeepAliveImpl = {</span>
+<span class="line">  name: &#39;KeepAlive&#39;,</span>
+<span class="line">  // 已缓存的组件实例。</span>
+<span class="line">  _cache: new Map(), //用于存储所有被缓存的组件 vnode（虚拟节点）</span>
+<span class="line">  _activeCache: new Map(), //用于标记当前活跃的缓存组件</span>
+<span class="line"></span>
+<span class="line">  render() {</span>
+<span class="line">    // 获取默认插槽中的第一个组件（即被 KeepAlive 包裹的组件）</span>
+<span class="line">    const vnode = this.$slots.default()[0] // 获取动态组件的 vnode</span>
+<span class="line">    // 生成缓存的 key（优先使用组件自身的 key，否则用组件类型的名称）</span>
+<span class="line">    const key = vnode.key || vnode.type.name</span>
+<span class="line"></span>
+<span class="line">    // 如果缓存中存在该组件</span>
+<span class="line">    if (this._cache.has(key)) {</span>
+<span class="line">      // 从缓存中获取组件</span>
+<span class="line">      const cachedVnode = this._cache.get(key)</span>
+<span class="line">      // 将其标记为活跃状态</span>
+<span class="line">      this._activeCache.set(key, cachedVnode)</span>
+<span class="line">      // 返回缓存的组件（复用）</span>
+<span class="line">      return cachedVnode</span>
+<span class="line">    } else {</span>
+<span class="line">      // 未缓存，直接渲染新组件</span>
+<span class="line">      return vnode // 未缓存，直接渲染</span>
+<span class="line">    }</span>
+<span class="line">  },</span>
+<span class="line"></span>
+<span class="line">  mounted() {</span>
+<span class="line">    const key = this.$vnode.key</span>
+<span class="line">    if (!this._cache.has(key)) {</span>
+<span class="line">      this._cache.set(key, this.$vnode)</span>
+<span class="line">    }</span>
+<span class="line">  },</span>
+<span class="line"></span>
+<span class="line">  beforeDestroy() {</span>
+<span class="line">    const key = this.$vnode.key</span>
+<span class="line">    this._cache.delete(key)</span>
+<span class="line">  },</span>
+<span class="line">}</span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div></details><h3 id="_4、「双向绑定」-自定义组件如何实现-v-model-🌟🌟🌟" tabindex="-1"><a class="header-anchor" href="#_4、「双向绑定」-自定义组件如何实现-v-model-🌟🌟🌟"><span>4、「双向绑定」-自定义组件如何实现 v-model 🌟🌟🌟</span></a></h3><p><a href="">参考：SY</a></p><p>vue2中，自定义组件使用v-model,需组件内部定制value prop ,然后通过 this.$emit(&#39;input&#39;, newValue) 触发更新即可。</p><details><summary>vue2「vue3待补充」</summary><p>自定义的组件实现：</p><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">&lt;template&gt;</span>
+<span class="line">  &lt;input :value=&quot;value&quot; @input=&quot;$emit(&#39;input&#39;, $event.target.value)&quot; /&gt;</span>
+<span class="line">&lt;/template&gt;</span>
+<span class="line">&lt;script&gt;</span>
+<span class="line">export default {</span>
+<span class="line">  props: [&#39;value&#39;],</span>
+<span class="line">}</span>
+<span class="line">&lt;/script&gt;</span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>使用方式：</p><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">&lt;CustomInput v-model=&quot;searchText&quot; /&gt;</span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div></div></div><p>v-model 其实是一个语法糖，上面的代码等价于： <code>:value=&quot;searchText&quot;</code>: 把 searchText 的值传给组件的 value prop <code>@input=&quot;searchText = $event&quot;</code> :听组件的 input 事件，更新 searchText</p><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">&lt;CustomInput </span>
+<span class="line">  :value=&quot;searchText&quot;  </span>
+<span class="line">  @input=&quot;searchText = $event&quot; </span>
+<span class="line">/&gt;</span>
+<span class="line"></span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div></details><h3 id="_5、vue-模板编译的过程-🌟🌟🌟" tabindex="-1"><a class="header-anchor" href="#_5、vue-模板编译的过程-🌟🌟🌟"><span>5、Vue 模板编译的过程 🌟🌟🌟</span></a></h3><p><a href="">参考：SY</a></p><ul><li><p>Vue 的模板编译过程是将开发者编写的模板语法（例如 和 v-bind 等）转换为 JavaScript 代码的过程（结果是生成 render 函数）。</p></li><li><p>发生时间：组件初始化的核心步骤之一，发生在 beforeCreate 之后、created 之前。为后续的 DOM 渲染（beforeMount 到 mounted 阶段）提供基础</p></li><li><p>它主要分为三个阶段：模板解析、AST优化 和 代码生成</p></li></ul><details><summary>三个阶段</summary> 1️⃣ 模板解析 <p>Vue 使用其解析器将 HTML 模板转换为 抽象语法树（AST） 如：</p><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">&lt;div&gt;</span>
+<span class="line">  &lt;p&gt;{{ message }}&lt;/p&gt;</span>
+<span class="line">  &lt;button v-on:click=&quot;handleClick&quot;&gt;点击&lt;/button&gt;</span>
+<span class="line">&lt;/div&gt;</span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>被解析成的 AST 类似于下面的结构：</p><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">{</span>
+<span class="line">    type: 1, // 节点类型：1 表示元素节点</span>
+<span class="line">    tag: &#39;div&#39;, // 元素的标签名</span>
+<span class="line">    children: [ // 子节点（嵌套的 HTML 元素）</span>
+<span class="line">        {</span>
+<span class="line">            type: 1, // 子节点是一个元素节点</span>
+<span class="line">            tag: &#39;p&#39;,</span>
+<span class="line">            children: [{</span>
+<span class="line">                type: 2, // 2 表示插值表达式节点</span>
+<span class="line">                expression: &#39;message&#39; // 表达式 &#39;message&#39;</span>
+<span class="line">            }]</span>
+<span class="line">        },</span>
+<span class="line">        {</span>
+<span class="line">            type: 1, // 另一个元素节点</span>
+<span class="line">            tag: &#39;button&#39;,</span>
+<span class="line">            events: { // 事件监听</span>
+<span class="line">                click: &#39;handleClick&#39; // 绑定 click 事件，执行 handleClick 方法</span>
+<span class="line">            },</span>
+<span class="line">            children: [{</span>
+<span class="line">                type: 3, // 文本节点</span>
+<span class="line">                text: &#39;点击&#39; // 按钮文本</span>
+<span class="line">            }]</span>
+<span class="line">        }</span>
+<span class="line">    ]</span>
+<span class="line">}</span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>2️⃣ AST优化</p><p>Vue 在生成渲染函数前，会对 AST 进行优化。优化的核心目标是 <strong>标记 静态节点</strong>，在渲染时，Vue 可以跳过这些静态节点，提升性能。</p><blockquote><p>静态节点指所有的渲染过程中都不变化的内容，比如 某个div标签内的静态文本</p></blockquote><blockquote><p>在 vue3 中，如果一个节点及其子树都不依赖于动态数据，那么该节点会被提升到渲染函数外部（静态提升），仅在组件初次渲染时创建。</p></blockquote><p>3️⃣ 代码生成</p><p>生成渲染函数是编译的最终阶段，这个阶段会将优化后的 AST 转换成 JavaScript 渲染函数。</p><p>例如，像这样的模板：</p><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">&lt;div id=&quot;app&quot;&gt;{{ message }}&lt;/div&gt;</span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div></div></div><p>最终会生成类似这样的渲染函数：</p><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">function render() {</span>
+<span class="line">  return createVNode(</span>
+<span class="line">    &#39;div&#39;,</span>
+<span class="line">    {</span>
+<span class="line">      id: &#39;app&#39;,</span>
+<span class="line">    },</span>
+<span class="line">    [createTextVNode(this.message)]</span>
+<span class="line">  )</span>
+<span class="line">}</span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>渲染函数的返回值是一个 虚拟 DOM（VDOM）树 ，Vue 会根据 虚拟 DOM 来更新实际的 DOM 。由于 渲染函数 被 Vue 的响应式系统包裹，当数据发生变化时，渲染函数会被重新执行生成新的虚拟 DOM，因此页面也会实时更新。</p></details><h3 id="_6、vue-组件是如何渲染和更新的-🌟🌟🌟" tabindex="-1"><a class="header-anchor" href="#_6、vue-组件是如何渲染和更新的-🌟🌟🌟"><span>6、Vue 组件是如何渲染和更新的 🌟🌟🌟</span></a></h3><p><a href="">参考：SY</a></p><p>Vue 组件的渲染和更新过程涉及从 模板编译 到 虚拟 DOM 的构建、更新和最终的实际 DOM 更新。下面是 Vue 组件渲染和更新的主要步骤：</p><details><summary>组件渲染 &amp; 更新过程 </summary><p>1️⃣ 组件渲染过程 Vue 的组件的渲染过程核心是其模板编译过程：</p><ul><li>首先，Vue会通过其响应式系统完成组件的 data、computed 和 props 等数据和模板的绑定，这个过程Vue 会利用 Object.defineProperty（Vue2） 或 Proxy（Vue3） 来追踪数据的依赖，保证数据变化时，视图能够重新渲染。</li><li>随后，Vue会将模板编译成渲染函数，这个渲染函数会在每次更新时被调用，从而生成虚拟 DOM。</li><li>最终，虚拟DOM被渲染成真实的 DOM 并插入到页面中，组件渲染完成，组件渲染的过程中，Vue 会依次触发相关的生命周期钩子。</li></ul><p>2️⃣ 组件更新过程</p><ul><li>当组件的状态（如 data、props、computed）发生变化时，响应式数据的 setter 方法会让调用Dep.notify通知所有 订阅者Watcher ，重新执行渲染函数触发更新。</li></ul><p><img src="https://www.mianshipai.com/assets/模板编译.xbq7db3C.png" alt="up" title="组件渲染和更新"></p><ul><li>渲染函数在执行时，会使用 diff 算法（例如：双端对比、静态标记优化等）生成新的虚拟DOM。计算出需要更新的部分后（插入、删除或更新 DOM），然后对实际 DOM 进行最小化的更新。</li><li>在组件更新的过程中，Vue 会依次触发beforeUpdate、updated等相关的生命周期钩子。</li></ul></details>`,26)])])}const t=n(l,[["render",p]]),r=JSON.parse('{"path":"/offer/class2/02.vue-theory.html","title":"","lang":"zh-CN","frontmatter":{},"git":{"updatedTime":1764689316000,"contributors":[{"name":"lumi","username":"lumi","email":"lumiya1228@gmail.com","commits":1,"url":"https://github.com/lumi"}],"changelog":[{"hash":"f1f63c9ad884d46b7e9931fdd323a8e720f496c8","time":1764689316000,"email":"lumiya1228@gmail.com","author":"lumi","message":"docs: uadd new content for interview preparation and front-end topics"}]},"filePathRelative":"offer/class2/02.vue-theory.md"}');export{t as comp,r as data};

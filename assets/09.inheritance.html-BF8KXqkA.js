@@ -1,0 +1,171 @@
+import{_ as s,a as e,d as a,g as i}from"./app-BXqgnaz2.js";const l={};function p(r,n){return i(),e("div",null,[...n[0]||(n[0]=[a(`<h1 id="面向对象的程序设计之继承" tabindex="-1"><a class="header-anchor" href="#面向对象的程序设计之继承"><span>面向对象的程序设计之继承</span></a></h1><h5 id="继承概述" tabindex="-1"><a class="header-anchor" href="#继承概述"><span>继承概述</span></a></h5><blockquote><p>原型链【很少单独使用】 借用构造函数【很少单独使用】<br> 组合继承【最常用的继承模式】<br> 原型性继承【跟原型链模式类似】<br> 寄生式继承【与寄生构造函数和工厂模式类似】<br> 寄生组合式继承【最理想的继承范式】</p></blockquote><p>背景：</p><blockquote><p>许多 OO 语言都支持两种继承方式:<strong>接口继承和 实现继承</strong>。<br> 接口继承只继承<strong>方法签名</strong>，而实现继承则继承<strong>实际的方法</strong>。<br> 如前所述，由于函数没有签名， 在 ECMAScript 中无法实现接口继承。<strong>ECMAScript 只支持实现继承</strong>，而且其实现继承主要是依靠<strong>原型链</strong>来实现的。</p></blockquote><h2 id="一、原型链【很少单独使用】" tabindex="-1"><a class="header-anchor" href="#一、原型链【很少单独使用】"><span>一、原型链【很少单独使用】</span></a></h2><h5 id="基本思想" tabindex="-1"><a class="header-anchor" href="#基本思想"><span>基本思想</span></a></h5><blockquote><p>主要通过原型链实现继承。原型链的构建是通过将一个类型的实例赋值给另一个构造函数的原型实现的。这样，子类型就能够访问超类型的所有属性和方法，这一点与基于类的继承很相似。</p></blockquote><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">function SuperType(){</span>
+<span class="line">    this.property = true;</span>
+<span class="line">}</span>
+<span class="line">SuperType.prototype.getSuperValue = function(){</span>
+<span class="line">    return this.property;</span>
+<span class="line">};</span>
+<span class="line">function SubType(){</span>
+<span class="line">    this.subproperty = false;</span>
+<span class="line">}</span>
+<span class="line">//继承了 SuperType</span>
+<span class="line">SubType.prototype = new SuperType(); //将SuperType的实例赋值给SubType的原型</span>
+<span class="line">SubType.prototype.getSubValue = function (){</span>
+<span class="line">    return this.subproperty;</span>
+<span class="line">};</span>
+<span class="line">var instance = new SubType();</span>
+<span class="line">alert(instance.getSuperValue()); //true</span>
+<span class="line"></span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>关系如图6-4</p><p>说明：</p><ul><li>将SuperType的实例 赋值给 SubType的原型</li><li>新原型不仅具有作为一个 SuperType 的实例所拥有的全部属性和方法，而且其内部还有一个指针，指向了 SuperType 的原型。</li><li>getSuperValue() 方 法 仍 然 还 在SuperType.prototype 中，但 property 则位于 SubType.prototype 中。这是因为 property 是一个实例属性，而 getSuperValue()则是一个原型方法。</li></ul><h3 id="_1-别忘记默认的原型" tabindex="-1"><a class="header-anchor" href="#_1-别忘记默认的原型"><span>1.别忘记默认的原型</span></a></h3><ul><li>所有引用类型的默认原型都是 Object 的实例，所有函数的默认原型都是 Object 的实例，</li><li>这也正是所有自定义类型都会继承 toString()、valueOf()等默认方法的根本原因。</li></ul><p>我们说上面例子展示的原型链中还应该包括另外一个继承层次： <strong>SuperType.prototype 的原型指针指向了Object的原型。</strong></p><h3 id="_2-确定原型和实例的关系" tabindex="-1"><a class="header-anchor" href="#_2-确定原型和实例的关系"><span>2.确定原型和实例的关系</span></a></h3><ul><li>第一种方式是使用 instanceof 操作符，</li></ul><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">alert(instance instanceof Object); //true</span>
+<span class="line">alert(instance instanceof SuperType); //true</span>
+<span class="line">alert(instance instanceof SubType); //true</span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><ul><li>第二种方式是使用 isPrototypeOf()方法，只要是原型链中出现过的原型，都可以说是该 原型链所派生的实例的原型，因此 isPrototypeOf()方法也会返回 true，</li></ul><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">alert(Object.prototype.isPrototypeOf(instance)); //true</span>
+<span class="line">alert(SuperType.prototype.isPrototypeOf(instance)); //true</span>
+<span class="line">alert(SubType.prototype.isPrototypeOf(instance)); //true</span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="_3-谨慎地定义方法" tabindex="-1"><a class="header-anchor" href="#_3-谨慎地定义方法"><span>3.谨慎地定义方法</span></a></h3><ul><li><p>给原型添加方法的代码一定要放在替换原型的语句之后。</p></li><li><p>在通过原型链实现继承时，不能使用对象字面量创建原型方法。因为这样做就会重写原型链，如下面</p></li></ul><h3 id="_4-原型链的问题" tabindex="-1"><a class="header-anchor" href="#_4-原型链的问题"><span>4. 原型链的问题</span></a></h3><h5 id="问题1-最主要的问题来自包含-引用类型值的原型。引用类型值的原型属性会被所有实例共享。" tabindex="-1"><a class="header-anchor" href="#问题1-最主要的问题来自包含-引用类型值的原型。引用类型值的原型属性会被所有实例共享。"><span>问题1：最主要的问题来自包含 <strong>引用类型值的原型</strong>。引用类型值的原型属性会被所有实例共享。</span></a></h5><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">function SuperType(){</span>
+<span class="line"> this.colors = [&quot;red&quot;, &quot;blue&quot;, &quot;green&quot;];</span>
+<span class="line">}</span>
+<span class="line">function SubType(){</span>
+<span class="line">}</span>
+<span class="line">//继承了 SuperType</span>
+<span class="line">SubType.prototype = new SuperType();</span>
+<span class="line">var instance1 = new SubType();</span>
+<span class="line">instance1.colors.push(&quot;black&quot;);</span>
+<span class="line">alert(instance1.colors); //&quot;red,blue,green,black&quot;</span>
+<span class="line">var instance2 = new SubType();</span>
+<span class="line">alert(instance2.colors); //&quot;red,blue,green,black&quot;</span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>解析说明：</p><ul><li>SuperType 构造函数定义了一个 <strong>引用类型属性</strong> colors；</li><li>当 SubType 通过原型链继承了 SuperType 之后， SubType.prototype 就变成了 SuperType 的一个实例，因此它也拥有了一个它自 己的 colors 属性；</li><li>继承自 SuperType 的colors 属性， 就跟专门创建了一个 SubType.prototype.colors 属性一样。但结果是什么呢？结果是 SubType 的所有实例都会共享这一个 colors 属性。</li></ul><h5 id="问题2-在创建子类型的实例时-不能向超类型的构造函数中传递参数。" tabindex="-1"><a class="header-anchor" href="#问题2-在创建子类型的实例时-不能向超类型的构造函数中传递参数。"><span>问题2：在创建子类型的实例时，不能向超类型的构造函数中传递参数。</span></a></h5><h5 id="解决-原型链的解决这个问题的技术是借用构造函数" tabindex="-1"><a class="header-anchor" href="#解决-原型链的解决这个问题的技术是借用构造函数"><span>解决：原型链的解决这个问题的技术是借用<strong>构造函数</strong></span></a></h5><h2 id="二、借用构造函数" tabindex="-1"><a class="header-anchor" href="#二、借用构造函数"><span>二、借用构造函数</span></a></h2><h5 id="基本思想-1" tabindex="-1"><a class="header-anchor" href="#基本思想-1"><span>基本思想</span></a></h5><blockquote><p>即在子类型构造函数的内部调用超类型构造函数。这样就可以做到每个实例都具有自己的属性，同时还能保证只使用构造函数模式来定义类型。</p></blockquote><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">function SuperType(){</span>
+<span class="line">    this.colors = [&quot;red&quot;, &quot;blue&quot;, &quot;green&quot;];</span>
+<span class="line">}</span>
+<span class="line">function SubType(){</span>
+<span class="line">    //继承了 SuperType</span>
+<span class="line">    SuperType.call(this);</span>
+<span class="line">}</span>
+<span class="line">var instance1 = new SubType();</span>
+<span class="line"></span>
+<span class="line">instance1.colors.push(&quot;black&quot;);</span>
+<span class="line">alert(instance1.colors); //&quot;red,blue,green,black&quot;</span>
+<span class="line"></span>
+<span class="line">var instance2 = new SubType();</span>
+<span class="line">alert(instance2.colors); //&quot;red,blue,green&quot;</span>
+<span class="line"></span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>解释说明：</p><ul><li><code>SuperType.call(this);</code>借调”了超类型的构造函数；</li><li>通过使用 call()方法，我们实际上是在（未来将要）新创建的 SubType 实例的环境下调 SuperType 构造函数。</li><li>在 SubType 构造函数内部调用 SuperType 构造函数时，实际上是为 SubType 的实例设置了 colors 属性，结果，SubType 的每个实例就都会具有自己的 colors 属性的副本了。</li></ul><h3 id="_1-传递参数" tabindex="-1"><a class="header-anchor" href="#_1-传递参数"><span>1. 传递参数</span></a></h3><p>借用构造函数有一个很大的优势，即可以在子类型构造函数中向超类型构造函数传递参数。</p><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">function SuperType(name){</span>
+<span class="line"> this.name = name;</span>
+<span class="line">}</span>
+<span class="line">function SubType(){</span>
+<span class="line">//继承了 SuperType，同时还传递了参数</span>
+<span class="line"> SuperType.call(this, &quot;Nicholas&quot;);</span>
+<span class="line">//实例属性</span>
+<span class="line">this.age = 29;</span>
+<span class="line">}</span>
+<span class="line">var instance = new SubType();</span>
+<span class="line">alert(instance.name); //&quot;Nicholas&quot;;</span>
+<span class="line">alert(instance.age); //29</span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="_2-借用构造函数的问题" tabindex="-1"><a class="header-anchor" href="#_2-借用构造函数的问题"><span>2. 借用构造函数的问题</span></a></h3><h5 id="问题-方法都在构造函数中定义-因此函数复用就无从谈起了而且-在超类型的原型中定义的方法-对子类型而言也是不可见的" tabindex="-1"><a class="header-anchor" href="#问题-方法都在构造函数中定义-因此函数复用就无从谈起了而且-在超类型的原型中定义的方法-对子类型而言也是不可见的"><span>问题:方法都在构造函数中定义，因此函数复用就无从谈起了而且，在超类型的原型中定义的方法，对子类型而言也是不可见的.</span></a></h5><h2 id="三、组合继承" tabindex="-1"><a class="header-anchor" href="#三、组合继承"><span>三、组合继承</span></a></h2><h5 id="基本思想-2" tabindex="-1"><a class="header-anchor" href="#基本思想-2"><span>基本思想</span></a></h5><blockquote><p>使用原型链继承共享的属性和方法，而通过借用构造函数继承实例属性。</p></blockquote><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">function SuperType(name){</span>
+<span class="line">    this.name = name;</span>
+<span class="line">    this.colors = [&quot;red&quot;, &quot;blue&quot;, &quot;green&quot;];</span>
+<span class="line">}</span>
+<span class="line">SuperType.prototype.sayName = function(){</span>
+<span class="line">    alert(this.name);</span>
+<span class="line">};</span>
+<span class="line">function SubType(name, age){</span>
+<span class="line">    //继承属性</span>
+<span class="line">    SuperType.call(this, name);</span>
+<span class="line">    this.age = age;</span>
+<span class="line">}</span>
+<span class="line">//继承方法</span>
+<span class="line">SubType.prototype = new SuperType();</span>
+<span class="line">SubType.prototype.constructor = SubType;</span>
+<span class="line">SubType.prototype.sayAge = function(){</span>
+<span class="line">    alert(this.age);</span>
+<span class="line">};</span>
+<span class="line"></span>
+<span class="line">var instance1 = new SubType(&quot;Nicholas&quot;, 29);</span>
+<span class="line">instance1.colors.push(&quot;black&quot;);</span>
+<span class="line">alert(instance1.colors); //&quot;red,blue,green,black&quot;</span>
+<span class="line">instance1.sayName(); //&quot;Nicholas&quot;;</span>
+<span class="line">instance1.sayAge(); //29</span>
+<span class="line"></span>
+<span class="line">var instance2 = new SubType(&quot;Greg&quot;, 27);</span>
+<span class="line">alert(instance2.colors); //&quot;red,blue,green&quot;</span>
+<span class="line">instance2.sayName(); //&quot;Greg&quot;;</span>
+<span class="line">instance2.sayAge(); //27</span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h5 id="优点" tabindex="-1"><a class="header-anchor" href="#优点"><span>优点：</span></a></h5><p>既通过在原型上定义方法实现了函数复用，又能够保证每个实例都有它自己的属性。</p><h2 id="四、原型性继承" tabindex="-1"><a class="header-anchor" href="#四、原型性继承"><span>四、原型性继承</span></a></h2><h5 id="基本思想-3" tabindex="-1"><a class="header-anchor" href="#基本思想-3"><span>基本思想</span></a></h5><blockquote><p>可以在不必预先定义构造函数的情况下实现继承，其本质是执行对给定对象的浅复制。而复制得到的副本还可以得到进一步改造。</p></blockquote><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">function object(o){</span>
+<span class="line">    function F(){}</span>
+<span class="line">    F.prototype = o;</span>
+<span class="line">    return new F();</span>
+<span class="line">}</span>
+<span class="line">person = {</span>
+<span class="line">    name: &quot;Nicholas&quot;,</span>
+<span class="line">    friends: [&quot;Shelby&quot;, &quot;Court&quot;, &quot;Van&quot;]</span>
+<span class="line">};</span>
+<span class="line">var anotherPerson = object(person);</span>
+<span class="line">anotherPerson.name = &quot;Greg&quot;;</span>
+<span class="line">anotherPerson.friends.push(&quot;Rob&quot;);</span>
+<span class="line"></span>
+<span class="line">var yetAnotherPerson = object(person);</span>
+<span class="line">yetAnotherPerson.name = &quot;Linda&quot;;</span>
+<span class="line">yetAnotherPerson.friends.push(&quot;Barbie&quot;);</span>
+<span class="line"></span>
+<span class="line">alert(person.friends); //&quot;Shelby,Court,Van,Rob,Barbie&quot;</span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>解析说明：</p><ul><li>object()函数作用：对传入其中的对象执行了一次<strong>浅复制</strong>。</li><li>anotherPerson，这个新对象将 person 作为原型，所以它的原型中就包含一个基本类型值属性 和一个引用类型值属性。</li><li>其中引用类型值属性 person.friends 不仅属于 person 所有，而且也会被 anotherPerson 以及 yetAnotherPerson 共享。</li></ul><h5 id="es5-新增-object-create-方法代替了object" tabindex="-1"><a class="header-anchor" href="#es5-新增-object-create-方法代替了object"><span>ES5 新增 Object.create()方法代替了object()</span></a></h5><ul><li>第一个参数：个用作新对象原型的对象。</li><li>第二个参数：指定的任何属性都会覆盖原型对象上的同名属性。</li></ul><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">var person = {</span>
+<span class="line">    name: &quot;Nicholas&quot;,</span>
+<span class="line">    friends: [&quot;Shelby&quot;, &quot;Court&quot;, &quot;Van&quot;]</span>
+<span class="line">};</span>
+<span class="line">var anotherPerson = Object.create(person, {</span>
+<span class="line">    name: {</span>
+<span class="line">        value: &quot;Greg&quot;</span>
+<span class="line">    }</span>
+<span class="line">});</span>
+<span class="line">alert(anotherPerson.name); //&quot;Greg&quot;</span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>说明：anotherPerson重新指定了name属性，覆盖了原型上的同名属性；</p><h5 id="问题-跟原型模式一样-引用类型值的原型属性会被所有实例共享。" tabindex="-1"><a class="header-anchor" href="#问题-跟原型模式一样-引用类型值的原型属性会被所有实例共享。"><span>问题：跟原型模式一样，引用类型值的原型属性会被所有实例共享。</span></a></h5><h5 id="解决-这个模式后来被构造函数模式所取代。" tabindex="-1"><a class="header-anchor" href="#解决-这个模式后来被构造函数模式所取代。"><span>解决：这个模式后来被构造函数模式所取代。</span></a></h5><h2 id="五、寄生式继承" tabindex="-1"><a class="header-anchor" href="#五、寄生式继承"><span>五、寄生式继承</span></a></h2><h5 id="基本思想-4" tabindex="-1"><a class="header-anchor" href="#基本思想-4"><span>基本思想</span></a></h5><blockquote><p>与原型式继承非常相似，也是基于某个对象或某些信息创建一个对象，然后增强对象，最后返回对象。</p></blockquote><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">function createAnother(original){</span>
+<span class="line">    var clone = object(original); //通过调用函数创建一个新对象</span>
+<span class="line">    clone.sayHi = function(){ //以某种方式来增强这个对象</span>
+<span class="line">        alert(&quot;hi&quot;);</span>
+<span class="line">    };</span>
+<span class="line">    return clone; //返回这个对象</span>
+<span class="line">}</span>
+<span class="line">var person = {</span>
+<span class="line">    name: &quot;Nicholas&quot;,</span>
+<span class="line">    friends: [&quot;Shelby&quot;, &quot;Court&quot;, &quot;Van&quot;]</span>
+<span class="line">};</span>
+<span class="line">var anotherPerson = createAnother(person);</span>
+<span class="line">anotherPerson.sayHi(); //&quot;hi&quot;</span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>解析说明：</p><ul><li>createAnother()作用：对传入其中的对象执行了一次<strong>浅复制</strong>；再为 clone 对象添加一个新方法 sayHi()以此来<strong>增强对象</strong>。</li><li>新对象不仅具有 person的所有属性和方法，而且还有自己的 sayHi()方法。</li></ul><h5 id="使用场景-在主要考虑对象-而不是自定义类型和构造函数的情况下-寄生式继承也是一种有用的模式。" tabindex="-1"><a class="header-anchor" href="#使用场景-在主要考虑对象-而不是自定义类型和构造函数的情况下-寄生式继承也是一种有用的模式。"><span>使用场景：在主要考虑对象，而不是自定义类型和构造函数的情况下，寄生式继承也是一种有用的模式。</span></a></h5><h5 id="用途-为了解决组合继承模式由于多次调用超类型构造函数而导致的低效率问题-可以将这个模式与组合继承一起使用。" tabindex="-1"><a class="header-anchor" href="#用途-为了解决组合继承模式由于多次调用超类型构造函数而导致的低效率问题-可以将这个模式与组合继承一起使用。"><span>用途：为了解决组合继承模式由于多次调用超类型构造函数而导致的低效率问题，可以将这个模式与组合继承一起使用。</span></a></h5><h2 id="六、寄生组合式继承" tabindex="-1"><a class="header-anchor" href="#六、寄生组合式继承"><span>六、寄生组合式继承</span></a></h2><h3 id="组合继承的不足" tabindex="-1"><a class="header-anchor" href="#组合继承的不足"><span>组合继承的不足：</span></a></h3><p>组合继承最大的问题就是无论什么情况下，都会调用两次超类型构造函数：一次是在创建子类型原型的时候，另一次是在子类型构造函数内部。</p><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">function SuperType(name){</span>
+<span class="line">    this.name = name;</span>
+<span class="line">    this.colors = [&quot;red&quot;, &quot;blue&quot;, &quot;green&quot;];</span>
+<span class="line">}</span>
+<span class="line">SuperType.prototype.sayName = function(){</span>
+<span class="line">    alert(this.name);</span>
+<span class="line">};</span>
+<span class="line">function SubType(name, age){</span>
+<span class="line">    SuperType.call(this, name); //第二次调用 SuperType()</span>
+<span class="line">    this.age = age;</span>
+<span class="line">}</span>
+<span class="line">SubType.prototype = new SuperType(); //第一次调用 SuperType()</span>
+<span class="line">SubType.prototype.constructor = SubType;</span>
+<span class="line">SubType.prototype.sayAge = function(){</span>
+<span class="line">alert(this.age);</span>
+<span class="line">};</span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>见图 6-6</p><p>解析说明：</p><ul><li>在第一次调用 SuperType 构造函数时，SubType.prototype 会得到两个属性： name 和 colors；它们都是 SuperType 的实例属性，只不过现在位于 SubType 的原型中。</li><li>当调用 SubType 构造函数时，又会调用一次 SuperType 构造函数，这一次又在新对象上创建了实例属性 name 和 colors。于是，这两个属性就屏蔽了原型中的两个同名属性。</li></ul><h3 id="寄生组合式继承" tabindex="-1"><a class="header-anchor" href="#寄生组合式继承"><span>寄生组合式继承</span></a></h3><h5 id="基本思想-5" tabindex="-1"><a class="header-anchor" href="#基本思想-5"><span>基本思想：</span></a></h5><blockquote><p>集寄生式继承和组合继承的优点与一身，是实现基于类型继承的最有效方式。</p></blockquote><div class="language-text line-numbers-mode" data-highlighter="prismjs" data-ext="text"><pre><code class="language-text"><span class="line">function inheritPrototype(subType, superType){</span>
+<span class="line">    var prototype = object(superType.prototype); //创建对象</span>
+<span class="line">    prototype.constructor = subType; //增强对象</span>
+<span class="line">    subType.prototype = prototype; //指定对象</span>
+<span class="line">}</span>
+<span class="line">function SuperType(name){</span>
+<span class="line">    this.name = name;</span>
+<span class="line">    this.colors = [&quot;red&quot;, &quot;blue&quot;, &quot;green&quot;];</span>
+<span class="line">}</span>
+<span class="line">SuperType.prototype.sayName = function(){</span>
+<span class="line">    alert(this.name);</span>
+<span class="line">};</span>
+<span class="line"></span>
+<span class="line">function SubType(name, age){</span>
+<span class="line">    SuperType.call(this, name);</span>
+<span class="line">    this.age = age;</span>
+<span class="line">}</span>
+<span class="line"></span>
+<span class="line">inheritPrototype(SubType, SuperType);</span>
+<span class="line">SubType.prototype.sayAge = function(){</span>
+<span class="line">    alert(this.age);</span>
+<span class="line">};</span>
+<span class="line"></span></code></pre><div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0;"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h5 id="inheritprototype作用" tabindex="-1"><a class="header-anchor" href="#inheritprototype作用"><span>inheritPrototype作用</span></a></h5><ul><li>实现了寄生组合式继承的最简单形式。</li><li>在函数内部，第一步是创建超类型原型的一个副本。</li><li>第二步是为创建的副本添加 constructor 属性，从而弥补因重写原型而失去的默认的 constructor 属性。</li><li>最后一步，将新创建的对象（即副本）赋值给子类型的原型。</li></ul><h5 id="优点-1" tabindex="-1"><a class="header-anchor" href="#优点-1"><span>优点</span></a></h5><ul><li>这个例子的高效率体现在它只调用了一次 SuperType 构造函数，</li><li>并且因此避免了在 SubType.prototype 上面创建不必要的、多余的属性。</li><li>与此同时，原型链还能保持不变；</li><li>因此，还能够正常使用instanceof 和 isPrototypeOf()。</li><li>开发人员普遍认为寄生组合式继承是引用类型<strong>最理想的继承范式</strong>。</li></ul>`,81)])])}const t=s(l,[["render",p]]),d=JSON.parse('{"path":"/fontend/class1/09.inheritance.html","title":"面向对象的程序设计之继承","lang":"zh-CN","frontmatter":{},"git":{"updatedTime":1764128360000,"contributors":[{"name":"lumi","username":"lumi","email":"lumiya1228@gmail.com","commits":1,"url":"https://github.com/lumi"}],"changelog":[{"hash":"cf2f85e78da6745fae651d3e778926f1ac985f47","time":1764128360000,"email":"lumiya1228@gmail.com","author":"lumi","message":"docs: restructure front-end and offer sections, add new content and navigation links"}]},"filePathRelative":"fontend/class1/09.inheritance.md"}');export{t as comp,d as data};

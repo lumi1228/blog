@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="generator" content="VuePress 2.0.0-rc.26" />
+    <style>
+      :root {
+        --vp-c-bg: #fff;
+      }
+
+      [data-theme='dark'] {
+        --vp-c-bg: #1b1b1f;
+      }
+
+      html,
+      body {
+        background-color: var(--vp-c-bg);
+      }
+    </style>
+    <script>
+      const useChoice = localStorage.getItem('vuepress-color-scheme')
+      const systemStatus =
+        'matchMedia' in window
+          ? window.matchMedia('(prefers-color-scheme: dark)').matches
+          : false
+
+      if (useChoice === 'light') {
+        document.documentElement.dataset.theme = 'light'
+      } else if (useChoice === 'dark' || systemStatus) {
+        document.documentElement.dataset.theme = 'dark'
+      }
+    </script>
+    <title>Lumi's Blog</title><meta name="description" content="这是我的第一个 VuePress 站点">
+    <link rel="preload" href="/blog/assets/style-B6ppN0Ta.css" as="style"><link rel="stylesheet" href="/blog/assets/style-B6ppN0Ta.css">
+    <link rel="modulepreload" href="/blog/assets/app-BXqgnaz2.js"><link rel="modulepreload" href="/blog/assets/404.html-BhBQ9TNp.js">
+    <link rel="prefetch" href="/blog/assets/index.html-OyxkpQIk.js" as="script"><link rel="prefetch" href="/blog/assets/navigate.html-CjHgXRnp.js" as="script"><link rel="prefetch" href="/blog/assets/index.html-C2FSTqO6.js" as="script"><link rel="prefetch" href="/blog/assets/index.html-Lg9d9LIg.js" as="script"><link rel="prefetch" href="/blog/assets/01.javascript.html-Dl-zlyp-.js" as="script"><link rel="prefetch" href="/blog/assets/02.javascript-introduce.html-Dq5RbHYk.js" as="script"><link rel="prefetch" href="/blog/assets/03.basic-concept.html-Bwh6dHtc.js" as="script"><link rel="prefetch" href="/blog/assets/04.data-type.html-8dqTpg2C.js" as="script"><link rel="prefetch" href="/blog/assets/05.operator.html-DBist1nG.js" as="script"><link rel="prefetch" href="/blog/assets/06.variable-scope-memory.html-CIamUGB9.js" as="script"><link rel="prefetch" href="/blog/assets/07.object-oriented-program.html-BuZct5JK.js" as="script"><link rel="prefetch" href="/blog/assets/08.create-object.html-C3fQC_9e.js" as="script"><link rel="prefetch" href="/blog/assets/09.function-expression.html-BvBj9Sqv.js" as="script"><link rel="prefetch" href="/blog/assets/09.inheritance.html-BF8KXqkA.js" as="script"><link rel="prefetch" href="/blog/assets/10.function-expression.html-B9iniK3-.js" as="script"><link rel="prefetch" href="/blog/assets/01.data-structure.html-BhriDY-C.js" as="script"><link rel="prefetch" href="/blog/assets/02.time-space-complexity.html-SMRWDlnV.js" as="script"><link rel="prefetch" href="/blog/assets/03.stack.html-CRf81ciD.js" as="script"><link rel="prefetch" href="/blog/assets/04.queue.html-D-m4p9Ts.js" as="script"><link rel="prefetch" href="/blog/assets/05.linked-list.html-Bv35o0sZ.js" as="script"><link rel="prefetch" href="/blog/assets/06.set.html-aHkKRuwd.js" as="script"><link rel="prefetch" href="/blog/assets/07.dictionary.html-BBtrIw89.js" as="script"><link rel="prefetch" href="/blog/assets/08.tree.html-ByCE9nt6.js" as="script"><link rel="prefetch" href="/blog/assets/09.graph.html-hYhBD9lW.js" as="script"><link rel="prefetch" href="/blog/assets/10.heap.html-CsCEH8qd.js" as="script"><link rel="prefetch" href="/blog/assets/11.sort-search.html-DurSIJGS.js" as="script"><link rel="prefetch" href="/blog/assets/12.divide-and-conquer.html-CasqpYGG.js" as="script"><link rel="prefetch" href="/blog/assets/13.dynamic-programming.html-F5DSSZrt.js" as="script"><link rel="prefetch" href="/blog/assets/14.greedy-algorithm.html-DXM25NQ9.js" as="script"><link rel="prefetch" href="/blog/assets/15.backtracking.html-Dv7VYME-.js" as="script"><link rel="prefetch" href="/blog/assets/01.meet-fullstack.html-vv6koS46.js" as="script"><link rel="prefetch" href="/blog/assets/03.tool-webpack.html-DAVri-Ps.js" as="script"><link rel="prefetch" href="/blog/assets/04.tool-gulp.html-qn5SFDya.js" as="script"><link rel="prefetch" href="/blog/assets/05.tool-yeoman.html-DZN1NoKj.js" as="script"><link rel="prefetch" href="/blog/assets/06.koa-framework.html-C5l2iA7J.js" as="script"><link rel="prefetch" href="/blog/assets/07.login-module.html-k_5oDo6u.js" as="script"><link rel="prefetch" href="/blog/assets/overview-engineering.html-B2-XgeL1.js" as="script"><link rel="prefetch" href="/blog/assets/02.project-require.html-Cif2ju0s.js" as="script"><link rel="prefetch" href="/blog/assets/01.JS-code.html-BqDRnYdT.js" as="script"><link rel="prefetch" href="/blog/assets/02.ES-code.html-Vzkrg4PQ.js" as="script"><link rel="prefetch" href="/blog/assets/03.readcode.html-CnW6s2tb.js" as="script"><link rel="prefetch" href="/blog/assets/index.html-DigOxbO3.js" as="script"><link rel="prefetch" href="/blog/assets/05.http.html-CI3IXgig.js" as="script"><link rel="prefetch" href="/blog/assets/01.vue-use.html-3ut5vCSM.js" as="script"><link rel="prefetch" href="/blog/assets/02.vue-theory.html-M6zTfsjr.js" as="script">
+  </head>
+  <body>
+    <div id="app"><!--[--><div class="vp-theme-container" vp-container data-v-33d3430e><main class="page" data-v-33d3430e><div vp-content data-v-33d3430e><h1 data-v-33d3430e>404</h1><blockquote data-v-33d3430e>There&#39;s nothing here.</blockquote><a class="route-link" href="/blog/" data-v-33d3430e>Take me home</a></div></main></div><!--[--><!----><!--]--><!--]--></div>
+    <script type="module" src="/blog/assets/app-BXqgnaz2.js" defer></script>
+  </body>
+</html>
