@@ -1,5 +1,42 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+[中文版](./README.zh-CN.md)
+
+## Tech Stack
+
+| Technology | Version | Description |
+|---|---|---|
+| [Next.js](https://nextjs.org) | 16.2.3 | React framework with SSR, SSG, routing, and API support |
+| [React](https://react.dev) | 19.2.4 | UI component library for building user interfaces |
+| [TypeScript](https://www.typescriptlang.org) | ^5 | Typed superset of JavaScript for better developer experience |
+| [Tailwind CSS](https://tailwindcss.com) | ^4 | Utility-first CSS framework for rapid styling |
+| [PostCSS](https://postcss.org) | - | CSS transformation tool, used as Tailwind CSS build pipeline |
+| [ESLint](https://eslint.org) | ^9 | JavaScript/TypeScript linter for code quality |
+
+## Project Structure
+
+```
+blog/
+├── app/                    # App Router directory (Next.js core)
+│   ├── favicon.ico         # Site favicon
+│   ├── globals.css         # Global styles (Tailwind directives)
+│   ├── layout.tsx          # Root layout component
+│   └── page.tsx            # Home page component
+├── public/                 # Static assets served at root path
+│   ├── file.svg
+│   ├── globe.svg
+│   ├── next.svg
+│   ├── vercel.svg
+│   └── window.svg
+├── .gitignore              # Git ignore rules
+├── eslint.config.mjs       # ESLint configuration
+├── next.config.ts          # Next.js configuration
+├── package.json            # Project dependencies and scripts
+├── postcss.config.mjs      # PostCSS configuration (Tailwind plugin)
+├── tsconfig.json           # TypeScript configuration
+└── README.md               # Project documentation
+```
+
 ## Getting Started
 
 First, run the development server:

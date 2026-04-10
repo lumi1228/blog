@@ -1,5 +1,42 @@
 这是一个使用 [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app) 创建的 [Next.js](https://nextjs.org) 项目。
 
+[English](./README.md)
+
+## 技术栈
+
+| 技术 | 版本 | 说明 |
+|---|---|---|
+| [Next.js](https://nextjs.org) | 16.2.3 | React 全栈框架，支持 SSR、SSG、路由和 API |
+| [React](https://react.dev) | 19.2.4 | 用于构建用户界面的 UI 组件库 |
+| [TypeScript](https://www.typescriptlang.org) | ^5 | JavaScript 的类型超集，提升开发体验和代码可靠性 |
+| [Tailwind CSS](https://tailwindcss.com) | ^4 | 原子化 CSS 框架，快速实现样式开发 |
+| [PostCSS](https://postcss.org) | - | CSS 转换工具，作为 Tailwind CSS 的构建管道 |
+| [ESLint](https://eslint.org) | ^9 | JavaScript/TypeScript 代码检查工具，保障代码质量 |
+
+## 项目结构
+
+```
+blog/
+├── app/                    # App Router 目录（Next.js 核心）
+│   ├── favicon.ico         # 网站图标
+│   ├── globals.css         # 全局样式（Tailwind 指令）
+│   ├── layout.tsx          # 根布局组件
+│   └── page.tsx            # 首页组件
+├── public/                 # 静态资源目录，映射到根路径
+│   ├── file.svg
+│   ├── globe.svg
+│   ├── next.svg
+│   ├── vercel.svg
+│   └── window.svg
+├── .gitignore              # Git 忽略规则
+├── eslint.config.mjs       # ESLint 配置
+├── next.config.ts          # Next.js 配置
+├── package.json            # 项目依赖和脚本
+├── postcss.config.mjs      # PostCSS 配置（Tailwind 插件）
+├── tsconfig.json           # TypeScript 配置
+└── README.md               # 项目文档
+```
+
 ## 快速开始
 
 首先，启动开发服务器：
