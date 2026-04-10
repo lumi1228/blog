@@ -4,6 +4,15 @@
 
 ## 技术栈
 
+### 运行环境
+
+| 技术 | 版本 | 说明 |
+|---|---|---|
+| [Node.js](https://nodejs.org) | v20.20.2 | JavaScript 运行时环境 |
+| [npm](https://www.npmjs.com) | v10.8.2 | Node.js 包管理器 |
+
+### 项目依赖
+
 | 技术 | 版本 | 说明 |
 |---|---|---|
 | [Next.js](https://nextjs.org) | 16.2.3 | React 全栈框架，支持 SSR、SSG、路由和 API |
@@ -57,9 +66,7 @@ bun dev
 
 本项目使用 [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) 自动优化并加载 [Geist](https://vercel.com/font) 字体。
 
-## 了解更多
-
-想深入了解 Next.js，可以参考以下资源：
+## Next官方资源
 
 - [Next.js 官方文档](https://nextjs.org/docs) - 了解 Next.js 的功能和 API。
 - [Next.js 交互式教程](https://nextjs.org/learn) - 通过实践学习 Next.js。

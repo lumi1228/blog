@@ -4,6 +4,15 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Tech Stack
 
+### Runtime Environment
+
+| Technology | Version | Description |
+|---|---|---|
+| [Node.js](https://nodejs.org) | v20.20.2 | JavaScript runtime environment |
+| [npm](https://www.npmjs.com) | v10.8.2 | Node.js package manager |
+
+### Project Dependencies
+
 | Technology | Version | Description |
 |---|---|---|
 | [Next.js](https://nextjs.org) | 16.2.3 | React framework with SSR, SSG, routing, and API support |
