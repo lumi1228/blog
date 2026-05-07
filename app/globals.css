@@ -1,26 +1,254 @@
 @import "tailwindcss";
 
+/* ============================================
+   设计系统 · CSS 变量
+   风格：Neo-futuristic Elegance
+   ============================================ */
+
+/* --- Dark Mode（默认） --- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+
+  /* 背景 */
+  --bg-primary: #0B0D11;
+  --bg-secondary: #12151C;
+  --bg-tertiary: #1A1E28;
+  --bg-elevated: #1F2430;
+
+  /* 文字 */
+  --text-primary: #E8E6E3;
+  --text-secondary: #9CA3AF;
+  --text-tertiary: #6B7280;
+
+  /* 强调色 · 玫瑰金 */
+  --accent-primary: #E8A0BF;
+  --accent-hover: #F0B8D0;
+  --accent-muted: rgba(232, 160, 191, 0.15);
+
+  /* 强调色 · 冰蓝 */
+  --accent-secondary: #7DD3FC;
+  --accent-secondary-hover: #BAE6FD;
+
+  /* 边框 */
+  --border-default: #1F2937;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+
+  /* 光晕 */
+  --glow-primary: rgba(232, 160, 191, 0.2);
+  --glow-secondary: rgba(125, 211, 252, 0.15);
+
+  /* 语义色 */
+  --success: #34D399;
+  --warning: #FBBF24;
+  --error: #F87171;
+
+  /* 阴影 */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-glow-accent: 0 0 20px var(--glow-primary);
+  --shadow-glow-blue: 0 0 20px var(--glow-secondary);
+
+  /* 动效 */
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+  --duration-slower: 600ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* 圆角 */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
 }
 
+/* --- Light Mode --- */
+.light {
+  color-scheme: light;
+
+  --bg-primary: #FAFAF9;
+  --bg-secondary: #F5F3F0;
+  --bg-tertiary: #EDEBE8;
+  --bg-elevated: #FFFFFF;
+
+  --text-primary: #1C1917;
+  --text-secondary: #57534E;
+  --text-tertiary: #A8A29E;
+
+  --accent-primary: #BE185D;
+  --accent-hover: #9F1239;
+  --accent-muted: rgba(190, 24, 93, 0.08);
+
+  --accent-secondary: #0369A1;
+  --accent-secondary-hover: #075985;
+
+  --border-default: #E7E5E4;
+  --border-subtle: rgba(0, 0, 0, 0.06);
+
+  --glow-primary: rgba(190, 24, 93, 0.1);
+  --glow-secondary: rgba(3, 105, 161, 0.08);
+
+  --success: #059669;
+  --warning: #D97706;
+  --error: #DC2626;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-glow-accent: 0 0 16px var(--glow-primary);
+  --shadow-glow-blue: 0 0 16px var(--glow-secondary);
+}
+
+/* ============================================
+   Tailwind v4 Theme 映射
+   ============================================ */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* 颜色 */
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-tertiary: var(--bg-tertiary);
+  --color-bg-elevated: var(--bg-elevated);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-muted: var(--accent-muted);
+  --color-accent-secondary: var(--accent-secondary);
+  --color-accent-secondary-hover: var(--accent-secondary-hover);
+
+  --color-border-default: var(--border-default);
+  --color-border-subtle: var(--border-subtle);
+
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+
+  /* 字体 */
+  --font-display: var(--font-sora), "Sora", sans-serif;
+  --font-body: var(--font-noto-sans-sc), "Noto Sans SC", sans-serif;
+  --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", monospace;
+
+  /* 圆角 */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ============================================
+   全局基础样式
+   ============================================ */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  transition:
+    background-color var(--duration-slow) var(--ease-in-out),
+    color var(--duration-normal) var(--ease-in-out);
+}
+
+/* 文字选中样式 */
+::selection {
+  background-color: var(--accent-muted);
+  color: var(--accent-primary);
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-primary);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-hover);
+}
+
+/* 焦点样式（无障碍） */
+:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* 减少动效偏好 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ============================================
+   动画关键帧
+   ============================================ */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* 工具类 */
+.animate-fade-in-up {
+  animation: fade-in-up var(--duration-slow) var(--ease-out) both;
+}
+
+.animate-fade-in {
+  animation: fade-in var(--duration-normal) var(--ease-out) both;
+}
+
+/* 交错动画延迟 */
+.stagger-1 { animation-delay: 50ms; }
+.stagger-2 { animation-delay: 100ms; }
+.stagger-3 { animation-delay: 150ms; }
+.stagger-4 { animation-delay: 200ms; }
+.stagger-5 { animation-delay: 250ms; }
+.stagger-6 { animation-delay: 300ms; }
+
+
+/* ============================================
+   文章详情页 prose 样式增强
+   ============================================ */
+.prose-custom {
+  font-family: var(--font-body);
+  color: var(--text-secondary);
+}
+
+.prose-custom > *:first-child {
+  margin-top: 0;
 }
