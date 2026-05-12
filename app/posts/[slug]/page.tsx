@@ -4,15 +4,10 @@ import { notFound } from "next/navigation";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { MarkdownContent } from "@/components/markdown-content";
-import { getPostBySlug, getAdjacentPosts, mockPosts } from "@/lib/mock-data";
+import { getPostBySlug, getAdjacentPosts } from "@/lib/db";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
-}
-
-// 生成静态路径（SSG）
-export async function generateStaticParams() {
-  return mockPosts.map((post) => ({ slug: post.slug }));
 }
 
 // 动态生成 metadata
@@ -20,7 +15,7 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  const post = await getPostBySlug(slug);
 
   if (!post) {
     return { title: "文章未找到" };
@@ -40,13 +35,13 @@ export async function generateMetadata({
 
 export default async function PostDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  const post = await getPostBySlug(slug);
 
   if (!post) {
     notFound();
   }
 
-  const { prev, next } = getAdjacentPosts(slug);
+  const { prev, next } = await getAdjacentPosts(slug);
 
   return (
     <>
@@ -167,18 +162,11 @@ export default async function PostDetailPage({ params }: PageProps) {
                     stroke="currentColor"
                     strokeWidth={2}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15 19l-7-7 7-7"
-                    />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                   </svg>
                   上一篇
                 </div>
-                <div
-                  className="line-clamp-2 text-sm font-medium text-[var(--text-primary)] 
-                             group-hover:text-[var(--accent-primary)]"
-                >
+                <div className="line-clamp-2 text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--accent-primary)]">
                   {prev.title}
                 </div>
               </Link>
@@ -202,17 +190,10 @@ export default async function PostDetailPage({ params }: PageProps) {
                     stroke="currentColor"
                     strokeWidth={2}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 5l7 7-7 7"
-                    />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
                 </div>
-                <div
-                  className="line-clamp-2 text-sm font-medium text-[var(--text-primary)]
-                             group-hover:text-[var(--accent-primary)]"
-                >
+                <div className="line-clamp-2 text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--accent-primary)]">
                   {next.title}
                 </div>
               </Link>

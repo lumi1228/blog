@@ -1,9 +1,11 @@
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { ArticleCard } from "@/components/article-card";
-import { mockPosts } from "@/lib/mock-data";
+import { getPosts } from "@/lib/db";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const { posts, total } = await getPosts({ limit: 10 });
+
   return (
     <>
       <Navbar />
@@ -102,15 +104,23 @@ export default function HomePage() {
               最新文章
             </h2>
             <span className="text-sm text-[var(--text-tertiary)]">
-              共 {mockPosts.length} 篇
+              共 {total} 篇
             </span>
           </div>
 
-          <div className="grid gap-6">
-            {mockPosts.map((post, index) => (
-              <ArticleCard key={post.id} post={post} index={index} />
-            ))}
-          </div>
+          {posts.length === 0 ? (
+            <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--border-default)] bg-[var(--bg-secondary)] px-8 py-16 text-center">
+              <p className="text-sm text-[var(--text-secondary)]">
+                还没有发布文章，敬请期待 ✨
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-6">
+              {posts.map((post, index) => (
+                <ArticleCard key={post.id} post={post} index={index} />
+              ))}
+            </div>
+          )}
         </section>
       </main>
 

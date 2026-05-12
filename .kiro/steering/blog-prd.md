@@ -44,6 +44,7 @@
 ├── [基础型·必做] 分类/标签管理
 ├── [基础型·必做] 个人介绍（About）
 ├── [基础型·必做] 登录/鉴权（管理员）
+├── [基础型·必做] 国际化（中英文切换）
 ├── [期望型·优先做] 首页与文章列表
 ├── [期望型·优先做] 文章详情页（含 Markdown 渲染）
 ├── [期望型·优先做] 搜索功能
@@ -65,6 +66,7 @@
 | **Must** | 分类管理 | 内容组织 |
 | **Must** | 管理员登录（JWT） | 安全访问控制 |
 | **Must** | 个人介绍页 | 品牌呈现 |
+| **Must** | 中英双语切换 | UI 文案与内容支持 zh-CN / en 切换 |
 | **Should** | 标签系统 | 细化内容分类 |
 | **Should** | 搜索功能 | 内容发现 |
 | **Should** | Markdown 富文本渲染 + 代码高亮 | 技术博客核心体验 |
@@ -303,7 +305,101 @@ Category {
 
 ---
 
-### 4.7 SEO 模块
+### 4.7 国际化（i18n）模块
+
+**功能描述**
+博客支持中文（简体，`zh-CN`）与英文（`en`）双语切换，覆盖 UI 文案与文章内容。
+
+**支持范围**
+| 范围 | 说明 |
+|------|------|
+| UI 文案 | 导航栏、按钮、标签、提示、页脚等所有静态文字 |
+| About 页 | 个人介绍、技术栈分类名、时间线等内容 |
+| 文章内容 | 每篇文章可独立维护中英文两份内容（非自动翻译） |
+| 分类/标签名 | 中英文各一份 |
+| SEO metadata | title / description 按语言生成，hreflang 标记 |
+| 日期格式 | zh-CN: "2026年5月7日" / en: "May 7, 2026" |
+
+**URL 策略**
+- 采用**子路径**方案（SEO 友好）：
+  - 中文（默认）：`/posts/:slug`、`/about`
+  - 英文：`/en/posts/:slug`、`/en/about`
+- 或采用 cookie/localStorage 记录偏好（无 URL 变化，SEO 次之）
+- **推荐**：子路径方案，Next.js App Router 原生支持
+
+**主流程**
+```
+1. 用户访问博客 → 检测 Accept-Language Header 或 cookie
+2. 首次访问：根据浏览器语言自动跳转对应版本（zh → /，en → /en）
+3. 用户通过导航栏「中/EN」切换按钮手动切换
+4. 切换后：写入 cookie（NEXT_LOCALE），跳转对应路径
+5. 切换时保持当前页面对应位置（如从 /posts/foo 切到 /en/posts/foo）
+```
+
+**文章多语言数据模型**
+```typescript
+Post {
+  id: string
+  slug: string              // 统一 slug（如 "react-19-use-hook"）
+  translations: {
+    [locale: string]: {
+      title: string
+      excerpt: string
+      content: string
+      seoTitle?: string
+      seoDescription?: string
+    }
+  }
+  // 如果某语言无译文，前台降级显示默认语言（zh-CN）
+  availableLocales: string[]   // ['zh-CN', 'en']
+  // 其他与语言无关字段保持不变
+  publishedAt: Date
+  categoryId: string
+  tags: Tag[]
+}
+```
+
+**翻译文案管理**
+- UI 文案：`/locales/zh-CN.json` + `/locales/en.json`
+- 组织方式：按模块分组，如 `nav.home`、`post.readMore`、`about.title`
+- 示例：
+```json
+// locales/zh-CN.json
+{
+  "nav": { "home": "首页", "about": "关于", "search": "搜索" },
+  "post": { "readMore": "阅读全文", "readingTime": "分钟阅读" },
+  "common": { "loading": "加载中...", "notFound": "未找到" }
+}
+// locales/en.json
+{
+  "nav": { "home": "Home", "about": "About", "search": "Search" },
+  "post": { "readMore": "Read More", "readingTime": "min read" },
+  "common": { "loading": "Loading...", "notFound": "Not Found" }
+}
+```
+
+**验收标准**
+1. 中英文切换按钮在所有页面导航栏可见且生效
+2. 切换后所有 UI 文案、日期格式、当前内容均更新
+3. URL 反映当前语言（如 `/en/about`）
+4. 刷新页面后语言偏好保持（通过 cookie）
+5. 仅有一种语言版本的文章，在另一语言下降级显示原版并标注「暂无译文」
+6. SEO：`<html lang>` 动态变化，页面 `<head>` 包含 `<link rel="alternate" hreflang>` 标记
+7. 搜索引擎分别索引两种语言版本
+
+**降级策略**
+- 缺失译文时：显示默认语言（zh-CN）内容 + 顶部提示「This article is only available in Chinese」
+- 文章若无 `translations.en`，英文站点文章列表中不显示该文章（或显示但标注）
+
+**技术实现建议**
+- 使用 **`next-intl`** 库（Next.js App Router 原生支持的主流方案）
+- 路由：`app/[locale]/...` 目录结构，`[locale]` 可选值由 middleware 校验
+- Middleware：根据 URL 前缀 + cookie + Accept-Language 决定语言
+- 服务端组件直接 `await getTranslations()`，客户端组件用 `useTranslations()`
+
+---
+
+### 4.8 SEO 模块
 
 **技术实现**：利用 Next.js App Router 的 `generateMetadata` 函数，每个页面动态生成元数据
 
@@ -315,14 +411,21 @@ metadata = {
   openGraph: {
     title, description,
     images: [封面图URL],
-    type: "article" | "website"
+    type: "article" | "website",
+    locale: "zh_CN" | "en_US"
   },
   twitter: { card, title, description, image },
-  alternates: { canonical: URL }
+  alternates: {
+    canonical: URL,
+    languages: {              // 多语言 hreflang
+      "zh-CN": "/posts/foo",
+      "en": "/en/posts/foo"
+    }
+  }
 }
 ```
 
-**结构化数据**：文章页注入 `Article` Schema（JSON-LD）
+**结构化数据**：文章页注入 `Article` Schema（JSON-LD），`inLanguage` 字段标记语言
 
 ---
 
@@ -342,10 +445,7 @@ User {
 // 文章
 Post {
   id: string
-  title: string          // 标题
-  slug: string           // URL-friendly，唯一
-  excerpt: string        // 摘要
-  content: string        // Markdown 正文
+  slug: string           // URL-friendly，唯一（与语言无关）
   coverImage: string     // 封面图 URL
   status: "draft" | "published"
   publishedAt: Date      // 发布时间
@@ -355,26 +455,43 @@ Post {
   tags: Tag[]            // 多对多
   viewCount: number      // 阅读量
   readingTime: number    // 预计阅读时长（分钟）
-  seoTitle: string       // 自定义 SEO 标题
-  seoDescription: string // 自定义 SEO 描述
+  // 多语言字段（按 locale 维护）
+  translations: {
+    [locale: string]: {    // "zh-CN" | "en"
+      title: string        // 标题
+      excerpt: string      // 摘要
+      content: string      // Markdown 正文
+      seoTitle?: string    // 自定义 SEO 标题
+      seoDescription?: string
+    }
+  }
+  availableLocales: string[]  // 已有译文的语言列表
 }
 
 // 分类
 Category {
   id: string
-  name: string
   slug: string
-  description: string
   sort: number
   createdAt: Date
+  translations: {
+    [locale: string]: {
+      name: string
+      description: string
+    }
+  }
 }
 
 // 标签
 Tag {
   id: string
-  name: string
   slug: string
   createdAt: Date
+  translations: {
+    [locale: string]: {
+      name: string
+    }
+  }
 }
 ```
 
@@ -382,23 +499,26 @@ Tag {
 
 ## 六、页面路由规划
 
+> 所有前台路由支持双语，`[locale]` 可选值：`zh-CN`（默认，URL 省略）、`en`
+> 实际实现采用 `app/[locale]/...` 结构，中文路径无前缀，英文路径带 `/en` 前缀
+
 | 路由 | 类型 | 说明 |
 |------|------|------|
-| `/` | 前台 | 首页，文章列表 |
-| `/posts/:slug` | 前台 | 文章详情页 |
-| `/category/:slug` | 前台 | 分类文章列表 |
-| `/tag/:slug` | 前台 | 标签文章列表 |
-| `/about` | 前台 | 个人介绍 |
-| `/search` | 前台 | 搜索结果页 |
-| `/rss.xml` | 前台 | RSS Feed（Phase 2） |
-| `/admin/login` | 后台 | 登录页 |
+| `/` · `/en` | 前台 | 首页，文章列表 |
+| `/posts/:slug` · `/en/posts/:slug` | 前台 | 文章详情页 |
+| `/category/:slug` · `/en/category/:slug` | 前台 | 分类文章列表 |
+| `/tag/:slug` · `/en/tag/:slug` | 前台 | 标签文章列表 |
+| `/about` · `/en/about` | 前台 | 个人介绍 |
+| `/search` · `/en/search` | 前台 | 搜索结果页 |
+| `/rss.xml` · `/en/rss.xml` | 前台 | RSS Feed（按语言分别输出） |
+| `/admin/login` | 后台 | 登录页（后台仅中文） |
 | `/admin/dashboard` | 后台 | 数据概览 |
-| `/admin/posts` | 后台 | 文章列表管理 |
-| `/admin/posts/new` | 后台 | 新建文章 |
-| `/admin/posts/:id/edit` | 后台 | 编辑文章 |
-| `/admin/categories` | 后台 | 分类管理 |
-| `/admin/tags` | 后台 | 标签管理 |
-| `/admin/about` | 后台 | 编辑 About 页 |
+| `/admin/posts` | 后台 | 文章列表管理（支持中英文内容切换） |
+| `/admin/posts/new` | 后台 | 新建文章（双语标签页） |
+| `/admin/posts/:id/edit` | 后台 | 编辑文章（双语标签页） |
+| `/admin/categories` | 后台 | 分类管理（双语字段） |
+| `/admin/tags` | 后台 | 标签管理（双语字段） |
+| `/admin/about` | 后台 | 编辑 About 页（双语字段） |
 
 ---
 
@@ -427,6 +547,7 @@ Tag {
 
 | 类型 | 推荐方案 | 备选 |
 |------|---------|------|
+| **国际化（i18n）** | `next-intl` | `next-i18next`、`react-intl` |
 | **Markdown 编辑** | `@uiw/react-md-editor` | Tiptap |
 | **MD 渲染** | `react-markdown` + `remark-gfm` | `marked` |
 | **代码高亮** | `shiki` | `prism.js` |
@@ -463,16 +584,19 @@ Tag {
 ## 八、开发阶段规划
 
 ### Phase 1 · MVP（约 3-4 周）
-> 目标：能写文章、能看文章、能登录管理
+> 目标：能写文章、能看文章、能登录管理、双语可切换
 
 - [x] 项目初始化（已完成）
-- [ ] 数据库 + Prisma 配置
-- [ ] 管理员登录（NextAuth）
-- [ ] 文章 CRUD API（Route Handlers）
-- [ ] 后台：文章列表 + 编辑器
-- [ ] 前台：首页 + 文章详情页（MD 渲染）
-- [ ] 分类管理
-- [ ] 个人介绍页（静态配置版）
+- [x] 设计系统规范（已完成）
+- [x] 双主题切换（已完成）
+- [ ] 国际化框架搭建（next-intl + 中英文切换按钮）
+- [ ] 数据库 + Supabase 配置
+- [ ] 管理员登录（JWT + Supabase Auth）
+- [ ] 文章 CRUD API（Route Handlers，支持多语言字段）
+- [ ] 后台：文章列表 + 编辑器（双语标签页编辑）
+- [ ] 前台：首页 + 文章详情页（MD 渲染 + 双语）
+- [ ] 分类管理（双语）
+- [ ] 个人介绍页（静态配置版，双语）
 
 ### Phase 2 · 增强（约 2 周）
 > 目标：更好的读者体验和内容管理
@@ -506,6 +630,7 @@ Tag {
 | **可用性** | 404 页面友好提示；文章不存在时跳转 /404 |
 | **响应式** | 移动端（375px）、平板（768px）、桌面端（1280px）均适配 |
 | **无障碍** | 图片有 alt 属性；色彩对比度 ≥ WCAG AA 标准 |
+| **国际化** | 支持 zh-CN、en 双语；切换延迟 ≤ 300ms；搜索引擎可独立索引两种语言 |
 
 ---
 
@@ -518,6 +643,8 @@ Tag {
 | SQLite 并发能力 | 低 | 中 | 个人博客流量小，无需担心；若上量迁 Postgres |
 | 数据备份丢失 | 低 | 高 | 定期导出 SQLite 文件或用 Vercel Postgres 自动备份 |
 | 后台暴露在公网 | 中 | 高 | /admin/* 严格 JWT 鉴权 + 可配置 IP 白名单 |
+| 英文内容翻译工作量大 | 高 | 中 | MVP 阶段仅 UI 文案双语，文章内容允许仅中文；后续按需翻译重点文章 |
+| 多语言字段导致数据结构复杂 | 中 | 中 | 使用 `translations` 嵌套对象统一管理；降级策略兜底 |
 
 ---
 

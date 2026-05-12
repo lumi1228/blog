@@ -4,21 +4,15 @@ import { notFound } from "next/navigation";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { ArticleCard } from "@/components/article-card";
-import { getPostsByTag, mockTags } from "@/lib/mock-data";
+import { getPosts, getTagBySlug } from "@/lib/db";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-export async function generateStaticParams() {
-  return mockTags.map((t) => ({ slug: t.slug }));
-}
-
-export async function generateMetadata({
-  params,
-}: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const tag = mockTags.find((t) => t.slug === slug);
+  const tag = await getTagBySlug(slug);
 
   if (!tag) return { title: "标签未找到" };
 
@@ -30,13 +24,13 @@ export async function generateMetadata({
 
 export default async function TagPage({ params }: PageProps) {
   const { slug } = await params;
-  const tag = mockTags.find((t) => t.slug === slug);
+  const tag = await getTagBySlug(slug);
 
   if (!tag) {
     notFound();
   }
 
-  const posts = getPostsByTag(slug);
+  const { posts } = await getPosts({ tagSlug: slug });
 
   return (
     <>
@@ -53,7 +47,6 @@ export default async function TagPage({ params }: PageProps) {
           </div>
 
           <div className="relative mx-auto max-w-[1200px] px-6 py-12 sm:py-16">
-            {/* 面包屑 */}
             <nav className="mb-4 flex items-center gap-2 text-xs text-[var(--text-tertiary)]">
               <Link
                 href="/"
@@ -65,7 +58,6 @@ export default async function TagPage({ params }: PageProps) {
               <span>标签</span>
             </nav>
 
-            {/* 标题 */}
             <h1
               className="mb-3 text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl animate-fade-in-up"
               style={{ fontFamily: "var(--font-display)" }}
@@ -88,10 +80,7 @@ export default async function TagPage({ params }: PageProps) {
         {/* 文章列表 */}
         <section className="mx-auto max-w-[1200px] px-6 py-12 sm:py-16">
           {posts.length === 0 ? (
-            <div
-              className="rounded-[var(--radius-lg)] border border-dashed border-[var(--border-default)] 
-                         bg-[var(--bg-secondary)] px-8 py-16 text-center"
-            >
+            <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--border-default)] bg-[var(--bg-secondary)] px-8 py-16 text-center">
               <p className="text-sm text-[var(--text-secondary)]">
                 这个标签下暂时还没有文章
               </p>
