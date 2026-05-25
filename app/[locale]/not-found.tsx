@@ -1,22 +1,23 @@
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 
 export default function NotFound() {
+  const t = useTranslations("common");
+
   return (
     <>
       <Navbar />
 
       <main className="flex flex-1 items-center justify-center px-6 py-16">
         <div className="relative text-center">
-          {/* 背景装饰 */}
           <div
             className="absolute left-1/2 top-1/2 -z-10 h-80 w-80 -translate-x-1/2 -translate-y-1/2 
                        rounded-full opacity-30 blur-[100px]"
             style={{ background: "var(--glow-primary)" }}
           />
 
-          {/* 404 大数字 */}
           <div
             className="mb-4 text-[120px] font-bold leading-none tracking-tighter text-[var(--accent-primary)] 
                        opacity-80 sm:text-[180px]"
@@ -25,27 +26,21 @@ export default function NotFound() {
             404
           </div>
 
-          {/* 装饰线 */}
           <div
             className="mx-auto mb-6 h-px w-24"
-            style={{
-              background:
-                "linear-gradient(to right, transparent, var(--accent-primary), transparent)",
-            }}
+            style={{ background: "linear-gradient(to right, transparent, var(--accent-primary), transparent)" }}
           />
 
-          {/* 提示文字 */}
           <h1
             className="mb-3 text-2xl font-semibold text-[var(--text-primary)]"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            页面走丢了
+            {t("notFound")}
           </h1>
           <p className="mb-8 max-w-md text-sm text-[var(--text-secondary)]">
-            你要找的内容可能已被移除、重命名，或者从未存在过。
+            {t("notFoundDesc")}
           </p>
 
-          {/* 操作按钮 */}
           <div className="flex items-center justify-center gap-3">
             <Link
               href="/"
@@ -54,20 +49,10 @@ export default function NotFound() {
                          text-[var(--bg-primary)] transition-all duration-[var(--duration-fast)]
                          hover:shadow-[var(--shadow-glow-accent)]"
             >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                />
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
-              返回首页
+              {t("backHome")}
             </Link>
           </div>
         </div>

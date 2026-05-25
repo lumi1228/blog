@@ -1,24 +1,23 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { MarkdownContent } from "@/components/markdown-content";
 import { getPostBySlug, getAdjacentPosts } from "@/lib/db";
 
 interface PageProps {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }
 
-// 动态生成 metadata
-export async function generateMetadata({
-  params,
-}: PageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const post = await getPostBySlug(slug);
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { locale, slug } = await params;
+  const post = await getPostBySlug(slug, locale as "zh-CN" | "en");
 
   if (!post) {
-    return { title: "文章未找到" };
+    return { title: "Post Not Found" };
   }
 
   return {
@@ -29,19 +28,34 @@ export async function generateMetadata({
       description: post.excerpt,
       type: "article",
       publishedTime: post.publishedAt,
+      locale: locale === "zh-CN" ? "zh_CN" : "en_US",
+    },
+    alternates: {
+      languages: {
+        "zh-CN": `/posts/${slug}`,
+        en: `/en/posts/${slug}`,
+      },
     },
   };
 }
 
 export default async function PostDetailPage({ params }: PageProps) {
-  const { slug } = await params;
-  const post = await getPostBySlug(slug);
+  const { locale, slug } = await params;
+  setRequestLocale(locale);
+
+  const post = await getPostBySlug(slug, locale as "zh-CN" | "en");
 
   if (!post) {
     notFound();
   }
 
-  const { prev, next } = await getAdjacentPosts(slug);
+  const { prev, next } = await getAdjacentPosts(slug, locale as "zh-CN" | "en");
+
+  return <PostContent post={post} prev={prev} next={next} />;
+}
+
+function PostContent({ post, prev, next }: { post: any; prev: any; next: any }) {
+  const t = useTranslations();
 
   return (
     <>
@@ -55,7 +69,7 @@ export default async function PostDetailPage({ params }: PageProps) {
               href="/"
               className="transition-colors duration-[var(--duration-fast)] hover:text-[var(--accent-primary)]"
             >
-              首页
+              {t("common.home")}
             </Link>
             <span>/</span>
             <Link
@@ -68,7 +82,6 @@ export default async function PostDetailPage({ params }: PageProps) {
 
           {/* 文章头部 */}
           <header className="mb-10 animate-fade-in-up">
-            {/* 分类 */}
             <div className="mb-4">
               <Link
                 href={`/category/${post.category.slug}`}
@@ -81,7 +94,6 @@ export default async function PostDetailPage({ params }: PageProps) {
               </Link>
             </div>
 
-            {/* 标题 */}
             <h1
               className="mb-4 text-3xl font-bold leading-tight tracking-tight text-[var(--text-primary)] 
                          sm:text-4xl lg:text-5xl"
@@ -90,25 +102,23 @@ export default async function PostDetailPage({ params }: PageProps) {
               {post.title}
             </h1>
 
-            {/* 元信息 */}
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[var(--text-tertiary)]">
               <time dateTime={post.publishedAt}>
                 {formatDate(post.publishedAt)}
               </time>
               <span>·</span>
-              <span>{post.readingTime} min read</span>
+              <span>{t("post.readingTime", { time: post.readingTime })}</span>
               {post.viewCount !== undefined && (
                 <>
                   <span>·</span>
-                  <span>{post.viewCount.toLocaleString()} 次阅读</span>
+                  <span>{t("post.views", { count: post.viewCount })}</span>
                 </>
               )}
             </div>
 
-            {/* 标签 */}
             {post.tags.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-1.5">
-                {post.tags.map((tag) => (
+                {post.tags.map((tag: any) => (
                   <Link
                     key={tag.slug}
                     href={`/tag/${tag.slug}`}
@@ -124,28 +134,23 @@ export default async function PostDetailPage({ params }: PageProps) {
             )}
           </header>
 
-          {/* 分割线装饰 */}
           <div
             className="mb-8 h-px"
             style={{
-              background:
-                "linear-gradient(to right, var(--accent-primary), transparent)",
+              background: "linear-gradient(to right, var(--accent-primary), transparent)",
             }}
           />
 
-          {/* 文章正文 */}
           {post.content && <MarkdownContent content={post.content} />}
 
-          {/* 文章底部分割线 */}
           <div
             className="my-12 h-px"
             style={{
-              background:
-                "linear-gradient(to right, transparent, var(--border-default), transparent)",
+              background: "linear-gradient(to right, transparent, var(--border-default), transparent)",
             }}
           />
 
-          {/* 上一篇 / 下一篇导航 */}
+          {/* 上一篇 / 下一篇 */}
           <nav className="grid gap-4 sm:grid-cols-2">
             {prev ? (
               <Link
@@ -155,16 +160,10 @@ export default async function PostDetailPage({ params }: PageProps) {
                            hover:border-[var(--accent-primary)]/40 hover:shadow-[var(--shadow-glow-accent)]"
               >
                 <div className="mb-1 flex items-center gap-1 text-xs text-[var(--text-tertiary)]">
-                  <svg
-                    className="h-3 w-3 transition-transform duration-[var(--duration-fast)] group-hover:-translate-x-0.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
+                  <svg className="h-3 w-3 transition-transform duration-[var(--duration-fast)] group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                   </svg>
-                  上一篇
+                  {t("post.prevPost")}
                 </div>
                 <div className="line-clamp-2 text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--accent-primary)]">
                   {prev.title}
@@ -182,14 +181,8 @@ export default async function PostDetailPage({ params }: PageProps) {
                            hover:border-[var(--accent-primary)]/40 hover:shadow-[var(--shadow-glow-accent)]"
               >
                 <div className="mb-1 flex items-center justify-end gap-1 text-xs text-[var(--text-tertiary)]">
-                  下一篇
-                  <svg
-                    className="h-3 w-3 transition-transform duration-[var(--duration-fast)] group-hover:translate-x-0.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
+                  {t("post.nextPost")}
+                  <svg className="h-3 w-3 transition-transform duration-[var(--duration-fast)] group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
                 </div>

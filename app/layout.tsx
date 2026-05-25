@@ -39,7 +39,6 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="zh-CN"
       className={`${sora.variable} ${notoSansSC.variable} ${jetbrainsMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
@@ -56,7 +55,6 @@ export default function RootLayout({
                   } else if (theme === 'dark') {
                     document.documentElement.classList.remove('light');
                   } else {
-                    // 跟随系统偏好
                     if (window.matchMedia('(prefers-color-scheme: light)').matches) {
                       document.documentElement.classList.add('light');
                     }

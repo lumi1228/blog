@@ -1,48 +1,63 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { ArticleCard } from "@/components/article-card";
-import { getPosts, getCategoryBySlug } from "@/lib/db";
+import { getPosts, getTagBySlug } from "@/lib/db";
 
 interface PageProps {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const category = await getCategoryBySlug(slug);
+  const { locale, slug } = await params;
+  const tag = await getTagBySlug(slug, locale as "zh-CN" | "en");
 
-  if (!category) return { title: "分类未找到" };
+  if (!tag) return { title: "Tag Not Found" };
 
   return {
-    title: `${category.name} | Lumi's Blog`,
-    description: category.description,
+    title: `#${tag.name} | Lumi's Blog`,
+    description: locale === "zh-CN" ? `所有标记为 ${tag.name} 的文章` : `All posts tagged with ${tag.name}`,
+    alternates: {
+      languages: {
+        "zh-CN": `/tag/${slug}`,
+        en: `/en/tag/${slug}`,
+      },
+    },
   };
 }
 
-export default async function CategoryPage({ params }: PageProps) {
-  const { slug } = await params;
-  const category = await getCategoryBySlug(slug);
+export default async function TagPage({ params }: PageProps) {
+  const { locale, slug } = await params;
+  setRequestLocale(locale);
 
-  if (!category) {
+  const tag = await getTagBySlug(slug, locale as "zh-CN" | "en");
+
+  if (!tag) {
     notFound();
   }
 
-  const { posts } = await getPosts({ categorySlug: slug });
+  const { posts } = await getPosts({ locale: locale as "zh-CN" | "en", tagSlug: slug });
+
+  return <TagContent tag={tag} posts={posts} />;
+}
+
+function TagContent({ tag, posts }: { tag: any; posts: any[] }) {
+  const t = useTranslations();
 
   return (
     <>
       <Navbar />
 
       <main className="flex-1">
-        {/* 页面标题区 */}
         <section className="relative overflow-hidden border-b border-[var(--border-subtle)]">
           <div className="absolute inset-0 overflow-hidden">
             <div
-              className="absolute -right-20 -top-20 h-80 w-80 rounded-full opacity-20 blur-[100px]"
-              style={{ background: "var(--glow-primary)" }}
+              className="absolute -left-20 -top-20 h-80 w-80 rounded-full opacity-15 blur-[100px]"
+              style={{ background: "var(--glow-secondary)" }}
             />
           </div>
 
@@ -52,47 +67,31 @@ export default async function CategoryPage({ params }: PageProps) {
                 href="/"
                 className="transition-colors duration-[var(--duration-fast)] hover:text-[var(--accent-primary)]"
               >
-                首页
+                {t("common.home")}
               </Link>
               <span>/</span>
-              <span>分类</span>
+              <span>{t("tag.label")}</span>
             </nav>
 
-            <div className="mb-3 animate-fade-in-up">
-              <span
-                className="inline-flex items-center gap-1.5 rounded-[var(--radius-full)] 
-                           bg-[var(--accent-muted)] px-3 py-1 text-xs font-medium text-[var(--accent-primary)]"
-                style={{ fontFamily: "var(--font-mono)" }}
-              >
-                CATEGORY
-              </span>
-            </div>
-
             <h1
-              className="mb-3 text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl animate-fade-in-up stagger-2"
+              className="mb-3 text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl animate-fade-in-up"
               style={{ fontFamily: "var(--font-display)" }}
             >
-              {category.name}
+              <span className="text-[var(--accent-secondary)]" style={{ fontFamily: "var(--font-mono)" }}>#</span>
+              {tag.name}
             </h1>
 
-            {category.description && (
-              <p className="mb-2 max-w-xl text-base text-[var(--text-secondary)] animate-fade-in-up stagger-3">
-                {category.description}
-              </p>
-            )}
-
-            <p className="text-sm text-[var(--text-tertiary)] animate-fade-in-up stagger-4">
-              共 {posts.length} 篇文章
+            <p className="text-sm text-[var(--text-tertiary)] animate-fade-in-up stagger-2">
+              {t("post.totalInCategory", { count: posts.length })}
             </p>
           </div>
         </section>
 
-        {/* 文章列表 */}
         <section className="mx-auto max-w-[1200px] px-6 py-12 sm:py-16">
           {posts.length === 0 ? (
             <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--border-default)] bg-[var(--bg-secondary)] px-8 py-16 text-center">
               <p className="text-sm text-[var(--text-secondary)]">
-                这个分类下暂时还没有文章
+                {t("post.noTagPosts")}
               </p>
             </div>
           ) : (

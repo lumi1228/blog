@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 interface NavLink {
@@ -9,8 +10,25 @@ interface NavLink {
   label: string;
 }
 
-export function NavbarClient({ navLinks }: { navLinks: NavLink[] }) {
+interface NavbarClientProps {
+  navLinks: NavLink[];
+  locale: string;
+}
+
+export function NavbarClient({ navLinks, locale }: NavbarClientProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  // 计算语言切换的目标路径
+  const getLocaleSwitchHref = () => {
+    if (locale === "zh-CN") {
+      // 当前中文 → 切换到英文，加 /en 前缀
+      return `/en${pathname}`;
+    } else {
+      // 当前英文 → 切换到中文，去掉 /en 前缀
+      return pathname.replace(/^\/en/, "") || "/";
+    }
+  };
 
   return (
     <header
@@ -66,6 +84,18 @@ export function NavbarClient({ navLinks }: { navLinks: NavLink[] }) {
               />
             </svg>
           </button>
+
+          {/* 语言切换按钮 */}
+          <Link
+            href={getLocaleSwitchHref()}
+            className="flex h-9 items-center justify-center rounded-[var(--radius-md)] px-2
+                       text-xs font-medium text-[var(--text-secondary)] 
+                       transition-all duration-[var(--duration-fast)]
+                       hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+            title={locale === "zh-CN" ? "Switch to English" : "切换到中文"}
+          >
+            {locale === "zh-CN" ? "EN" : "中"}
+          </Link>
 
           {/* 主题切换 */}
           <ThemeToggle />

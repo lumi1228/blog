@@ -4,9 +4,10 @@ import type { Post } from "@/lib/types";
 interface ArticleCardProps {
   post: Post;
   index: number;
+  locale?: string;
 }
 
-export function ArticleCard({ post, index }: ArticleCardProps) {
+export function ArticleCard({ post, index, locale = "zh-CN" }: ArticleCardProps) {
   return (
     <article
       className="group relative rounded-[var(--radius-lg)] border border-[var(--border-subtle)]
@@ -31,7 +32,7 @@ export function ArticleCard({ post, index }: ArticleCardProps) {
             </Link>
             <span className="text-[var(--text-tertiary)]">·</span>
             <time className="text-[var(--text-tertiary)]" dateTime={post.publishedAt}>
-              {formatDate(post.publishedAt)}
+              {formatDate(post.publishedAt, locale)}
             </time>
             <span className="text-[var(--text-tertiary)]">·</span>
             <span className="text-[var(--text-tertiary)]">{post.readingTime} min</span>
@@ -99,8 +100,15 @@ export function ArticleCard({ post, index }: ArticleCardProps) {
   );
 }
 
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string, locale: string): string {
   const date = new Date(dateStr);
+  if (locale === "en") {
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  }
   return date.toLocaleDateString("zh-CN", {
     year: "numeric",
     month: "long",

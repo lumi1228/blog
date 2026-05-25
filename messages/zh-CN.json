@@ -1,0 +1,57 @@
+{
+  "nav": {
+    "home": "首页",
+    "about": "关于",
+    "search": "搜索"
+  },
+  "home": {
+    "badge": "女性开发者 · 前端工程师",
+    "title1": "代码与设计的",
+    "title2": "交汇之处",
+    "description1": "记录技术探索、设计思考与成长感悟。",
+    "description2": "用代码构建，用设计表达，用文字沉淀。",
+    "startReading": "开始阅读",
+    "aboutMe": "了解我",
+    "latestPosts": "最新文章",
+    "totalPosts": "共 {count} 篇",
+    "noPosts": "还没有发布文章，敬请期待 ✨"
+  },
+  "post": {
+    "readMore": "阅读全文",
+    "readingTime": "{time} min",
+    "views": "{count} 次阅读",
+    "prevPost": "上一篇",
+    "nextPost": "下一篇",
+    "notFound": "文章未找到",
+    "totalInCategory": "共 {count} 篇文章",
+    "noCategoryPosts": "这个分类下暂时还没有文章",
+    "noTagPosts": "这个标签下暂时还没有文章"
+  },
+  "category": {
+    "label": "分类",
+    "notFound": "分类未找到"
+  },
+  "tag": {
+    "label": "标签",
+    "notFound": "标签未找到"
+  },
+  "about": {
+    "greeting": "Hi, I'm",
+    "sectionAbout": "关于我",
+    "sectionSkills": "技术栈",
+    "sectionTimeline": "成长轨迹",
+    "sectionContact": "联系我"
+  },
+  "common": {
+    "home": "首页",
+    "loading": "加载中...",
+    "notFound": "页面走丢了",
+    "notFoundDesc": "你要找的内容可能已被移除、重命名，或者从未存在过。",
+    "backHome": "返回首页",
+    "allRightsReserved": "All rights reserved."
+  },
+  "locale": {
+    "switchTo": "English",
+    "current": "中文"
+  }
+}

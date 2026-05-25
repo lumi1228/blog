@@ -1,10 +1,25 @@
+import { useTranslations } from "next-intl";
+import { setRequestLocale } from "next-intl/server";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { ArticleCard } from "@/components/article-card";
 import { getPosts } from "@/lib/db";
 
-export default async function HomePage() {
-  const { posts, total } = await getPosts({ limit: 10 });
+interface PageProps {
+  params: Promise<{ locale: string }>;
+}
+
+export default async function HomePage({ params }: PageProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
+  const { posts, total } = await getPosts({ locale: locale as "zh-CN" | "en", limit: 10 });
+
+  return <HomeContent posts={posts} total={total} locale={locale} />;
+}
+
+function HomeContent({ posts, total, locale }: { posts: any[]; total: number; locale: string }) {
+  const t = useTranslations();
 
   return (
     <>
@@ -34,7 +49,7 @@ export default async function HomePage() {
                              bg-[var(--accent-muted)] px-3 py-1 text-xs font-medium text-[var(--accent-primary)]"
                 >
                   <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent-primary)] animate-pulse" />
-                  女性开发者 · 前端工程师
+                  {t("home.badge")}
                 </span>
               </div>
 
@@ -44,16 +59,16 @@ export default async function HomePage() {
                            sm:text-4xl lg:text-5xl animate-fade-in-up stagger-2"
                 style={{ fontFamily: "var(--font-display)" }}
               >
-                代码与设计的
+                {t("home.title1")}
                 <br />
-                <span className="text-[var(--accent-primary)]">交汇之处</span>
+                <span className="text-[var(--accent-primary)]">{t("home.title2")}</span>
               </h1>
 
               {/* 描述 */}
               <p className="mb-8 max-w-lg text-base leading-relaxed text-[var(--text-secondary)] sm:text-lg animate-fade-in-up stagger-3">
-                记录技术探索、设计思考与成长感悟。
+                {t("home.description1")}
                 <br className="hidden sm:block" />
-                用代码构建，用设计表达，用文字沉淀。
+                {t("home.description2")}
               </p>
 
               {/* CTA */}
@@ -65,7 +80,7 @@ export default async function HomePage() {
                              text-[var(--bg-primary)] transition-all duration-[var(--duration-fast)]
                              hover:shadow-[var(--shadow-glow-accent)]"
                 >
-                  开始阅读
+                  {t("home.startReading")}
                   <svg
                     className="h-4 w-4"
                     fill="none"
@@ -87,7 +102,7 @@ export default async function HomePage() {
                              text-[var(--text-secondary)] transition-all duration-[var(--duration-fast)]
                              hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)]"
                 >
-                  了解我
+                  {t("home.aboutMe")}
                 </a>
               </div>
             </div>
@@ -101,23 +116,23 @@ export default async function HomePage() {
               className="text-xl font-semibold text-[var(--text-primary)] sm:text-2xl"
               style={{ fontFamily: "var(--font-display)" }}
             >
-              最新文章
+              {t("home.latestPosts")}
             </h2>
             <span className="text-sm text-[var(--text-tertiary)]">
-              共 {total} 篇
+              {t("home.totalPosts", { count: total })}
             </span>
           </div>
 
           {posts.length === 0 ? (
             <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--border-default)] bg-[var(--bg-secondary)] px-8 py-16 text-center">
               <p className="text-sm text-[var(--text-secondary)]">
-                还没有发布文章，敬请期待 ✨
+                {t("home.noPosts")}
               </p>
             </div>
           ) : (
             <div className="grid gap-6">
               {posts.map((post, index) => (
-                <ArticleCard key={post.id} post={post} index={index} />
+                <ArticleCard key={post.id} post={post} index={index} locale={locale} />
               ))}
             </div>
           )}

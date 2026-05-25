@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 const socialLinks = [
   {
@@ -31,7 +32,9 @@ const socialLinks = [
   },
 ];
 
-export function Footer() {
+export async function Footer() {
+  const t = await getTranslations("common");
+
   return (
     <footer className="mt-auto border-t border-[var(--border-subtle)]">
       <div className="mx-auto flex max-w-[1200px] flex-col items-center gap-4 px-6 py-8 sm:flex-row sm:justify-between">
@@ -44,7 +47,7 @@ export function Footer() {
           >
             Lumi
           </Link>
-          . All rights reserved.
+          . {t("allRightsReserved")}
         </p>
 
         {/* 社交链接 */}
