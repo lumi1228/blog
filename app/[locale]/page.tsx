@@ -3,22 +3,57 @@ import { setRequestLocale } from "next-intl/server";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { ArticleCard } from "@/components/article-card";
+import { Pagination } from "@/components/pagination";
 import { getPosts } from "@/lib/db";
+
+const PAGE_SIZE = 10;
 
 interface PageProps {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ page?: string }>;
 }
 
-export default async function HomePage({ params }: PageProps) {
+export default async function HomePage({ params, searchParams }: PageProps) {
   const { locale } = await params;
+  const { page } = await searchParams;
   setRequestLocale(locale);
 
-  const { posts, total } = await getPosts({ locale: locale as "zh-CN" | "en", limit: 10 });
+  // 解析页码，确保合法
+  const currentPage = Math.max(1, parseInt(page || "1", 10) || 1);
+  const offset = (currentPage - 1) * PAGE_SIZE;
 
-  return <HomeContent posts={posts} total={total} locale={locale} />;
+  const { posts, total } = await getPosts({
+    locale: locale as "zh-CN" | "en",
+    limit: PAGE_SIZE,
+    offset,
+  });
+
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+
+  return (
+    <HomeContent
+      posts={posts}
+      total={total}
+      locale={locale}
+      currentPage={currentPage}
+      totalPages={totalPages}
+    />
+  );
 }
 
-function HomeContent({ posts, total, locale }: { posts: any[]; total: number; locale: string }) {
+function HomeContent({
+  posts,
+  total,
+  locale,
+  currentPage,
+  totalPages,
+}: {
+  posts: any[];
+  total: number;
+  locale: string;
+  currentPage: number;
+  totalPages: number;
+}) {
   const t = useTranslations();
 
   return (
@@ -130,11 +165,16 @@ function HomeContent({ posts, total, locale }: { posts: any[]; total: number; lo
               </p>
             </div>
           ) : (
-            <div className="grid gap-6">
-              {posts.map((post, index) => (
-                <ArticleCard key={post.id} post={post} index={index} locale={locale} />
-              ))}
-            </div>
+            <>
+              <div className="grid gap-6">
+                {posts.map((post, index) => (
+                  <ArticleCard key={post.id} post={post} index={index} locale={locale} />
+                ))}
+              </div>
+
+              {/* 分页控件 */}
+              <Pagination currentPage={currentPage} totalPages={totalPages} />
+            </>
           )}
         </section>
       </main>

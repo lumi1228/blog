@@ -50,6 +50,12 @@
     "backHome": "Back to Home",
     "allRightsReserved": "All rights reserved."
   },
+  "pagination": {
+    "prev": "Previous",
+    "next": "Next",
+    "ariaLabel": "Pagination",
+    "page": "Page {page}"
+  },
   "locale": {
     "switchTo": "中文",
     "current": "EN"
