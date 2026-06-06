@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
-import { MarkdownContent } from "@/components/markdown-content";
+import { MarkdownRenderer } from "@/components/markdown/MarkdownRenderer";
 import { getPostBySlug, getAdjacentPosts } from "@/lib/db";
 
 interface PageProps {
@@ -141,7 +141,7 @@ function PostContent({ post, prev, next }: { post: any; prev: any; next: any }) 
             }}
           />
 
-          {post.content && <MarkdownContent content={post.content} />}
+          {post.content && <MarkdownRenderer content={post.content} />}
 
           <div
             className="my-12 h-px"

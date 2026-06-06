@@ -25,7 +25,13 @@
     "notFound": "Post Not Found",
     "totalInCategory": "{count} posts",
     "noCategoryPosts": "No posts in this category yet",
-    "noTagPosts": "No posts with this tag yet"
+    "noTagPosts": "No posts with this tag yet",
+    "copyCode": {
+      "ariaLabel": "Copy code",
+      "idle": "Copy",
+      "success": "Copied",
+      "failed": "Failed"
+    }
   },
   "category": {
     "label": "Category",

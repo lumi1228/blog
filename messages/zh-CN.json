@@ -25,7 +25,13 @@
     "notFound": "文章未找到",
     "totalInCategory": "共 {count} 篇文章",
     "noCategoryPosts": "这个分类下暂时还没有文章",
-    "noTagPosts": "这个标签下暂时还没有文章"
+    "noTagPosts": "这个标签下暂时还没有文章",
+    "copyCode": {
+      "ariaLabel": "复制代码",
+      "idle": "复制",
+      "success": "已复制",
+      "failed": "复制失败"
+    }
   },
   "category": {
     "label": "分类",

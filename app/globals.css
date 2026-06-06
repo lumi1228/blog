@@ -252,3 +252,32 @@ body {
 .prose-custom > *:first-child {
   margin-top: 0;
 }
+
+/* ============================================
+   Shiki 双主题切换
+   light 模式隐藏 dark 主题代码块，反之亦然
+   ============================================ */
+html.light .shiki[data-theme="dark"] { display: none; }
+html:not(.light) .shiki[data-theme="light"] { display: none; }
+
+/* ============================================
+   移动端 prose 字号（≤ 640px）
+   确保正文字号 ≥ 16px，行高符合阅读舒适度
+   ============================================ */
+@media (max-width: 640px) {
+  .prose-custom {
+    font-size: 1rem;
+    line-height: 1.75;
+  }
+}
+
+/* ============================================
+   prefers-reduced-motion · 复制按钮淡入
+   减少动效偏好时，复制按钮保持常驻可见
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  .copy-button-fade {
+    transition: none !important;
+    opacity: 1 !important;
+  }
+}
