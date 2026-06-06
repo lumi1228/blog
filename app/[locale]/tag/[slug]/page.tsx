@@ -7,6 +7,7 @@ import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { ArticleCard } from "@/components/article-card";
 import { getPosts, getTagBySlug } from "@/lib/db";
+import { buildAlternates, SITE_NAME } from "@/lib/seo";
 
 interface PageProps {
   params: Promise<{ locale: string; slug: string }>;
@@ -18,14 +19,26 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!tag) return { title: "Tag Not Found" };
 
+  const title = `#${tag.name} | ${SITE_NAME}`;
+  const description =
+    locale === "zh-CN"
+      ? `所有标记为 ${tag.name} 的文章`
+      : `All posts tagged with ${tag.name}`;
+
+  const { canonical, languages } = buildAlternates(`/tag/${slug}`, `/en/tag/${slug}`);
+
   return {
-    title: `#${tag.name} | Lumi's Blog`,
-    description: locale === "zh-CN" ? `所有标记为 ${tag.name} 的文章` : `All posts tagged with ${tag.name}`,
+    title,
+    description,
     alternates: {
-      languages: {
-        "zh-CN": `/tag/${slug}`,
-        en: `/en/tag/${slug}`,
-      },
+      canonical,
+      languages,
+    },
+    openGraph: {
+      type: "website",
+      locale: locale === "zh-CN" ? "zh_CN" : "en_US",
+      title,
+      description,
     },
   };
 }

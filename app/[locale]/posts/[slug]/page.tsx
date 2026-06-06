@@ -7,6 +7,16 @@ import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { MarkdownRenderer } from "@/components/markdown/MarkdownRenderer";
 import { getPostBySlug, getAdjacentPosts } from "@/lib/db";
+import {
+  SITE_URL,
+  validateCoverImage,
+  buildOgImages,
+  buildAlternates,
+  buildArticleJsonLd,
+} from "@/lib/seo";
+import { aboutConfig } from "@/config/about";
+import type { Locale } from "@/i18n/config";
+import type { Post } from "@/lib/types";
 
 interface PageProps {
   params: Promise<{ locale: string; slug: string }>;
@@ -14,27 +24,42 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale, slug } = await params;
-  const post = await getPostBySlug(slug, locale as "zh-CN" | "en");
+  const post = await getPostBySlug(slug, locale as Locale);
 
   if (!post) {
     return { title: "Post Not Found" };
   }
 
+  const hasUserCover = !!post.coverImage;
+  const coverOk = hasUserCover ? await validateCoverImage(post.coverImage) : false;
+  const { images } = buildOgImages(post.coverImage, coverOk);
+
+  const alternates = buildAlternates(
+    `/posts/${slug}`,
+    `/en/posts/${slug}`,
+    post.availableLocales
+  );
+
   return {
     title: `${post.title} | Lumi's Blog`,
     description: post.excerpt,
+    alternates: {
+      canonical: alternates.canonical,
+      languages: alternates.languages,
+    },
     openGraph: {
       title: post.title,
       description: post.excerpt,
       type: "article",
       publishedTime: post.publishedAt,
       locale: locale === "zh-CN" ? "zh_CN" : "en_US",
+      images: images,
     },
-    alternates: {
-      languages: {
-        "zh-CN": `/posts/${slug}`,
-        en: `/en/posts/${slug}`,
-      },
+    twitter: {
+      card: images.length > 0 ? "summary_large_image" : "summary",
+      title: post.title,
+      description: post.excerpt,
+      ...(images.length > 0 ? { images } : {}),
     },
   };
 }
@@ -43,18 +68,42 @@ export default async function PostDetailPage({ params }: PageProps) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
 
-  const post = await getPostBySlug(slug, locale as "zh-CN" | "en");
+  const post = await getPostBySlug(slug, locale as Locale);
 
   if (!post) {
     notFound();
   }
 
-  const { prev, next } = await getAdjacentPosts(slug, locale as "zh-CN" | "en");
+  const { prev, next } = await getAdjacentPosts(slug, locale as Locale);
 
-  return <PostContent post={post} prev={prev} next={next} />;
+  // 计算封面图可达性（与 generateMetadata 共享 React cache，不重复发 HEAD 请求）
+  const hasUserCover = !!post.coverImage;
+  const coverOk = hasUserCover ? await validateCoverImage(post.coverImage) : false;
+  const { images } = buildOgImages(post.coverImage, coverOk);
+
+  // 构建 Article JSON-LD
+  const jsonLd = buildArticleJsonLd({
+    url: `${SITE_URL}/posts/${post.slug}`,
+    title: post.title,
+    description: post.excerpt,
+    publishedAt: post.publishedAt,
+    author: aboutConfig.name,
+    inLanguage: locale as Locale,
+    image: images.length > 0 ? images[0] : undefined,
+    updatedAt: post.updatedAt,
+  });
+
+  return <PostContent post={post} prev={prev} next={next} jsonLd={jsonLd} />;
 }
 
-function PostContent({ post, prev, next }: { post: any; prev: any; next: any }) {
+interface PostContentProps {
+  post: Post;
+  prev: Post | null;
+  next: Post | null;
+  jsonLd: Record<string, unknown>;
+}
+
+function PostContent({ post, prev, next, jsonLd }: PostContentProps) {
   const t = useTranslations();
 
   return (
@@ -63,6 +112,12 @@ function PostContent({ post, prev, next }: { post: any; prev: any; next: any }) 
 
       <main className="flex-1">
         <article className="mx-auto max-w-[900px] px-6 py-12 sm:py-16">
+          {/* JSON-LD 结构化数据 */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          />
+
           {/* 面包屑 */}
           <nav className="mb-6 flex items-center gap-2 text-xs text-[var(--text-tertiary)]">
             <Link
@@ -118,7 +173,7 @@ function PostContent({ post, prev, next }: { post: any; prev: any; next: any }) 
 
             {post.tags.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-1.5">
-                {post.tags.map((tag: any) => (
+                {post.tags.map((tag) => (
                   <Link
                     key={tag.slug}
                     href={`/tag/${tag.slug}`}

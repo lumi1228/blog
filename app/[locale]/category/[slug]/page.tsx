@@ -7,6 +7,7 @@ import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { ArticleCard } from "@/components/article-card";
 import { getPosts, getCategoryBySlug } from "@/lib/db";
+import { buildAlternates, SITE_NAME } from "@/lib/seo";
 
 interface PageProps {
   params: Promise<{ locale: string; slug: string }>;
@@ -18,14 +19,25 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!category) return { title: "Category Not Found" };
 
+  const title = `${category.name} | ${SITE_NAME}`;
+  const description = category.description ?? "";
+  const { canonical, languages } = buildAlternates(
+    `/category/${slug}`,
+    `/en/category/${slug}`
+  );
+
   return {
-    title: `${category.name} | Lumi's Blog`,
-    description: category.description,
+    title,
+    description,
     alternates: {
-      languages: {
-        "zh-CN": `/category/${slug}`,
-        en: `/en/category/${slug}`,
-      },
+      canonical,
+      languages,
+    },
+    openGraph: {
+      type: "website",
+      locale: locale === "en" ? "en_US" : "zh_CN",
+      title,
+      description,
     },
   };
 }

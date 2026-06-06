@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -12,11 +11,6 @@ interface LocaleLayoutProps {
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
-
-export const metadata: Metadata = {
-  title: "Lumi's Blog",
-  description: "一个女性开发者的技术博客",
-};
 
 export default async function LocaleLayout({
   children,

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Sora, Noto_Sans_SC, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import { getLocale } from "next-intl/server";
 import "./globals.css";
 
 // 标题字体：几何感、现代、有力量
@@ -32,13 +33,21 @@ export const metadata: Metadata = {
   description: "一个女性开发者的技术博客",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  let locale = "zh-CN";
+  try {
+    locale = await getLocale();
+  } catch {
+    // 回退到默认语言
+  }
+
   return (
     <html
+      lang={locale}
       className={`${sora.variable} ${notoSansSC.variable} ${jetbrainsMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >

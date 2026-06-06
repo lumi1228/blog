@@ -4,20 +4,36 @@ import { setRequestLocale } from "next-intl/server";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { aboutConfig } from "@/config/about";
-
-export const metadata: Metadata = {
-  title: `关于 | ${aboutConfig.name}`,
-  description: aboutConfig.tagline,
-  alternates: {
-    languages: {
-      "zh-CN": "/about",
-      en: "/en/about",
-    },
-  },
-};
+import { buildAlternates, SITE_NAME } from "@/lib/seo";
 
 interface PageProps {
   params: Promise<{ locale: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { locale } = await params;
+
+  const isZh = locale === "zh-CN";
+  const title = isZh ? `关于 | ${SITE_NAME}` : `About | ${SITE_NAME}`;
+  const description = aboutConfig.tagline;
+  const ogLocale = isZh ? "zh_CN" : "en_US";
+
+  const { canonical, languages } = buildAlternates("/about", "/en/about");
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical,
+      languages,
+    },
+    openGraph: {
+      type: "website",
+      locale: ogLocale,
+      title,
+      description,
+    },
+  };
 }
 
 export default async function AboutPage({ params }: PageProps) {

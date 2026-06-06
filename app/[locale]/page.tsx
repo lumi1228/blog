@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { useTranslations } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { Navbar } from "@/components/navbar";
@@ -5,12 +6,46 @@ import { Footer } from "@/components/footer";
 import { ArticleCard } from "@/components/article-card";
 import { Pagination } from "@/components/pagination";
 import { getPosts } from "@/lib/db";
+import { buildAlternates } from "@/lib/seo";
+import type { Locale } from "@/i18n/config";
 
 const PAGE_SIZE = 10;
 
 interface PageProps {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ page?: string }>;
+}
+
+const descriptions: Record<Locale, string> = {
+  "zh-CN": "一个女性开发者的技术博客",
+  en: "A female developer's tech blog",
+};
+
+const ogLocales: Record<Locale, string> = {
+  "zh-CN": "zh_CN",
+  en: "en_US",
+};
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const typedLocale = locale as Locale;
+  const description = descriptions[typedLocale] ?? descriptions["zh-CN"];
+  const alternates = buildAlternates("/", "/en");
+
+  return {
+    title: "Lumi's Blog",
+    description,
+    alternates: {
+      canonical: alternates.canonical,
+      languages: alternates.languages as Record<string, string>,
+    },
+    openGraph: {
+      type: "website",
+      locale: ogLocales[typedLocale] ?? "zh_CN",
+      title: "Lumi's Blog",
+      description,
+    },
+  };
 }
 
 export default async function HomePage({ params, searchParams }: PageProps) {
