@@ -65,5 +65,15 @@
   "locale": {
     "switchTo": "中文",
     "current": "EN"
+  },
+  "search": {
+    "placeholder": "Search articles...",
+    "empty": "Type to search articles",
+    "noResult": "No matching articles",
+    "error": "Failed to load",
+    "retry": "Retry",
+    "close": "Close",
+    "ariaInput": "Search articles",
+    "ariaModal": "Site search"
   }
 }

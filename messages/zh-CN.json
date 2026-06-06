@@ -65,5 +65,15 @@
   "locale": {
     "switchTo": "English",
     "current": "中文"
+  },
+  "search": {
+    "placeholder": "搜索文章...",
+    "empty": "输入关键词搜索文章",
+    "noResult": "未找到匹配文章",
+    "error": "加载失败",
+    "retry": "重试",
+    "close": "关闭",
+    "ariaInput": "搜索文章",
+    "ariaModal": "站内搜索"
   }
 }

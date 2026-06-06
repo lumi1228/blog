@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { SearchTrigger } from "@/components/search/SearchTrigger";
 
 interface NavLink {
   href: string;
@@ -64,26 +65,7 @@ export function NavbarClient({ navLinks, locale }: NavbarClientProps) {
         {/* 右侧操作区 */}
         <div className="flex items-center gap-2">
           {/* 搜索按钮 */}
-          <button
-            className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)]
-                       text-[var(--text-secondary)] transition-all duration-[var(--duration-fast)]
-                       hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
-            aria-label="搜索"
-          >
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </button>
+          <SearchTrigger locale={locale as "zh-CN" | "en"} />
 
           {/* 语言切换按钮 */}
           <Link
