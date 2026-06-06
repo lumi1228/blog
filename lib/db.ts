@@ -1,6 +1,13 @@
 import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
-import type { Post, Category, Tag } from "@/lib/types";
+import type {
+  Post,
+  Category,
+  Tag,
+  SearchIndexEntry,
+  SitemapPost,
+  SitemapCategoryOrTag,
+} from "@/lib/types";
 
 /**
  * 数据查询层
@@ -37,7 +44,7 @@ export async function getPosts(options?: {
     .from("posts")
     .select(
       `
-      id, slug, cover_image, status, published_at, reading_time, view_count,
+      id, slug, cover_image, status, published_at, updated_at, reading_time, view_count,
       title_zh, title_en, excerpt_zh, excerpt_en, available_locales,
       categories!inner(id, slug, name_zh, name_en),
       post_tags(tags(id, slug, name_zh, name_en))
@@ -66,8 +73,10 @@ export async function getPosts(options?: {
     excerpt: isZh ? row.excerpt_zh : (row.excerpt_en || row.excerpt_zh),
     coverImage: row.cover_image,
     publishedAt: row.published_at,
+    updatedAt: row.updated_at ?? undefined,
     readingTime: row.reading_time,
     viewCount: row.view_count,
+    availableLocales: row.available_locales ?? undefined,
     category: {
       name: isZh ? row.categories.name_zh : (row.categories.name_en || row.categories.name_zh),
       slug: row.categories.slug,
@@ -100,7 +109,7 @@ export async function getPostBySlug(
     .from("posts")
     .select(
       `
-      id, slug, cover_image, status, published_at, reading_time, view_count,
+      id, slug, cover_image, status, published_at, updated_at, reading_time, view_count,
       title_zh, title_en, excerpt_zh, excerpt_en, content_zh, content_en, available_locales,
       categories(id, slug, name_zh, name_en),
       post_tags(tags(id, slug, name_zh, name_en))
@@ -123,8 +132,10 @@ export async function getPostBySlug(
     content: isZh ? data.content_zh : (data.content_en || data.content_zh),
     coverImage: data.cover_image,
     publishedAt: data.published_at,
+    updatedAt: data.updated_at ?? undefined,
     readingTime: data.reading_time,
     viewCount: data.view_count,
+    availableLocales: data.available_locales ?? undefined,
     category: {
       name: isZh ? cat.name_zh : (cat.name_en || cat.name_zh),
       slug: cat.slug,
@@ -303,4 +314,90 @@ export async function getTagBySlug(
 export async function incrementViewCount(postId: string): Promise<void> {
   const supabase = await getSupabase();
   await supabase.rpc("increment_view_count", { post_id: postId });
+}
+
+// ============================================
+// 搜索索引
+// ============================================
+
+/**
+ * 获取指定语言的搜索索引（供 /api/search-index 使用）
+ * 仅返回已发布文章的精简字段，en 时额外过滤 availableLocales
+ */
+export async function getSearchIndex(locale: "zh-CN" | "en"): Promise<SearchIndexEntry[]> {
+  const { posts } = await getPosts({ locale, limit: 1000 });
+
+  return posts
+    .filter((p) => {
+      if (locale === "en") {
+        return p.availableLocales?.includes("en") ?? false;
+      }
+      return true;
+    })
+    .map((p) => ({
+      slug: p.slug,
+      title: p.title,
+      excerpt: p.excerpt,
+      tags: p.tags.map((t) => t.name),
+      publishedAt: p.publishedAt,
+    }));
+}
+
+// ============================================
+// Sitemap 专用查询
+// ============================================
+
+/**
+ * 获取所有已发布文章的 sitemap 所需字段
+ */
+export async function getAllPostsForSitemap(): Promise<SitemapPost[]> {
+  const supabase = await getSupabase();
+
+  const { data, error } = await supabase
+    .from("posts")
+    .select("slug, updated_at, available_locales")
+    .eq("status", "published");
+
+  if (error || !data) {
+    console.error("获取 sitemap 文章列表失败:", error);
+    return [];
+  }
+
+  return data.map((row: any) => ({
+    slug: row.slug,
+    updatedAt: row.updated_at,
+    availableLocales: row.available_locales ?? ["zh-CN"],
+  }));
+}
+
+/**
+ * 获取所有分类的 slug（用于 sitemap）
+ */
+export async function getAllCategoriesForSitemap(): Promise<SitemapCategoryOrTag[]> {
+  const supabase = await getSupabase();
+
+  const { data, error } = await supabase.from("categories").select("slug");
+
+  if (error || !data) {
+    console.error("获取 sitemap 分类列表失败:", error);
+    return [];
+  }
+
+  return data.map((row: any) => ({ slug: row.slug }));
+}
+
+/**
+ * 获取所有标签的 slug（用于 sitemap）
+ */
+export async function getAllTagsForSitemap(): Promise<SitemapCategoryOrTag[]> {
+  const supabase = await getSupabase();
+
+  const { data, error } = await supabase.from("tags").select("slug");
+
+  if (error || !data) {
+    console.error("获取 sitemap 标签列表失败:", error);
+    return [];
+  }
+
+  return data.map((row: any) => ({ slug: row.slug }));
 }
