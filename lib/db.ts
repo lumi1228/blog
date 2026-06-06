@@ -46,7 +46,7 @@ export async function getPosts(options?: {
       `
       id, slug, cover_image, status, published_at, updated_at, reading_time, view_count,
       title_zh, title_en, excerpt_zh, excerpt_en, available_locales,
-      categories!inner(id, slug, name_zh, name_en),
+      category:categories(id, slug, name_zh, name_en),
       post_tags(tags(id, slug, name_zh, name_en))
     `,
       { count: "exact" }
@@ -59,10 +59,18 @@ export async function getPosts(options?: {
     query = query.eq("categories.slug", categorySlug);
   }
 
-  const { data, count, error } = await query;
+  const { data, count, error } = await Promise.race([
+    query,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("getPosts timeout")), 8000)
+    ),
+  ]).catch((err) => {
+    console.error("获取文章列表超时或失败:", err?.message ?? err);
+    return { data: null, count: 0, error: err };
+  }) as Awaited<typeof query>;
 
   if (error) {
-    console.error("获取文章列表失败:", error);
+    console.error("获取文章列表失败 code:", (error as any).code, "message:", (error as any).message);
     return { posts: [], total: 0 };
   }
 
@@ -78,12 +86,12 @@ export async function getPosts(options?: {
     viewCount: row.view_count,
     availableLocales: row.available_locales ?? undefined,
     category: {
-      name: isZh ? row.categories.name_zh : (row.categories.name_en || row.categories.name_zh),
-      slug: row.categories.slug,
+      name: isZh ? row.category?.name_zh : (row.category?.name_en || row.category?.name_zh),
+      slug: row.category?.slug ?? "",
     },
     tags: (row.post_tags || []).map((pt: any) => ({
-      name: isZh ? pt.tags.name_zh : (pt.tags.name_en || pt.tags.name_zh),
-      slug: pt.tags.slug,
+      name: isZh ? pt.tags?.name_zh : (pt.tags?.name_en || pt.tags?.name_zh),
+      slug: pt.tags?.slug ?? "",
     })),
   }));
 
@@ -111,7 +119,7 @@ export async function getPostBySlug(
       `
       id, slug, cover_image, status, published_at, updated_at, reading_time, view_count,
       title_zh, title_en, excerpt_zh, excerpt_en, content_zh, content_en, available_locales,
-      categories(id, slug, name_zh, name_en),
+      category:categories(id, slug, name_zh, name_en),
       post_tags(tags(id, slug, name_zh, name_en))
     `
     )
@@ -123,7 +131,7 @@ export async function getPostBySlug(
     return null;
   }
 
-  const cat = data.categories as any;
+  const cat = data.category as any;
   return {
     id: data.id,
     slug: data.slug,
@@ -141,8 +149,8 @@ export async function getPostBySlug(
       slug: cat.slug,
     },
     tags: (data.post_tags || []).map((pt: any) => ({
-      name: isZh ? pt.tags.name_zh : (pt.tags.name_en || pt.tags.name_zh),
-      slug: pt.tags.slug,
+      name: isZh ? pt.tags?.name_zh : (pt.tags?.name_en || pt.tags?.name_zh),
+      slug: pt.tags?.slug ?? "",
     })),
   };
 }

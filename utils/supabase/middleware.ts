@@ -29,9 +29,13 @@ export async function updateSession(request: NextRequest) {
   });
 
   // 刷新 session（重要：防止过期）
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch {
+    // 网络错误时降级处理，不阻塞请求
+  }
 
   // 保护 /admin 路由（登录页除外）
   const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");

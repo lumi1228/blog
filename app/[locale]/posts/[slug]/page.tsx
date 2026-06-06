@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { useTranslations } from "next-intl";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { MarkdownRenderer } from "@/components/markdown/MarkdownRenderer";
 import { getPostBySlug, getAdjacentPosts } from "@/lib/db";
+import { ViewCounter } from "@/components/view-counter";
 import {
   SITE_URL,
   validateCoverImage,
@@ -93,7 +93,26 @@ export default async function PostDetailPage({ params }: PageProps) {
     updatedAt: post.updatedAt,
   });
 
-  return <PostContent post={post} prev={prev} next={next} jsonLd={jsonLd} />;
+  // 服务端获取翻译，避免在 PostContent 中使用 useTranslations hook
+  const t = await getTranslations();
+
+  const translations = {
+    home: t("common.home"),
+    readingTime: (time: number) => t("post.readingTime", { time }),
+    views: (count: number) => t("post.views", { count }),
+    prevPost: t("post.prevPost"),
+    nextPost: t("post.nextPost"),
+  };
+
+  return (
+    <PostContent
+      post={post}
+      prev={prev}
+      next={next}
+      jsonLd={jsonLd}
+      translations={translations}
+    />
+  );
 }
 
 interface PostContentProps {
@@ -101,10 +120,17 @@ interface PostContentProps {
   prev: Post | null;
   next: Post | null;
   jsonLd: Record<string, unknown>;
+  translations: {
+    home: string;
+    readingTime: (time: number) => string;
+    views: (count: number) => string;
+    prevPost: string;
+    nextPost: string;
+  };
 }
 
-function PostContent({ post, prev, next, jsonLd }: PostContentProps) {
-  const t = useTranslations();
+function PostContent({ post, prev, next, jsonLd, translations }: PostContentProps) {
+  const t = translations;
 
   return (
     <>
@@ -124,7 +150,7 @@ function PostContent({ post, prev, next, jsonLd }: PostContentProps) {
               href="/"
               className="transition-colors duration-[var(--duration-fast)] hover:text-[var(--accent-primary)]"
             >
-              {t("common.home")}
+              {t.home}
             </Link>
             <span>/</span>
             <Link
@@ -162,11 +188,11 @@ function PostContent({ post, prev, next, jsonLd }: PostContentProps) {
                 {formatDate(post.publishedAt)}
               </time>
               <span>·</span>
-              <span>{t("post.readingTime", { time: post.readingTime })}</span>
+              <span>{t.readingTime(post.readingTime)}</span>
               {post.viewCount !== undefined && (
                 <>
                   <span>·</span>
-                  <span>{t("post.views", { count: post.viewCount })}</span>
+                  <span>{t.views(post.viewCount)}</span>
                 </>
               )}
             </div>
@@ -188,6 +214,8 @@ function PostContent({ post, prev, next, jsonLd }: PostContentProps) {
               </div>
             )}
           </header>
+
+          <ViewCounter postId={post.id} />
 
           <div
             className="mb-8 h-px"
@@ -218,7 +246,7 @@ function PostContent({ post, prev, next, jsonLd }: PostContentProps) {
                   <svg className="h-3 w-3 transition-transform duration-[var(--duration-fast)] group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                   </svg>
-                  {t("post.prevPost")}
+                  {t.prevPost}
                 </div>
                 <div className="line-clamp-2 text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--accent-primary)]">
                   {prev.title}
@@ -236,7 +264,7 @@ function PostContent({ post, prev, next, jsonLd }: PostContentProps) {
                            hover:border-[var(--accent-primary)]/40 hover:shadow-[var(--shadow-glow-accent)]"
               >
                 <div className="mb-1 flex items-center justify-end gap-1 text-xs text-[var(--text-tertiary)]">
-                  {t("post.nextPost")}
+                  {t.nextPost}
                   <svg className="h-3 w-3 transition-transform duration-[var(--duration-fast)] group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
