@@ -6,6 +6,8 @@ export const routing = defineRouting({
   defaultLocale: "zh-CN",
   // 默认语言无前缀，非默认语言带前缀
   localePrefix: "as-needed",
+  // 禁用浏览器语言自动检测，始终使用 defaultLocale
+  localeDetection: false,
 });
 
 // 导出国际化导航工具
