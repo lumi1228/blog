@@ -19,7 +19,8 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("system");
+  // const [theme, setThemeState] = useState<Theme>("system");
+  const [theme, setThemeState] = useState<Theme>("dark");
   const [resolvedTheme, setResolvedTheme] = useState<"dark" | "light">("dark");
 
   // 应用主题到 DOM
@@ -67,8 +68,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         applyTheme(stored);
       }
     } else {
-      // 默认跟随系统
-      applyTheme(getSystemTheme());
+      // // 默认跟随系统
+      // applyTheme(getSystemTheme());
+      // 默认深色
+      applyTheme("dark");
     }
   }, [applyTheme, getSystemTheme]);
 
