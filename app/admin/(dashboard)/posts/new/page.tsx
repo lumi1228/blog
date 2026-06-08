@@ -17,6 +17,17 @@ export default async function NewPostPage() {
     .select("id, slug, name_zh")
     .order("name_zh");
 
+  // 获取专栏和章节列表
+  const { data: columns } = await supabase
+    .from("columns")
+    .select("id, slug, title_zh")
+    .order("sort");
+
+  const { data: chapters } = await supabase
+    .from("column_chapters")
+    .select("id, column_id, title_zh")
+    .order("sort");
+
   return (
     <div>
       <h1
@@ -28,6 +39,8 @@ export default async function NewPostPage() {
       <PostEditor
         categories={categories || []}
         tags={tags || []}
+        columns={columns || []}
+        chapters={chapters || []}
       />
     </div>
   );

@@ -19,7 +19,7 @@ export default async function EditPostPage({ params }: PageProps) {
       `
       id, slug, cover_image, status, published_at, reading_time,
       title_zh, title_en, excerpt_zh, excerpt_en, content_zh, content_en,
-      category_id, available_locales,
+      category_id, column_id, chapter_id, show_in_list, available_locales,
       post_tags(tag_id)
     `
     )
@@ -41,6 +41,17 @@ export default async function EditPostPage({ params }: PageProps) {
     .select("id, slug, name_zh")
     .order("name_zh");
 
+  // 获取专栏和章节列表
+  const { data: columns } = await supabase
+    .from("columns")
+    .select("id, slug, title_zh")
+    .order("sort");
+
+  const { data: chapters } = await supabase
+    .from("column_chapters")
+    .select("id, column_id, title_zh")
+    .order("sort");
+
   // 转换为编辑器需要的格式
   const initialData = {
     id: post.id,
@@ -55,6 +66,9 @@ export default async function EditPostPage({ params }: PageProps) {
     excerptEn: post.excerpt_en || "",
     contentZh: post.content_zh || "",
     contentEn: post.content_en || "",
+    columnId: post.column_id || "",
+    chapterId: post.chapter_id || "",
+    showInList: post.show_in_list ?? false,
   };
 
   return (
@@ -68,6 +82,8 @@ export default async function EditPostPage({ params }: PageProps) {
       <PostEditor
         categories={categories || []}
         tags={tags || []}
+        columns={columns || []}
+        chapters={chapters || []}
         initialData={initialData}
       />
     </div>

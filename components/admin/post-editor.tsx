@@ -17,6 +17,18 @@ interface Tag {
   name_zh: string;
 }
 
+interface ColumnItem {
+  id: string;
+  slug: string;
+  title_zh: string;
+}
+
+interface ChapterItem {
+  id: string;
+  column_id: string;
+  title_zh: string;
+}
+
 interface PostData {
   id?: string;
   slug: string;
@@ -30,17 +42,22 @@ interface PostData {
   excerptEn: string;
   contentZh: string;
   contentEn: string;
+  columnId: string;
+  chapterId: string;
+  showInList: boolean;
 }
 
 interface PostEditorProps {
   categories: Category[];
   tags: Tag[];
+  columns: ColumnItem[];
+  chapters: ChapterItem[];
   initialData?: PostData;
 }
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
-export function PostEditor({ categories, tags, initialData }: PostEditorProps) {
+export function PostEditor({ categories, tags, columns, chapters, initialData }: PostEditorProps) {
   const router = useRouter();
   const isEditing = !!initialData?.id;
 
@@ -57,8 +74,14 @@ export function PostEditor({ categories, tags, initialData }: PostEditorProps) {
       excerptEn: "",
       contentZh: "",
       contentEn: "",
+      columnId: "",
+      chapterId: "",
+      showInList: false,
     }
   );
+
+  // 根据选中的专栏过滤章节
+  const filteredChapters = chapters.filter((ch) => ch.column_id === form.columnId);
 
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<"zh" | "en">("zh");
@@ -115,6 +138,9 @@ export function PostEditor({ categories, tags, initialData }: PostEditorProps) {
       cover_image: currentForm.coverImage || null,
       status: currentForm.status === "published" ? "published" : "draft",
       category_id: currentForm.categoryId || null,
+      column_id: currentForm.columnId || null,
+      chapter_id: currentForm.chapterId || null,
+      show_in_list: currentForm.showInList,
       title_zh: currentForm.titleZh,
       title_en: currentForm.titleEn || null,
       excerpt_zh: currentForm.excerptZh || null,
@@ -359,6 +385,9 @@ export function PostEditor({ categories, tags, initialData }: PostEditorProps) {
       cover_image: form.coverImage || null,
       status,
       category_id: form.categoryId,
+      column_id: form.columnId || null,
+      chapter_id: form.chapterId || null,
+      show_in_list: form.showInList,
       title_zh: form.titleZh,
       title_en: form.titleEn || null,
       excerpt_zh: form.excerptZh || null,
@@ -646,6 +675,63 @@ export function PostEditor({ categories, tags, initialData }: PostEditorProps) {
             className="w-full rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent-primary)] focus:outline-none"
           />
         </div>
+
+        {/* 专栏 */}
+        <div>
+          <label className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">
+            所属专栏
+          </label>
+          <select
+            value={form.columnId}
+            onChange={(e) =>
+              setForm((prev) => ({ ...prev, columnId: e.target.value, chapterId: "" }))
+            }
+            className="w-full rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:outline-none"
+          >
+            <option value="">不属于专栏</option>
+            {columns.map((col) => (
+              <option key={col.id} value={col.id}>
+                {col.title_zh}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* 章节 */}
+        {form.columnId && (
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">
+              所属章节
+            </label>
+            <select
+              value={form.chapterId}
+              onChange={(e) => setForm((prev) => ({ ...prev, chapterId: e.target.value }))}
+              className="w-full rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:outline-none"
+            >
+              <option value="">不归属章节</option>
+              {filteredChapters.map((ch) => (
+                <option key={ch.id} value={ch.id}>
+                  {ch.title_zh}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* 在首页展示 */}
+        {form.columnId && (
+          <div className="flex items-center gap-2">
+            <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)] cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.showInList}
+                onChange={(e) => setForm((prev) => ({ ...prev, showInList: e.target.checked }))}
+                className="h-4 w-4 rounded border-[var(--border-default)] text-[var(--accent-primary)] focus:ring-[var(--accent-primary)]"
+              />
+              在首页文章列表展示
+            </label>
+          </div>
+        )}
 
         {/* 标签 */}
         <div className="sm:col-span-2">
