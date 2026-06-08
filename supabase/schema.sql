@@ -80,11 +80,44 @@ CREATE TABLE IF NOT EXISTS posts (
   seo_description_zh TEXT,
   seo_description_en TEXT,
   -- 可用语言
-  available_locales TEXT[] DEFAULT ARRAY['zh-CN']
+  available_locales TEXT[] DEFAULT ARRAY['zh-CN'],
+  -- 专栏关联
+  column_id UUID REFERENCES columns(id) ON DELETE SET NULL,
+  chapter_id UUID REFERENCES column_chapters(id) ON DELETE SET NULL,
+  column_order INTEGER,
+  show_in_list BOOLEAN DEFAULT false
 );
 
 -- ============================================
--- 4. 文章-标签关联表（多对多）
+-- 4. 专栏表
+-- ============================================
+CREATE TABLE IF NOT EXISTS columns (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  slug TEXT UNIQUE NOT NULL,
+  sort INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  -- 多语言字段
+  title_zh TEXT NOT NULL,
+  title_en TEXT,
+  description_zh TEXT,
+  description_en TEXT,
+  cover_image TEXT
+);
+
+-- ============================================
+-- 5. 专栏章节目
+-- ============================================
+CREATE TABLE IF NOT EXISTS column_chapters (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  column_id UUID REFERENCES columns(id) ON DELETE CASCADE,
+  sort INTEGER DEFAULT 0,
+  -- 多语言字段
+  title_zh TEXT NOT NULL,
+  title_en TEXT
+);
+
+-- ============================================
+-- 6. 文章-标签关联表（多对多）
 -- ============================================
 CREATE TABLE IF NOT EXISTS post_tags (
   post_id UUID REFERENCES posts(id) ON DELETE CASCADE,
@@ -93,17 +126,21 @@ CREATE TABLE IF NOT EXISTS post_tags (
 );
 
 -- ============================================
--- 5. 索引
+-- 7. 索引
 -- ============================================
 CREATE INDEX IF NOT EXISTS idx_posts_status ON posts(status);
 CREATE INDEX IF NOT EXISTS idx_posts_published_at ON posts(published_at DESC);
 CREATE INDEX IF NOT EXISTS idx_posts_category_id ON posts(category_id);
 CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug);
+CREATE INDEX IF NOT EXISTS idx_posts_column_id ON posts(column_id);
+CREATE INDEX IF NOT EXISTS idx_posts_column_order ON posts(column_order);
 CREATE INDEX IF NOT EXISTS idx_categories_slug ON categories(slug);
 CREATE INDEX IF NOT EXISTS idx_tags_slug ON tags(slug);
+CREATE INDEX IF NOT EXISTS idx_columns_slug ON columns(slug);
+CREATE INDEX IF NOT EXISTS idx_column_chapters_column_id ON column_chapters(column_id);
 
 -- ============================================
--- 6. 自动更新 updated_at 触发器
+-- 8. 自动更新 updated_at 触发器
 -- ============================================
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -119,7 +156,7 @@ CREATE TRIGGER posts_updated_at
   EXECUTE FUNCTION update_updated_at_column();
 
 -- ============================================
--- 7. Row Level Security (RLS)
+-- 9. Row Level Security (RLS)
 -- ============================================
 
 -- 启用 RLS
@@ -127,6 +164,8 @@ ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tags ENABLE ROW LEVEL SECURITY;
 ALTER TABLE post_tags ENABLE ROW LEVEL SECURITY;
+ALTER TABLE columns ENABLE ROW LEVEL SECURITY;
+ALTER TABLE column_chapters ENABLE ROW LEVEL SECURITY;
 
 -- 前台：所有人可读已发布文章
 CREATE POLICY "公开读取已发布文章" ON posts
@@ -142,6 +181,12 @@ CREATE POLICY "公开读取标签" ON tags
 CREATE POLICY "公开读取文章标签关联" ON post_tags
   FOR SELECT USING (true);
 
+CREATE POLICY "公开读取专栏" ON columns
+  FOR SELECT USING (true);
+
+CREATE POLICY "公开读取专栏章节" ON column_chapters
+  FOR SELECT USING (true);
+
 -- 后台：认证用户可执行所有操作
 CREATE POLICY "管理员完全访问文章" ON posts
   FOR ALL USING (auth.role() = 'authenticated');
@@ -155,8 +200,14 @@ CREATE POLICY "管理员完全访问标签" ON tags
 CREATE POLICY "管理员完全访问文章标签" ON post_tags
   FOR ALL USING (auth.role() = 'authenticated');
 
+CREATE POLICY "管理员完全访问专栏" ON columns
+  FOR ALL USING (auth.role() = 'authenticated');
+
+CREATE POLICY "管理员完全访问专栏章节" ON column_chapters
+  FOR ALL USING (auth.role() = 'authenticated');
+
 -- ============================================
--- 8. 插入示例文章数据
+-- 10. 插入示例文章数据
 -- ============================================
 DO $$
 DECLARE
@@ -253,7 +304,7 @@ END $$;
 
 
 -- ============================================
--- 9. 阅读量自增 RPC 函数
+-- 11. 阅读量自增 RPC 函数
 -- ============================================
 CREATE OR REPLACE FUNCTION increment_view_count(post_id UUID)
 RETURNS VOID AS $$

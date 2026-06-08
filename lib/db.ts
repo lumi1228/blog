@@ -4,6 +4,9 @@ import type {
   Post,
   Category,
   Tag,
+  Column,
+  ColumnChapter,
+  ColumnDetail,
   SearchIndexEntry,
   SitemapPost,
   SitemapCategoryOrTag,
@@ -35,8 +38,10 @@ export async function getPosts(options?: {
   offset?: number;
   categorySlug?: string;
   tagSlug?: string;
+  /** 是否排除专栏文章（默认 true，首页/技术列表不显示专栏文章） */
+  excludeColumnPosts?: boolean;
 }): Promise<{ posts: Post[]; total: number }> {
-  const { locale = "zh-CN", limit = 10, offset = 0, categorySlug, tagSlug } = options || {};
+  const { locale = "zh-CN", limit = 10, offset = 0, categorySlug, tagSlug, excludeColumnPosts = true } = options || {};
   const supabase = await getSupabase();
   const isZh = locale === "zh-CN";
 
@@ -46,6 +51,7 @@ export async function getPosts(options?: {
       `
       id, slug, cover_image, status, published_at, updated_at, reading_time, view_count,
       title_zh, title_en, excerpt_zh, excerpt_en, available_locales,
+      column_id, chapter_id, column_order, show_in_list,
       category:categories(id, slug, name_zh, name_en),
       post_tags(tags(id, slug, name_zh, name_en))
     `,
@@ -57,6 +63,11 @@ export async function getPosts(options?: {
 
   if (categorySlug) {
     query = query.eq("categories.slug", categorySlug);
+  }
+
+  // 默认排除专栏文章（show_in_list 为 false 的专栏文章）
+  if (excludeColumnPosts) {
+    query = query.or("column_id.is.null,show_in_list.eq.true");
   }
 
   const { data, count, error } = await Promise.race([
@@ -85,6 +96,10 @@ export async function getPosts(options?: {
     readingTime: row.reading_time,
     viewCount: row.view_count,
     availableLocales: row.available_locales ?? undefined,
+    columnId: row.column_id ?? null,
+    chapterId: row.chapter_id ?? null,
+    columnOrder: row.column_order ?? null,
+    showInList: row.show_in_list ?? false,
     category: {
       name: isZh ? row.category?.name_zh : (row.category?.name_en || row.category?.name_zh),
       slug: row.category?.slug ?? "",
@@ -119,6 +134,7 @@ export async function getPostBySlug(
       `
       id, slug, cover_image, status, published_at, updated_at, reading_time, view_count,
       title_zh, title_en, excerpt_zh, excerpt_en, content_zh, content_en, available_locales,
+      column_id, chapter_id, column_order, show_in_list,
       category:categories(id, slug, name_zh, name_en),
       post_tags(tags(id, slug, name_zh, name_en))
     `
@@ -144,6 +160,10 @@ export async function getPostBySlug(
     readingTime: data.reading_time,
     viewCount: data.view_count,
     availableLocales: data.available_locales ?? undefined,
+    columnId: data.column_id ?? null,
+    chapterId: data.chapter_id ?? null,
+    columnOrder: data.column_order ?? null,
+    showInList: data.show_in_list ?? false,
     category: {
       name: isZh ? cat.name_zh : (cat.name_en || cat.name_zh),
       slug: cat.slug,
@@ -408,4 +428,227 @@ export async function getAllTagsForSitemap(): Promise<SitemapCategoryOrTag[]> {
   }
 
   return data.map((row: any) => ({ slug: row.slug }));
+}
+
+// ============================================
+// 专栏查询
+// ============================================
+
+/**
+ * 获取所有专栏列表
+ */
+export async function getColumns(locale: Locale = "zh-CN"): Promise<Column[]> {
+  const supabase = await getSupabase();
+  const isZh = locale === "zh-CN";
+
+  const { data, error } = await supabase
+    .from("columns")
+    .select("id, slug, sort, title_zh, title_en, description_zh, description_en, cover_image")
+    .order("sort", { ascending: true });
+
+  if (error || !data) return [];
+
+  return data.map((row: any) => ({
+    id: row.id,
+    slug: row.slug,
+    sort: row.sort,
+    title: isZh ? row.title_zh : (row.title_en || row.title_zh),
+    description: isZh ? row.description_zh : (row.description_en || row.description_zh),
+    coverImage: row.cover_image ?? null,
+  }));
+}
+
+/**
+ * 根据 slug 获取专栏详情（含章节和文章）
+ */
+export async function getColumnBySlug(
+  columnSlug: string,
+  locale: Locale = "zh-CN"
+): Promise<ColumnDetail | null> {
+  const supabase = await getSupabase();
+  const isZh = locale === "zh-CN";
+
+  // 获取专栏基本信息
+  const { data: columnData, error: columnError } = await supabase
+    .from("columns")
+    .select("id, slug, sort, title_zh, title_en, description_zh, description_en, cover_image")
+    .eq("slug", columnSlug)
+    .single();
+
+  if (columnError || !columnData) return null;
+
+  // 获取章节列表
+  const { data: chapters, error: chaptersError } = await supabase
+    .from("column_chapters")
+    .select("id, column_id, sort, title_zh, title_en")
+    .eq("column_id", columnData.id)
+    .order("sort", { ascending: true });
+
+  if (chaptersError) {
+    console.error("获取专栏章节失败:", chaptersError);
+    return null;
+  }
+
+  // 获取该专栏下所有已发布文章
+  const { data: posts, error: postsError } = await supabase
+    .from("posts")
+    .select(
+      `
+      id, slug, cover_image, status, published_at, updated_at, reading_time, view_count,
+      title_zh, title_en, excerpt_zh, excerpt_en, available_locales,
+      column_id, chapter_id, column_order, show_in_list,
+      category:categories(id, slug, name_zh, name_en),
+      post_tags(tags(id, slug, name_zh, name_en))
+    `
+    )
+    .eq("column_id", columnData.id)
+    .eq("status", "published")
+    .order("column_order", { ascending: true });
+
+  if (postsError) {
+    console.error("获取专栏文章失败:", postsError);
+  }
+
+  const mapPost = (row: any): Post => ({
+    id: row.id,
+    slug: row.slug,
+    title: isZh ? row.title_zh : (row.title_en || row.title_zh),
+    excerpt: isZh ? row.excerpt_zh : (row.excerpt_en || row.excerpt_zh),
+    coverImage: row.cover_image,
+    publishedAt: row.published_at,
+    updatedAt: row.updated_at ?? undefined,
+    readingTime: row.reading_time,
+    viewCount: row.view_count,
+    availableLocales: row.available_locales ?? undefined,
+    columnId: row.column_id ?? null,
+    chapterId: row.chapter_id ?? null,
+    columnOrder: row.column_order ?? null,
+    showInList: row.show_in_list ?? false,
+    category: {
+      name: isZh ? row.category?.name_zh : (row.category?.name_en || row.category?.name_zh),
+      slug: row.category?.slug ?? "",
+    },
+    tags: (row.post_tags || []).map((pt: any) => ({
+      name: isZh ? pt.tags?.name_zh : (pt.tags?.name_en || pt.tags?.name_zh),
+      slug: pt.tags?.slug ?? "",
+    })),
+  });
+
+  const allPosts = (posts || []).map(mapPost);
+
+  // 将文章按章节分组
+  const chapterPostsMap = new Map<string, Post[]>();
+  // 无章节的文章归入 "uncategorized"
+  const uncategorized: Post[] = [];
+
+  for (const post of allPosts) {
+    if (post.chapterId) {
+      const list = chapterPostsMap.get(post.chapterId) || [];
+      list.push(post);
+      chapterPostsMap.set(post.chapterId, list);
+    } else {
+      uncategorized.push(post);
+    }
+  }
+
+  const chapterList = (chapters || []).map((ch: any) => ({
+    id: ch.id,
+    columnId: ch.column_id,
+    sort: ch.sort,
+    title: isZh ? ch.title_zh : (ch.title_en || ch.title_zh),
+    posts: chapterPostsMap.get(ch.id) || [],
+  }));
+
+  // 如果有未归类文章，添加一个虚拟章节
+  if (uncategorized.length > 0) {
+    chapterList.push({
+      id: "__uncategorized__",
+      columnId: columnData.id,
+      sort: 9999,
+      title: isZh ? "未分类" : "Uncategorized",
+      posts: uncategorized,
+    });
+  }
+
+  // 按 sort 排序
+  chapterList.sort((a, b) => a.sort - b.sort);
+
+  return {
+    id: columnData.id,
+    slug: columnData.slug,
+    sort: columnData.sort,
+    title: isZh ? columnData.title_zh : (columnData.title_en || columnData.title_zh),
+    description: isZh ? columnData.description_zh : (columnData.description_en || columnData.description_zh),
+    coverImage: columnData.cover_image ?? null,
+    chapters: chapterList,
+  };
+}
+
+/**
+ * 在专栏内获取相邻文章（按 column_order）
+ */
+export async function getColumnAdjacentPosts(
+  columnSlug: string,
+  postSlug: string,
+  locale: Locale = "zh-CN"
+): Promise<{ prev: Post | null; next: Post | null }> {
+  const supabase = await getSupabase();
+  const isZh = locale === "zh-CN";
+
+  // 获取当前文章和专栏
+  const { data: current } = await supabase
+    .from("posts")
+    .select("id, column_order, column_id")
+    .eq("slug", postSlug)
+    .single();
+
+  if (!current || !current.column_id) return { prev: null, next: null };
+
+  // 验证专栏 slug 匹配
+  const { data: column } = await supabase
+    .from("columns")
+    .select("id")
+    .eq("slug", columnSlug)
+    .single();
+
+  if (!column || column.id !== current.column_id) return { prev: null, next: null };
+
+  // 查询上一篇（column_order 更小的最大一条）
+  const { data: prevData } = await supabase
+    .from("posts")
+    .select("id, slug, title_zh, title_en")
+    .eq("column_id", current.column_id)
+    .eq("status", "published")
+    .lt("column_order", current.column_order)
+    .order("column_order", { ascending: false })
+    .limit(1)
+    .single();
+
+  // 查询下一篇（column_order 更大的最小一条）
+  const { data: nextData } = await supabase
+    .from("posts")
+    .select("id, slug, title_zh, title_en")
+    .eq("column_id", current.column_id)
+    .eq("status", "published")
+    .gt("column_order", current.column_order)
+    .order("column_order", { ascending: true })
+    .limit(1)
+    .single();
+
+  const mapSimplePost = (row: any): Post => ({
+    id: row.id,
+    slug: row.slug,
+    title: isZh ? row.title_zh : (row.title_en || row.title_zh),
+    excerpt: "",
+    coverImage: null,
+    publishedAt: "",
+    readingTime: 0,
+    category: { name: "", slug: "" },
+    tags: [],
+  });
+
+  return {
+    prev: prevData ? mapSimplePost(prevData) : null,
+    next: nextData ? mapSimplePost(nextData) : null,
+  };
 }

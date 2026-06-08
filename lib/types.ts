@@ -34,6 +34,34 @@ export interface Post {
   availableLocales?: ("zh-CN" | "en")[];
   /** 文章最后更新时间，用于 sitemap lastModified */
   updatedAt?: string;
+  /** 专栏关联信息 */
+  columnId?: string | null;
+  chapterId?: string | null;
+  columnOrder?: number | null;
+  showInList?: boolean;
+}
+
+/** 专栏 */
+export interface Column {
+  id: string;
+  slug: string;
+  sort: number;
+  title: string;
+  description?: string;
+  coverImage?: string | null;
+}
+
+/** 专栏章节 */
+export interface ColumnChapter {
+  id: string;
+  columnId: string;
+  sort: number;
+  title: string;
+}
+
+/** 专栏详情（含章节与文章列表） */
+export interface ColumnDetail extends Column {
+  chapters: (ColumnChapter & { posts: Post[] })[];
 }
 
 /**

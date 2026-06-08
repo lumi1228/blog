@@ -75,5 +75,15 @@
     "close": "Close",
     "ariaInput": "Search articles",
     "ariaModal": "Site search"
+  },
+  "column": {
+    "title": "Columns",
+    "subtitle": "Structured learning notes, organized by topic",
+    "empty": "No columns yet, stay tuned ✨",
+    "backToColumn": "Back to Column",
+    "allColumns": "All Columns",
+    "noArticles": "No articles in this column yet",
+    "articleCount": "{count} articles",
+    "chapterArticleCount": "{count} articles"
   }
 }

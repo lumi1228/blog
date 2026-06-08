@@ -75,5 +75,15 @@
     "close": "关闭",
     "ariaInput": "搜索文章",
     "ariaModal": "站内搜索"
+  },
+  "column": {
+    "title": "专栏",
+    "subtitle": "系统化学习笔记，按主题深度整理",
+    "empty": "暂无专栏，敬请期待 ✨",
+    "backToColumn": "返回专栏",
+    "allColumns": "所有专栏",
+    "noArticles": "该专栏暂无文章",
+    "articleCount": "{count} 篇文章",
+    "chapterArticleCount": "{count}篇"
   }
 }
