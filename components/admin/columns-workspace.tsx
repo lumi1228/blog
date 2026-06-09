@@ -207,6 +207,11 @@ export function ColumnsWorkspace({
     []
   );
 
+  // ── Optimistic：专栏拖拽重排 ──────────────────────────────────────────────────
+  const handleColumnReorder = useCallback((reordered: Column[]) => {
+    setColumns(reordered);
+  }, []);
+
   // ── Optimistic：章节 CRUD ─────────────────────────────────────────────────────
   const handleChapterMutate = useCallback(
     (
@@ -222,16 +227,13 @@ export function ColumnsWorkspace({
       } else if (type === "update") {
         const next = current.map((c) => (c.id === payload.id ? { ...c, ...payload } : c));
         chapterCache.current.set(columnId, next);
-        // 更新右栏面包屑（触发重渲染）
         if (payload.id === selectedChapterId) {
           forceUpdate((n) => n + 1);
         }
       } else if (type === "delete") {
         const next = current.filter((c) => c.id !== payload.id);
         chapterCache.current.set(columnId, next);
-        // 清掉文章缓存
         invalidatePostCache(columnId, payload.id);
-        // 若删除的是当前选中章节，切到相邻
         if (payload.id === selectedChapterId) {
           const fallback = next[0] ?? null;
           const fallbackId = fallback?.id ?? null;
@@ -244,6 +246,12 @@ export function ColumnsWorkspace({
     },
     [selectedChapterId, invalidatePostCache, loadPosts]
   );
+
+  // ── Optimistic：章节拖拽重排 ──────────────────────────────────────────────────
+  const handleChapterReorder = useCallback((columnId: string, reordered: Chapter[]) => {
+    chapterCache.current.set(columnId, reordered);
+    forceUpdate((n) => n + 1);
+  }, []);
 
   // ── 当前专栏和章节 ────────────────────────────────────────────────────────────
   const selectedColumn = columns.find((c) => c.id === selectedColumnId) ?? null;
@@ -265,7 +273,9 @@ export function ColumnsWorkspace({
           onExpandColumn={handleExpandColumn}
           onSelectChapter={handleSelectChapter}
           onColumnMutate={handleColumnMutate}
+          onColumnReorder={handleColumnReorder}
           onChapterMutate={handleChapterMutate}
+          onChapterReorder={handleChapterReorder}
         />
       </div>
 
@@ -274,11 +284,10 @@ export function ColumnsWorkspace({
         <ColumnsRightPanel
           selectedColumn={selectedColumn}
           selectedChapter={selectedChapter}
-          currentChapters={currentChapters}
           posts={rightPosts}
           loading={rightLoading}
-          onPostsMutated={(chapterId) => {
-            if (selectedColumnId) invalidatePostCache(selectedColumnId, chapterId);
+          onPostsMutated={() => {
+            if (selectedColumnId) invalidatePostCache(selectedColumnId, selectedChapterId);
           }}
         />
       </div>

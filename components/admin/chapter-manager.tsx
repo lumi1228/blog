@@ -308,41 +308,41 @@ export function ChapterManager({ column, chapters: initialChapters }: ChapterMan
       )}
 
       {/* 章节列表 */}
-      <div className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-subtle)]">
-        <table className="w-full text-sm">
-          <thead className="bg-[var(--bg-secondary)]">
-            <tr>
-              <th className="w-10 px-3 py-3" />
-              <th className="px-4 py-3 text-left font-medium text-[var(--text-secondary)]">名称</th>
-              <th className="hidden px-4 py-3 text-left font-medium text-[var(--text-secondary)] sm:table-cell">
-                文章数
-              </th>
-              <th className="px-4 py-3 text-right font-medium text-[var(--text-secondary)]">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortError && (
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <div className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-subtle)]">
+          <table className="w-full text-sm">
+            <thead className="bg-[var(--bg-secondary)]">
               <tr>
-                <td colSpan={4} className="px-4 py-2 text-center text-sm text-red-500">
-                  {sortError}
-                </td>
+                <th className="w-10 px-3 py-3" />
+                <th className="px-4 py-3 text-left font-medium text-[var(--text-secondary)]">名称</th>
+                <th className="hidden px-4 py-3 text-left font-medium text-[var(--text-secondary)] sm:table-cell">
+                  文章数
+                </th>
+                <th className="px-4 py-3 text-right font-medium text-[var(--text-secondary)]">操作</th>
               </tr>
-            )}
-            {sortSaving && (
-              <tr>
-                <td colSpan={4} className="px-4 py-1.5 text-center text-xs text-[var(--text-tertiary)]">
-                  正在保存排序...
-                </td>
-              </tr>
-            )}
-            {chapters.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="px-4 py-12 text-center text-[var(--text-tertiary)]">
-                  暂无章节，点击上方「新建章节」开始创建
-                </td>
-              </tr>
-            ) : (
-              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            </thead>
+            <tbody>
+              {sortError && (
+                <tr>
+                  <td colSpan={4} className="px-4 py-2 text-center text-sm text-red-500">
+                    {sortError}
+                  </td>
+                </tr>
+              )}
+              {sortSaving && (
+                <tr>
+                  <td colSpan={4} className="px-4 py-1.5 text-center text-xs text-[var(--text-tertiary)]">
+                    正在保存排序...
+                  </td>
+                </tr>
+              )}
+              {chapters.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-12 text-center text-[var(--text-tertiary)]">
+                    暂无章节，点击上方「新建章节」开始创建
+                  </td>
+                </tr>
+              ) : (
                 <SortableContext items={chapters.map((c) => c.id)} strategy={verticalListSortingStrategy}>
                   {chapters.map((ch) => (
                     <SortableChapterRow
@@ -354,11 +354,11 @@ export function ChapterManager({ column, chapters: initialChapters }: ChapterMan
                     />
                   ))}
                 </SortableContext>
-              </DndContext>
-            )}
-          </tbody>
-        </table>
-      </div>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </DndContext>
     </div>
   );
 }

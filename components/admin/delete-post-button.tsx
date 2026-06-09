@@ -6,9 +6,10 @@ import { createClient } from "@/utils/supabase/client";
 interface DeletePostButtonProps {
   postId: string;
   title: string;
+  onDeleted?: () => void;
 }
 
-export function DeletePostButton({ postId, title }: DeletePostButtonProps) {
+export function DeletePostButton({ postId, title, onDeleted }: DeletePostButtonProps) {
   const router = useRouter();
 
   const handleDelete = async () => {
@@ -24,6 +25,7 @@ export function DeletePostButton({ postId, title }: DeletePostButtonProps) {
       return;
     }
 
+    onDeleted?.();
     router.refresh();
   };
 
