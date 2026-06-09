@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -23,6 +22,8 @@ import { CSS } from "@dnd-kit/utilities";
 import { createClient } from "@/utils/supabase/client";
 import { DeletePostButton } from "@/components/admin/delete-post-button";
 import { ToggleStatusButton } from "@/components/admin/toggle-status-button";
+import { PostEditor } from "@/components/admin/post-editor";
+import { PostEditorModal } from "@/components/admin/post-editor-modal";
 import type { Column, Chapter, Post } from "@/components/admin/columns-workspace";
 
 interface ColumnsRightPanelProps {
@@ -39,10 +40,12 @@ function SortablePostRow({
   post,
   isSaving,
   onDeleted,
+  onEdit,
 }: {
   post: Post;
   isSaving: boolean;
   onDeleted: (id: string) => void;
+  onEdit: (id: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: post.id });
@@ -76,12 +79,12 @@ function SortablePostRow({
 
       {/* 标题 */}
       <td className="px-4 py-2.5">
-        <Link
-          href={`/admin/posts/${post.id}/edit`}
-          className="text-sm font-medium text-[var(--text-primary)] hover:text-[var(--accent-primary)]"
+        <button
+          onClick={() => onEdit(post.id)}
+          className="text-left text-sm font-medium text-[var(--text-primary)] hover:text-[var(--accent-primary)]"
         >
           {post.title_zh}
-        </Link>
+        </button>
         {post.title_en && (
           <div className="mt-0.5 text-xs text-[var(--text-tertiary)]">EN: {post.title_en}</div>
         )}
@@ -100,12 +103,12 @@ function SortablePostRow({
       {/* 操作 */}
       <td className="px-4 py-2.5 text-right">
         <div className="flex items-center justify-end gap-2">
-          <Link
-            href={`/admin/posts/${post.id}/edit`}
+          <button
+            onClick={() => onEdit(post.id)}
             className="rounded-[var(--radius-sm)] px-2 py-1 text-xs text-[var(--accent-secondary)] hover:bg-[var(--accent-muted)]"
           >
             编辑
-          </Link>
+          </button>
           <DeletePostButton
             postId={post.id}
             title={post.title_zh}
@@ -130,6 +133,21 @@ export function ColumnsRightPanel({
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // 弹框状态
+  const [editPostId, setEditPostId] = useState<string | null>(null);
+  const [editInitialData, setEditInitialData] = useState<any>(null);
+  const [loadingEdit, setLoadingEdit] = useState(false);
+  // 编辑器所需元数据
+  const [meta, setMeta] = useState<{
+    categories: any[];
+    tags: any[];
+    columns: any[];
+    chapters: any[];
+  } | null>(null);
+
+  // 新建弹框状态
+  const [showNew, setShowNew] = useState(false);
 
   // 外部切换章节时同步文章列表
   useEffect(() => {
@@ -188,6 +206,90 @@ export function ColumnsRightPanel({
     [onPostsMutated]
   );
 
+  // 拉取元数据（只拉一次，缓存在 state 中）
+  const fetchMeta = useCallback(async () => {
+    if (meta) return meta;
+    const supabase = createClient();
+    const [{ data: categories }, { data: tags }, { data: columns }, { data: chapters }] =
+      await Promise.all([
+        supabase.from("categories").select("id, slug, name_zh").order("sort"),
+        supabase.from("tags").select("id, slug, name_zh").order("name_zh"),
+        supabase.from("columns").select("id, slug, title_zh").order("sort"),
+        supabase.from("column_chapters").select("id, column_id, title_zh").order("sort"),
+      ]);
+    const result = {
+      categories: categories || [],
+      tags: tags || [],
+      columns: columns || [],
+      chapters: chapters || [],
+    };
+    setMeta(result);
+    return result;
+  }, [meta]);
+
+  // 打开新建弹框
+  const openNew = useCallback(async () => {
+    await fetchMeta();
+    setEditInitialData(null);
+    setShowNew(true);
+  }, [fetchMeta]);
+
+  // 打开编辑弹框
+  const openEdit = useCallback(
+    async (postId: string) => {
+      setLoadingEdit(true);
+      setEditPostId(postId);
+
+      await fetchMeta();
+
+      const supabase = createClient();
+      const { data: post } = await supabase
+        .from("posts")
+        .select(
+          `id, slug, cover_image, status,
+           title_zh, title_en, excerpt_zh, excerpt_en, content_zh, content_en,
+           category_id, column_id, chapter_id, show_in_list,
+           post_tags(tag_id)`
+        )
+        .eq("id", postId)
+        .single();
+
+      if (post) {
+        setEditInitialData({
+          id: post.id,
+          slug: post.slug,
+          coverImage: post.cover_image || "",
+          status: post.status as "draft" | "published",
+          categoryId: post.category_id || "",
+          tagIds: (post.post_tags || []).map((pt: any) => pt.tag_id),
+          titleZh: post.title_zh || "",
+          titleEn: post.title_en || "",
+          excerptZh: post.excerpt_zh || "",
+          excerptEn: post.excerpt_en || "",
+          contentZh: post.content_zh || "",
+          contentEn: post.content_en || "",
+          columnId: post.column_id || "",
+          chapterId: post.chapter_id || "",
+          showInList: post.show_in_list ?? false,
+        });
+      }
+      setLoadingEdit(false);
+    },
+    [fetchMeta]
+  );
+
+  // 关闭弹框，刷新文章列表
+  const handleClose = useCallback(() => {
+    setEditPostId(null);
+    setEditInitialData(null);
+    setShowNew(false);
+    onPostsMutated();
+    router.refresh();
+  }, [onPostsMutated, router]);
+
+  const isModalOpen = showNew || editPostId !== null;
+  const modalTitle = showNew ? "新建文章" : "编辑文章";
+
   // ── 未选专栏 ──
   if (!selectedColumn) {
     return (
@@ -200,100 +302,137 @@ export function ColumnsRightPanel({
     );
   }
 
-  // 新建文章链接：携带专栏和章节
-  const newPostHref = selectedChapter
-    ? `/admin/posts/new?column_id=${selectedColumn.id}&chapter_id=${selectedChapter.id}`
-    : `/admin/posts/new?column_id=${selectedColumn.id}`;
+  // 新建文章时预填专栏/章节
+  const newInitialData = {
+    slug: "",
+    coverImage: "",
+    status: "draft" as const,
+    categoryId: meta?.categories?.[0]?.id || "",
+    tagIds: [],
+    titleZh: "",
+    titleEn: "",
+    excerptZh: "",
+    excerptEn: "",
+    contentZh: "",
+    contentEn: "",
+    columnId: selectedColumn.id,
+    chapterId: selectedChapter?.id || "",
+    showInList: false,
+  };
 
   const breadcrumb = selectedChapter
     ? `${selectedColumn.title_zh} › ${selectedChapter.title_zh}`
     : selectedColumn.title_zh;
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
-      {/* 顶部 header */}
-      <div className="flex items-center justify-between gap-3 border-b border-[var(--border-subtle)] px-6 py-4 flex-shrink-0">
-        <h2 className="text-sm font-semibold text-[var(--text-primary)] truncate">{breadcrumb}</h2>
-        <Link
-          href={newPostHref}
-          className="inline-flex shrink-0 items-center gap-2 rounded-[var(--radius-md)] bg-[var(--accent-primary)] px-4 py-2 text-sm font-medium text-[var(--bg-primary)] transition-all duration-[var(--duration-fast)] hover:shadow-[var(--shadow-glow-accent)]"
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          新建文章
-        </Link>
-      </div>
-
-      {/* 内容区 */}
-      <div className="flex-1 overflow-y-auto px-6 py-4">
-        {loading ? (
-          <div className="space-y-2">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-10 rounded-[var(--radius-md)] bg-[var(--bg-secondary)] animate-pulse" />
-            ))}
-          </div>
-        ) : (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <div className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-subtle)]">
-              <table className="w-full text-sm">
-                <thead className="bg-[var(--bg-secondary)]">
-                  <tr>
-                    <th className="w-10 px-3 py-3" />
-                    <th className="px-4 py-3 text-left font-medium text-[var(--text-secondary)]">标题</th>
-                    <th className="px-4 py-3 text-left font-medium text-[var(--text-secondary)]">状态</th>
-                    <th className="hidden px-4 py-3 text-left font-medium text-[var(--text-secondary)] md:table-cell">
-                      创建时间
-                    </th>
-                    <th className="px-4 py-3 text-right font-medium text-[var(--text-secondary)]">操作</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {errorMsg && (
-                    <tr>
-                      <td colSpan={5} className="px-4 py-2 text-center text-xs text-red-500">
-                        {errorMsg}
-                      </td>
-                    </tr>
-                  )}
-                  {isSaving && (
-                    <tr>
-                      <td colSpan={5} className="px-4 py-1.5 text-center text-xs text-[var(--text-tertiary)]">
-                        正在保存排序...
-                      </td>
-                    </tr>
-                  )}
-                  {posts.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="px-4 py-12 text-center text-[var(--text-tertiary)]">
-                        该章节暂无文章
-                      </td>
-                    </tr>
-                  ) : (
-                    <SortableContext
-                      items={posts.map((p) => p.id)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      {posts.map((post) => (
-                        <SortablePostRow
-                          key={post.id}
-                          post={post}
-                          isSaving={isSaving}
-                          onDeleted={handleDeleted}
-                        />
-                      ))}
-                    </SortableContext>
-                  )}
-                </tbody>
-              </table>
+    <>
+      {/* 全屏编辑弹框 */}
+      {isModalOpen && meta && (
+        <PostEditorModal title={modalTitle} onClose={handleClose}>
+          {loadingEdit && editPostId && !editInitialData ? (
+            <div className="flex h-64 items-center justify-center text-[var(--text-tertiary)]">
+              加载中...
             </div>
-          </DndContext>
-        )}
+          ) : (
+            <PostEditor
+              key={editPostId ?? "new"}
+              categories={meta.categories}
+              tags={meta.tags}
+              columns={meta.columns}
+              chapters={meta.chapters}
+              initialData={showNew ? newInitialData : editInitialData}
+              onClose={handleClose}
+            />
+          )}
+        </PostEditorModal>
+      )}
+
+      <div className="flex flex-col h-full overflow-hidden">
+        {/* 顶部 header */}
+        <div className="flex items-center justify-between gap-3 border-b border-[var(--border-subtle)] px-6 py-4 flex-shrink-0">
+          <h2 className="text-sm font-semibold text-[var(--text-primary)] truncate">{breadcrumb}</h2>
+          <button
+            onClick={openNew}
+            className="inline-flex shrink-0 items-center gap-2 rounded-[var(--radius-md)] bg-[var(--accent-primary)] px-4 py-2 text-sm font-medium text-[var(--bg-primary)] transition-all duration-[var(--duration-fast)] hover:shadow-[var(--shadow-glow-accent)]"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            新建文章
+          </button>
+        </div>
+
+        {/* 内容区 */}
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          {loading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="h-10 rounded-[var(--radius-md)] bg-[var(--bg-secondary)] animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <div className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-subtle)]">
+                <table className="w-full text-sm">
+                  <thead className="bg-[var(--bg-secondary)]">
+                    <tr>
+                      <th className="w-10 px-3 py-3" />
+                      <th className="px-4 py-3 text-left font-medium text-[var(--text-secondary)]">标题</th>
+                      <th className="px-4 py-3 text-left font-medium text-[var(--text-secondary)]">状态</th>
+                      <th className="hidden px-4 py-3 text-left font-medium text-[var(--text-secondary)] md:table-cell">
+                        创建时间
+                      </th>
+                      <th className="px-4 py-3 text-right font-medium text-[var(--text-secondary)]">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {errorMsg && (
+                      <tr>
+                        <td colSpan={5} className="px-4 py-2 text-center text-xs text-red-500">
+                          {errorMsg}
+                        </td>
+                      </tr>
+                    )}
+                    {isSaving && (
+                      <tr>
+                        <td colSpan={5} className="px-4 py-1.5 text-center text-xs text-[var(--text-tertiary)]">
+                          正在保存排序...
+                        </td>
+                      </tr>
+                    )}
+                    {posts.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="px-4 py-12 text-center text-[var(--text-tertiary)]">
+                          该章节暂无文章
+                        </td>
+                      </tr>
+                    ) : (
+                      <SortableContext
+                        items={posts.map((p) => p.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        {posts.map((post) => (
+                          <SortablePostRow
+                            key={post.id}
+                            post={post}
+                            isSaving={isSaving}
+                            onDeleted={handleDeleted}
+                            onEdit={openEdit}
+                          />
+                        ))}
+                      </SortableContext>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </DndContext>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

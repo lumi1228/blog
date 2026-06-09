@@ -53,11 +53,12 @@ interface PostEditorProps {
   columns: ColumnItem[];
   chapters: ChapterItem[];
   initialData?: PostData;
+  onClose?: () => void;
 }
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
-export function PostEditor({ categories, tags, columns, chapters, initialData }: PostEditorProps) {
+export function PostEditor({ categories, tags, columns, chapters, initialData, onClose }: PostEditorProps) {
   const router = useRouter();
   const isEditing = !!initialData?.id;
 
@@ -440,8 +441,12 @@ export function PostEditor({ categories, tags, columns, chapters, initialData }:
     }
 
     setSaving(false);
-    router.push("/admin/posts");
-    router.refresh();
+    if (onClose) {
+      onClose();
+    } else {
+      router.push("/admin/posts");
+      router.refresh();
+    }
   };
 
   // 当前编辑内容
@@ -763,7 +768,7 @@ export function PostEditor({ categories, tags, columns, chapters, initialData }:
       {/* 操作按钮 */}
       <div className="flex items-center justify-between border-t border-[var(--border-subtle)] pt-6">
         <button
-          onClick={() => router.back()}
+          onClick={() => onClose ? onClose() : router.back()}
           className="rounded-[var(--radius-md)] px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
         >
           取消
