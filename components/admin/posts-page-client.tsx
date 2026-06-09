@@ -20,7 +20,7 @@ interface Post {
   created_at: string;
   title_zh: string;
   title_en: string | null;
-  categories: { name_zh: string } | null;
+  categories: { name_zh: string }[] | null;
 }
 
 interface PostsPageClientProps {
@@ -200,7 +200,7 @@ export function PostsPageClient({
                     )}
                   </td>
                   <td className="hidden px-4 py-3 text-[var(--text-secondary)] sm:table-cell">
-                    {post.categories?.name_zh || "-"}
+                    {post.categories?.[0]?.name_zh || "-"}
                   </td>
                   <td className="px-4 py-3">
                     <ToggleStatusButton postId={post.id} currentStatus={post.status} />
