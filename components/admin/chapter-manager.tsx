@@ -3,6 +3,23 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface Chapter {
   id: string;
@@ -25,29 +42,105 @@ interface ChapterManagerProps {
   chapters: Chapter[];
 }
 
-export function ChapterManager({ column, chapters }: ChapterManagerProps) {
+// 可拖拽章节行
+function SortableChapterRow({
+  ch,
+  isSaving,
+  onEdit,
+  onDelete,
+}: {
+  ch: Chapter;
+  isSaving: boolean;
+  onEdit: (ch: Chapter) => void;
+  onDelete: (ch: Chapter) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: ch.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 10 : undefined,
+    position: isDragging ? ("relative" as const) : undefined,
+  };
+
+  return (
+    <tr
+      ref={setNodeRef}
+      style={style}
+      className="border-t border-[var(--border-subtle)] bg-[var(--bg-primary)]"
+    >
+      {/* 拖拽手柄 */}
+      <td className="w-10 px-3 py-3">
+        <button
+          {...attributes}
+          {...listeners}
+          disabled={isSaving}
+          className="flex h-6 w-6 cursor-grab items-center justify-center rounded text-[var(--text-tertiary)] transition-colors hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-30"
+          title="拖拽排序"
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 5h16.5M3.75 12h16.5M3.75 19h16.5" />
+          </svg>
+        </button>
+      </td>
+
+      {/* 名称 */}
+      <td className="px-4 py-3">
+        <div className="font-medium text-[var(--text-primary)]">{ch.title_zh}</div>
+        {ch.title_en && <div className="text-xs text-[var(--text-tertiary)]">{ch.title_en}</div>}
+      </td>
+
+      {/* 文章数 */}
+      <td className="hidden px-4 py-3 text-[var(--text-secondary)] sm:table-cell">
+        {ch.articleCount}
+      </td>
+
+      {/* 操作 */}
+      <td className="px-4 py-3 text-right">
+        <div className="flex items-center justify-end gap-2">
+          <button
+            onClick={() => onEdit(ch)}
+            className="rounded-[var(--radius-sm)] px-2 py-1 text-xs text-[var(--accent-secondary)] hover:bg-[var(--accent-muted)]"
+          >
+            编辑
+          </button>
+          <button
+            onClick={() => onDelete(ch)}
+            className="rounded-[var(--radius-sm)] px-2 py-1 text-xs text-[var(--error)] hover:bg-[var(--error)]/10"
+          >
+            删除
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
+export function ChapterManager({ column, chapters: initialChapters }: ChapterManagerProps) {
   const router = useRouter();
+  const [chapters, setChapters] = useState(initialChapters);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Chapter | null>(null);
-  const [form, setForm] = useState({
-    titleZh: "",
-    titleEn: "",
-    sort: 0,
-  });
+  const [form, setForm] = useState({ titleZh: "", titleEn: "" });
   const [saving, setSaving] = useState(false);
+  const [sortSaving, setSortSaving] = useState(false);
+  const [sortError, setSortError] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   const resetForm = () => {
-    setForm({ titleZh: "", titleEn: "", sort: 0 });
+    setForm({ titleZh: "", titleEn: "" });
     setEditing(null);
     setShowForm(false);
   };
 
   const startEdit = (ch: Chapter) => {
-    setForm({
-      titleZh: ch.title_zh,
-      titleEn: ch.title_en || "",
-      sort: ch.sort,
-    });
+    setForm({ titleZh: ch.title_zh, titleEn: ch.title_en || "" });
     setEditing(ch);
     setShowForm(true);
   };
@@ -65,14 +158,11 @@ export function ChapterManager({ column, chapters }: ChapterManagerProps) {
       column_id: column.id,
       title_zh: form.titleZh,
       title_en: form.titleEn || null,
-      sort: form.sort,
+      sort: editing ? editing.sort : (chapters.length > 0 ? Math.max(...chapters.map((c) => c.sort)) + 1 : 0),
     };
 
     if (editing) {
-      const { error } = await supabase
-        .from("column_chapters")
-        .update(data)
-        .eq("id", editing.id);
+      const { error } = await supabase.from("column_chapters").update(data).eq("id", editing.id);
       if (error) {
         alert("更新失败：" + error.message);
         setSaving(false);
@@ -108,6 +198,39 @@ export function ChapterManager({ column, chapters }: ChapterManagerProps) {
     router.refresh();
   };
 
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = chapters.findIndex((c) => c.id === active.id);
+    const newIndex = chapters.findIndex((c) => c.id === over.id);
+    const newChapters = arrayMove(chapters, oldIndex, newIndex);
+
+    setChapters(newChapters);
+    setSortSaving(true);
+    setSortError(null);
+
+    try {
+      const supabase = createClient();
+      const updates = newChapters.map((c, i) =>
+        supabase.from("column_chapters").update({ sort: i }).eq("id", c.id)
+      );
+      const results = await Promise.all(updates);
+      const failed = results.find((r) => r.error);
+      if (failed?.error) {
+        setChapters(initialChapters);
+        setSortError("排序保存失败：" + failed.error.message);
+        return;
+      }
+      router.refresh();
+    } catch {
+      setChapters(initialChapters);
+      setSortError("排序保存失败，请重试");
+    } finally {
+      setSortSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* 返回 + 标题 */}
@@ -126,9 +249,7 @@ export function ChapterManager({ column, chapters }: ChapterManagerProps) {
         >
           章节管理
         </h1>
-        <span className="text-sm text-[var(--text-tertiary)]">
-          — {column.title_zh}
-        </span>
+        <span className="text-sm text-[var(--text-tertiary)]">— {column.title_zh}</span>
       </div>
 
       {/* 新建按钮 */}
@@ -167,15 +288,6 @@ export function ChapterManager({ column, chapters }: ChapterManagerProps) {
                 className="w-full rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:outline-none"
               />
             </div>
-            <div>
-              <label className="mb-1 block text-xs text-[var(--text-tertiary)]">排序</label>
-              <input
-                type="number"
-                value={form.sort}
-                onChange={(e) => setForm((p) => ({ ...p, sort: Number(e.target.value) }))}
-                className="w-full rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:outline-none"
-              />
-            </div>
           </div>
           <div className="mt-4 flex gap-2">
             <button
@@ -200,13 +312,29 @@ export function ChapterManager({ column, chapters }: ChapterManagerProps) {
         <table className="w-full text-sm">
           <thead className="bg-[var(--bg-secondary)]">
             <tr>
+              <th className="w-10 px-3 py-3" />
               <th className="px-4 py-3 text-left font-medium text-[var(--text-secondary)]">名称</th>
-              <th className="hidden px-4 py-3 text-left font-medium text-[var(--text-secondary)] sm:table-cell">文章数</th>
-              <th className="px-4 py-3 text-left font-medium text-[var(--text-secondary)]">排序</th>
+              <th className="hidden px-4 py-3 text-left font-medium text-[var(--text-secondary)] sm:table-cell">
+                文章数
+              </th>
               <th className="px-4 py-3 text-right font-medium text-[var(--text-secondary)]">操作</th>
             </tr>
           </thead>
           <tbody>
+            {sortError && (
+              <tr>
+                <td colSpan={4} className="px-4 py-2 text-center text-sm text-red-500">
+                  {sortError}
+                </td>
+              </tr>
+            )}
+            {sortSaving && (
+              <tr>
+                <td colSpan={4} className="px-4 py-1.5 text-center text-xs text-[var(--text-tertiary)]">
+                  正在保存排序...
+                </td>
+              </tr>
+            )}
             {chapters.length === 0 ? (
               <tr>
                 <td colSpan={4} className="px-4 py-12 text-center text-[var(--text-tertiary)]">
@@ -214,32 +342,19 @@ export function ChapterManager({ column, chapters }: ChapterManagerProps) {
                 </td>
               </tr>
             ) : (
-              chapters.map((ch) => (
-                <tr key={ch.id} className="border-t border-[var(--border-subtle)]">
-                  <td className="px-4 py-3">
-                    <div className="font-medium text-[var(--text-primary)]">{ch.title_zh}</div>
-                    {ch.title_en && <div className="text-xs text-[var(--text-tertiary)]">{ch.title_en}</div>}
-                  </td>
-                  <td className="hidden px-4 py-3 text-[var(--text-secondary)] sm:table-cell">{ch.articleCount}</td>
-                  <td className="px-4 py-3 text-[var(--text-tertiary)]">{ch.sort}</td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => startEdit(ch)}
-                        className="rounded-[var(--radius-sm)] px-2 py-1 text-xs text-[var(--accent-secondary)] hover:bg-[var(--accent-muted)]"
-                      >
-                        编辑
-                      </button>
-                      <button
-                        onClick={() => handleDelete(ch)}
-                        className="rounded-[var(--radius-sm)] px-2 py-1 text-xs text-[var(--error)] hover:bg-[var(--error)]/10"
-                      >
-                        删除
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <SortableContext items={chapters.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+                  {chapters.map((ch) => (
+                    <SortableChapterRow
+                      key={ch.id}
+                      ch={ch}
+                      isSaving={sortSaving}
+                      onEdit={startEdit}
+                      onDelete={handleDelete}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
             )}
           </tbody>
         </table>
