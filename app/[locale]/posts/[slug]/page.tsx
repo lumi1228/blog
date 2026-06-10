@@ -5,8 +5,10 @@ import Link from "next/link";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { MarkdownRenderer } from "@/components/markdown/MarkdownRenderer";
+import { TableOfContents } from "@/components/TableOfContents";
 import { getPostBySlug, getAdjacentPosts } from "@/lib/db";
 import { ViewCounter } from "@/components/view-counter";
+import { extractHeadings } from "@/lib/markdown/extractHeadings";
 import {
   SITE_URL,
   validateCoverImage,
@@ -17,6 +19,7 @@ import {
 import { aboutConfig } from "@/config/about";
 import type { Locale } from "@/i18n/config";
 import type { Post } from "@/lib/types";
+import type { Heading } from "@/lib/markdown/extractHeadings";
 
 interface PageProps {
   params: Promise<{ locale: string; slug: string }>;
@@ -76,6 +79,9 @@ export default async function PostDetailPage({ params }: PageProps) {
 
   const { prev, next } = await getAdjacentPosts(slug, locale as Locale);
 
+  // 提取文章标题，用于 TOC
+  const headings = extractHeadings(post.content ?? "");
+
   // 计算封面图可达性（与 generateMetadata 共享 React cache，不重复发 HEAD 请求）
   const hasUserCover = !!post.coverImage;
   const coverOk = hasUserCover ? await validateCoverImage(post.coverImage) : false;
@@ -109,6 +115,7 @@ export default async function PostDetailPage({ params }: PageProps) {
       post={post}
       prev={prev}
       next={next}
+      headings={headings}
       jsonLd={jsonLd}
       translations={translations}
     />
@@ -119,6 +126,7 @@ interface PostContentProps {
   post: Post;
   prev: Post | null;
   next: Post | null;
+  headings: Heading[];
   jsonLd: Record<string, unknown>;
   translations: {
     home: string;
@@ -129,7 +137,7 @@ interface PostContentProps {
   };
 }
 
-function PostContent({ post, prev, next, jsonLd, translations }: PostContentProps) {
+function PostContent({ post, prev, next, headings, jsonLd, translations }: PostContentProps) {
   const t = translations;
 
   return (
@@ -137,147 +145,171 @@ function PostContent({ post, prev, next, jsonLd, translations }: PostContentProp
       <Navbar />
 
       <main className="flex-1">
-        <article className="mx-auto max-w-[900px] px-6 py-12 sm:py-16">
-          {/* JSON-LD 结构化数据 */}
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-          />
+        {/* 外层容器：居中 + 水平 padding */}
+        <div className="mx-auto max-w-[1200px] px-6 py-12 sm:py-16">
+          {/* 双栏布局：文章主体 + 右侧 TOC */}
+          <div className="flex items-start gap-12">
 
-          {/* 面包屑 */}
-          <nav className="mb-6 flex items-center gap-2 text-xs text-[var(--text-tertiary)]">
-            <Link
-              href="/"
-              className="transition-colors duration-[var(--duration-fast)] hover:text-[var(--accent-primary)]"
-            >
-              {t.home}
-            </Link>
-            <span>/</span>
-            <Link
-              href={`/category/${post.category.slug}`}
-              className="transition-colors duration-[var(--duration-fast)] hover:text-[var(--accent-primary)]"
-            >
-              {post.category.name}
-            </Link>
-          </nav>
+            {/* ── 文章主体 ── */}
+            <article className="min-w-0 flex-1">
+              {/* JSON-LD 结构化数据 */}
+              <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+              />
 
-          {/* 文章头部 */}
-          <header className="mb-10 animate-fade-in-up">
-            <div className="mb-4">
-              <Link
-                href={`/category/${post.category.slug}`}
-                className="inline-flex items-center gap-1.5 rounded-[var(--radius-full)] 
-                           bg-[var(--accent-muted)] px-3 py-1 text-xs font-medium text-[var(--accent-primary)]
-                           transition-colors duration-[var(--duration-fast)]
-                           hover:bg-[var(--accent-primary)] hover:text-[var(--bg-primary)]"
-              >
-                {post.category.name}
-              </Link>
-            </div>
+              {/* 面包屑 */}
+              <nav className="mb-6 flex items-center gap-2 text-xs text-[var(--text-tertiary)]">
+                <Link
+                  href="/"
+                  className="transition-colors duration-[var(--duration-fast)] hover:text-[var(--accent-primary)]"
+                >
+                  {t.home}
+                </Link>
+                <span>/</span>
+                <Link
+                  href={`/category/${post.category.slug}`}
+                  className="transition-colors duration-[var(--duration-fast)] hover:text-[var(--accent-primary)]"
+                >
+                  {post.category.name}
+                </Link>
+              </nav>
 
-            <h1
-              className="mb-4 text-3xl font-bold leading-tight tracking-tight text-[var(--text-primary)] 
-                         sm:text-4xl lg:text-5xl"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              {post.title}
-            </h1>
-
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[var(--text-tertiary)]">
-              <time dateTime={post.publishedAt}>
-                {formatDate(post.publishedAt)}
-              </time>
-              <span>·</span>
-              <span>{t.readingTime(post.readingTime)}</span>
-              {post.viewCount !== undefined && (
-                <>
-                  <span>·</span>
-                  <span>{t.views(post.viewCount)}</span>
-                </>
-              )}
-            </div>
-
-            {post.tags.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-1.5">
-                {post.tags.map((tag) => (
+              {/* 文章头部 */}
+              <header className="mb-10 animate-fade-in-up">
+                <div className="mb-4">
                   <Link
-                    key={tag.slug}
-                    href={`/tag/${tag.slug}`}
-                    className="rounded-[var(--radius-sm)] border border-[var(--border-subtle)] 
-                               px-2 py-0.5 text-xs text-[var(--text-tertiary)]
+                    href={`/category/${post.category.slug}`}
+                    className="inline-flex items-center gap-1.5 rounded-[var(--radius-full)] 
+                               bg-[var(--accent-muted)] px-3 py-1 text-xs font-medium text-[var(--accent-primary)]
                                transition-colors duration-[var(--duration-fast)]
-                               hover:border-[var(--accent-secondary)] hover:text-[var(--accent-secondary)]"
+                               hover:bg-[var(--accent-primary)] hover:text-[var(--bg-primary)]"
                   >
-                    #{tag.name}
+                    {post.category.name}
                   </Link>
-                ))}
-              </div>
-            )}
-          </header>
-
-          <ViewCounter postId={post.id} />
-
-          <div
-            className="mb-8 h-px"
-            style={{
-              background: "linear-gradient(to right, var(--accent-primary), transparent)",
-            }}
-          />
-
-          {post.content && <MarkdownRenderer content={post.content} />}
-
-          <div
-            className="my-12 h-px"
-            style={{
-              background: "linear-gradient(to right, transparent, var(--border-default), transparent)",
-            }}
-          />
-
-          {/* 上一篇 / 下一篇 */}
-          <nav className="grid gap-4 sm:grid-cols-2">
-            {prev ? (
-              <Link
-                href={`/posts/${prev.slug}`}
-                className="group rounded-[var(--radius-lg)] border border-[var(--border-subtle)] 
-                           bg-[var(--bg-secondary)] p-4 transition-all duration-[var(--duration-fast)]
-                           hover:border-[var(--accent-primary)]/40 hover:shadow-[var(--shadow-glow-accent)]"
-              >
-                <div className="mb-1 flex items-center gap-1 text-xs text-[var(--text-tertiary)]">
-                  <svg className="h-3 w-3 transition-transform duration-[var(--duration-fast)] group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                  </svg>
-                  {t.prevPost}
                 </div>
-                <div className="line-clamp-2 text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--accent-primary)]">
-                  {prev.title}
-                </div>
-              </Link>
-            ) : (
-              <div />
-            )}
 
-            {next ? (
-              <Link
-                href={`/posts/${next.slug}`}
-                className="group rounded-[var(--radius-lg)] border border-[var(--border-subtle)] 
-                           bg-[var(--bg-secondary)] p-4 text-right transition-all duration-[var(--duration-fast)]
-                           hover:border-[var(--accent-primary)]/40 hover:shadow-[var(--shadow-glow-accent)]"
-              >
-                <div className="mb-1 flex items-center justify-end gap-1 text-xs text-[var(--text-tertiary)]">
-                  {t.nextPost}
-                  <svg className="h-3 w-3 transition-transform duration-[var(--duration-fast)] group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
+                <h1
+                  className="mb-4 text-3xl font-bold leading-tight tracking-tight text-[var(--text-primary)] 
+                             sm:text-4xl lg:text-5xl"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  {post.title}
+                </h1>
+
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[var(--text-tertiary)]">
+                  <time dateTime={post.publishedAt}>
+                    {formatDate(post.publishedAt)}
+                  </time>
+                  <span>·</span>
+                  <span>{t.readingTime(post.readingTime)}</span>
+                  {post.viewCount !== undefined && (
+                    <>
+                      <span>·</span>
+                      <span>{t.views(post.viewCount)}</span>
+                    </>
+                  )}
                 </div>
-                <div className="line-clamp-2 text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--accent-primary)]">
-                  {next.title}
-                </div>
-              </Link>
-            ) : (
-              <div />
-            )}
-          </nav>
-        </article>
+
+                {post.tags.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {post.tags.map((tag) => (
+                      <Link
+                        key={tag.slug}
+                        href={`/tag/${tag.slug}`}
+                        className="rounded-[var(--radius-sm)] border border-[var(--border-subtle)] 
+                                   px-2 py-0.5 text-xs text-[var(--text-tertiary)]
+                                   transition-colors duration-[var(--duration-fast)]
+                                   hover:border-[var(--accent-secondary)] hover:text-[var(--accent-secondary)]"
+                      >
+                        #{tag.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </header>
+
+              <ViewCounter postId={post.id} />
+
+              <div
+                className="mb-8 h-px"
+                style={{
+                  background: "linear-gradient(to right, var(--accent-primary), transparent)",
+                }}
+              />
+
+              {post.content && <MarkdownRenderer content={post.content} />}
+
+              <div
+                className="my-12 h-px"
+                style={{
+                  background: "linear-gradient(to right, transparent, var(--border-default), transparent)",
+                }}
+              />
+
+              {/* 上一篇 / 下一篇 */}
+              <nav className="grid gap-4 sm:grid-cols-2">
+                {prev ? (
+                  <Link
+                    href={`/posts/${prev.slug}`}
+                    className="group rounded-[var(--radius-lg)] border border-[var(--border-subtle)] 
+                               bg-[var(--bg-secondary)] p-4 transition-all duration-[var(--duration-fast)]
+                               hover:border-[var(--accent-primary)]/40 hover:shadow-[var(--shadow-glow-accent)]"
+                  >
+                    <div className="mb-1 flex items-center gap-1 text-xs text-[var(--text-tertiary)]">
+                      <svg
+                        className="h-3 w-3 transition-transform duration-[var(--duration-fast)] group-hover:-translate-x-0.5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                      </svg>
+                      {t.prevPost}
+                    </div>
+                    <div className="line-clamp-2 text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--accent-primary)]">
+                      {prev.title}
+                    </div>
+                  </Link>
+                ) : (
+                  <div />
+                )}
+
+                {next ? (
+                  <Link
+                    href={`/posts/${next.slug}`}
+                    className="group rounded-[var(--radius-lg)] border border-[var(--border-subtle)] 
+                               bg-[var(--bg-secondary)] p-4 text-right transition-all duration-[var(--duration-fast)]
+                               hover:border-[var(--accent-primary)]/40 hover:shadow-[var(--shadow-glow-accent)]"
+                  >
+                    <div className="mb-1 flex items-center justify-end gap-1 text-xs text-[var(--text-tertiary)]">
+                      {t.nextPost}
+                      <svg
+                        className="h-3 w-3 transition-transform duration-[var(--duration-fast)] group-hover:translate-x-0.5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                    <div className="line-clamp-2 text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--accent-primary)]">
+                      {next.title}
+                    </div>
+                  </Link>
+                ) : (
+                  <div />
+                )}
+              </nav>
+            </article>
+
+            {/* ── 右侧 TOC（xl 断点以上显示） ── */}
+            <TableOfContents headings={headings} />
+
+          </div>
+        </div>
       </main>
 
       <Footer />
