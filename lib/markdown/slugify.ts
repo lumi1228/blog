@@ -38,6 +38,43 @@ export function slugify(text: string): string {
 }
 
 /**
+ * 专用于文章 URL slug 生成（只保留英文/数字，不含中文）。
+ *
+ * 优先使用英文标题生成语义化 slug；
+ * 没有英文标题，或英文标题处理后无有效字符时，用时间戳兜底。
+ *
+ * 与 `slugify` 的区别：`slugify` 刻意保留中文字符用于 Markdown 锚点；
+ * 本函数面向 URL 路由，不允许中文出现。
+ *
+ * @example
+ * generatePostSlug("My React Notes 2026", "我的 React 笔记")
+ *   // => "my-react-notes-2026"
+ *
+ * generatePostSlug("", "罗盘项目难点与亮点总结")
+ *   // => "post-1749557234567"
+ */
+export function generatePostSlug(titleEn: string, titleZh: string): string {
+  const base = titleEn.trim();
+
+  if (base) {
+    const slug = base
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "") // 只保留字母、数字、空格、连字符
+      .trim()
+      .replace(/[\s_]+/g, "-") // 空格/下划线转连字符
+      .replace(/-+/g, "-") // 合并连续连字符
+      .replace(/^-+|-+$/g, "") // 去首尾连字符
+      .slice(0, 80);
+
+    if (slug) return slug;
+  }
+
+  // 没有英文标题，或处理后为空（全是特殊字符）：时间戳兜底
+  // 加入 titleZh 的长度作为随机因子，避免同一毫秒内创建多篇文章时碰撞
+  return `post-${Date.now()}${titleZh.length > 0 ? `-${titleZh.length}` : ""}`;
+}
+
+/**
  * 在同一作用域内为重名标题生成唯一 slug。
  *
  * 行为：

@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { MarkdownPreview } from "./markdown-preview";
+import { generatePostSlug } from "@/lib/markdown/slugify";
 
 interface Category {
   id: string;
@@ -102,16 +103,6 @@ export function PostEditor({ categories, tags, columns, chapters, initialData, o
     formRef.current = form;
   }, [form]);
 
-  // 自动生成 slug
-  const generateSlug = useCallback((title: string) => {
-    return title
-      .toLowerCase()
-      .replace(/[^\w\u4e00-\u9fa5\s-]/g, "")
-      .replace(/[\s_]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 80);
-  }, []);
-
   // ============================================
   // 自动保存逻辑（每 30 秒）
   // ============================================
@@ -135,7 +126,7 @@ export function PostEditor({ categories, tags, columns, chapters, initialData, o
     const supabase = createClient();
 
     const postData = {
-      slug: currentForm.slug || generateSlug(currentForm.titleEn || currentForm.titleZh),
+      slug: currentForm.slug || generatePostSlug(currentForm.titleEn, currentForm.titleZh),
       cover_image: currentForm.coverImage || null,
       status: currentForm.status === "published" ? "published" : "draft",
       category_id: currentForm.categoryId || null,
@@ -187,7 +178,7 @@ export function PostEditor({ categories, tags, columns, chapters, initialData, o
       setAutoSaveStatus("error");
       setTimeout(() => setAutoSaveStatus("idle"), 3000);
     }
-  }, [generateSlug]);
+  }, []);
 
   // 启动自动保存定时器
   useEffect(() => {
@@ -341,13 +332,15 @@ export function PostEditor({ categories, tags, columns, chapters, initialData, o
     const updates: Partial<PostData> = {};
     if (locale === "zh") {
       updates.titleZh = value;
-      if (!form.slug || form.slug === generateSlug(form.titleEn || form.titleZh)) {
-        updates.slug = generateSlug(value);
+      // 编辑模式下 slug 锁定，新建时跟随标题自动生成
+      if (!isEditing) {
+        updates.slug = generatePostSlug(form.titleEn, value);
       }
     } else {
       updates.titleEn = value;
-      if (value) {
-        updates.slug = generateSlug(value);
+      // 英文标题优先：新建时只要有英文标题就用英文重新生成
+      if (!isEditing) {
+        updates.slug = generatePostSlug(value, form.titleZh);
       }
     }
     setForm((prev) => ({ ...prev, ...updates }));
@@ -382,7 +375,7 @@ export function PostEditor({ categories, tags, columns, chapters, initialData, o
     const status = publishStatus || form.status;
 
     const postData = {
-      slug: form.slug || generateSlug(form.titleEn || form.titleZh),
+      slug: form.slug || generatePostSlug(form.titleEn, form.titleZh),
       cover_image: form.coverImage || null,
       status,
       category_id: form.categoryId,
@@ -533,21 +526,30 @@ export function PostEditor({ categories, tags, columns, chapters, initialData, o
         />
       </div>
 
-      {/* Slug */}
+      {/* Slug - 只读预览 */}
       <div>
         <label className="mb-1 block text-xs text-[var(--text-tertiary)]">
-          URL Slug
+          URL Slug（自动生成）
         </label>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-[var(--text-tertiary)]">/posts/</span>
-          <input
-            type="text"
-            value={form.slug}
-            onChange={(e) => setForm((prev) => ({ ...prev, slug: e.target.value }))}
-            placeholder="article-slug"
-            className="flex-1 rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-1.5 text-sm text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:outline-none"
-            style={{ fontFamily: "var(--font-mono)" }}
-          />
+        <div className="flex items-center gap-2 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-secondary)] px-3 py-1.5">
+          <span className="shrink-0 text-xs text-[var(--text-tertiary)]">/posts/</span>
+          {form.slug ? (
+            <span
+              className="truncate text-sm text-[var(--text-secondary)]"
+              style={{ fontFamily: "var(--font-mono)" }}
+            >
+              {form.slug}
+            </span>
+          ) : (
+            <span className="text-xs italic text-[var(--text-tertiary)]">
+              填写标题后自动生成
+            </span>
+          )}
+          {isEditing && (
+            <span className="ml-auto shrink-0 rounded-[var(--radius-sm)] bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-xs text-[var(--text-tertiary)]">
+              已锁定
+            </span>
+          )}
         </div>
       </div>
 
