@@ -201,21 +201,23 @@ export async function getAdjacentPosts(
 
   if (!current) return { prev: null, next: null };
 
-  // 上一篇（比当前更新的）
+  // 上一篇（比当前更新的），排除专栏文章
   const { data: prevData } = await supabase
     .from("posts")
     .select("id, slug, title_zh, title_en")
     .eq("status", "published")
+    .is("column_id", null)
     .gt("published_at", current.published_at)
     .order("published_at", { ascending: true })
     .limit(1)
     .single();
 
-  // 下一篇（比当前更旧的）
+  // 下一篇（比当前更旧的），排除专栏文章
   const { data: nextData } = await supabase
     .from("posts")
     .select("id, slug, title_zh, title_en")
     .eq("status", "published")
+    .is("column_id", null)
     .lt("published_at", current.published_at)
     .order("published_at", { ascending: false })
     .limit(1)
@@ -602,14 +604,16 @@ export async function getColumnAdjacentPosts(
   const supabase = await getSupabase();
   const isZh = locale === "zh-CN";
 
-  // 获取当前文章和专栏
+  // 获取当前文章的专栏、章节、排序信息
   const { data: current } = await supabase
     .from("posts")
-    .select("id, column_order, column_id")
+    .select("id, column_order, column_id, chapter_id")
     .eq("slug", postSlug)
     .single();
 
-  if (!current || !current.column_id) return { prev: null, next: null };
+  if (!current || !current.column_id || current.column_order === null) {
+    return { prev: null, next: null };
+  }
 
   // 验证专栏 slug 匹配
   const { data: column } = await supabase
@@ -620,27 +624,44 @@ export async function getColumnAdjacentPosts(
 
   if (!column || column.id !== current.column_id) return { prev: null, next: null };
 
-  // 查询上一篇（column_order 更小的最大一条）
-  const { data: prevData } = await supabase
+  // 基础查询条件：限定在同一章节内（chapter_id 相同）
+  // 若文章没有 chapter_id，则退回到同一专栏范围
+
+  // 查询上一篇（chapter 内 column_order 更小的最大一条）
+  let prevQuery = supabase
     .from("posts")
     .select("id, slug, title_zh, title_en")
-    .eq("column_id", current.column_id)
     .eq("status", "published")
+    .not("column_order", "is", null)
     .lt("column_order", current.column_order)
     .order("column_order", { ascending: false })
-    .limit(1)
-    .single();
+    .limit(1);
 
-  // 查询下一篇（column_order 更大的最小一条）
-  const { data: nextData } = await supabase
+  if (current.chapter_id) {
+    prevQuery = prevQuery.eq("chapter_id", current.chapter_id) as typeof prevQuery;
+  } else {
+    prevQuery = prevQuery.eq("column_id", current.column_id).is("chapter_id", null) as typeof prevQuery;
+  }
+
+  const { data: prevData } = await prevQuery.single();
+
+  // 查询下一篇（chapter 内 column_order 更大的最小一条）
+  let nextQuery = supabase
     .from("posts")
     .select("id, slug, title_zh, title_en")
-    .eq("column_id", current.column_id)
     .eq("status", "published")
+    .not("column_order", "is", null)
     .gt("column_order", current.column_order)
     .order("column_order", { ascending: true })
-    .limit(1)
-    .single();
+    .limit(1);
+
+  if (current.chapter_id) {
+    nextQuery = nextQuery.eq("chapter_id", current.chapter_id) as typeof nextQuery;
+  } else {
+    nextQuery = nextQuery.eq("column_id", current.column_id).is("chapter_id", null) as typeof nextQuery;
+  }
+
+  const { data: nextData } = await nextQuery.single();
 
   const mapSimplePost = (row: any): Post => ({
     id: row.id,
