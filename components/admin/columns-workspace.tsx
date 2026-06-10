@@ -36,6 +36,7 @@ export interface Post {
   chapter_id: string | null;
   title_zh: string;
   title_en: string | null;
+  post_tags: { tags: { name_zh: string } | null }[] | null;
 }
 
 interface ColumnsWorkspaceProps {
@@ -107,7 +108,7 @@ export function ColumnsWorkspace({
     const supabase = createClient();
     const query = supabase
       .from("posts")
-      .select("id, slug, status, created_at, column_order, chapter_id, title_zh, title_en")
+      .select("id, slug, status, created_at, column_order, chapter_id, title_zh, title_en, post_tags(tags(name_zh))")
       .eq("column_id", columnId)
       .order("column_order", { ascending: true, nullsFirst: false })
       .order("created_at", { ascending: false });

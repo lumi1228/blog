@@ -90,6 +90,26 @@ function SortablePostRow({
         )}
       </td>
 
+      {/* 标签 */}
+      <td className="hidden px-4 py-2.5 lg:table-cell">
+        {post.post_tags && post.post_tags.length > 0 ? (
+          <div className="flex flex-wrap gap-1">
+            {post.post_tags.map((pt, i) =>
+              pt.tags ? (
+                <span
+                  key={i}
+                  className="inline-flex items-center rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-xs text-[var(--accent-secondary)]"
+                >
+                  {pt.tags.name_zh}
+                </span>
+              ) : null
+            )}
+          </div>
+        ) : (
+          <span className="text-xs text-[var(--text-tertiary)]">-</span>
+        )}
+      </td>
+
       {/* 状态 */}
       <td className="px-4 py-2.5">
         <ToggleStatusButton postId={post.id} currentStatus={post.status} />
@@ -382,6 +402,9 @@ export function ColumnsRightPanel({
                     <tr>
                       <th className="w-10 px-3 py-3" />
                       <th className="px-4 py-3 text-left font-medium text-[var(--text-secondary)]">标题</th>
+                      <th className="hidden px-4 py-3 text-left font-medium text-[var(--text-secondary)] lg:table-cell">
+                        标签
+                      </th>
                       <th className="px-4 py-3 text-left font-medium text-[var(--text-secondary)]">状态</th>
                       <th className="hidden px-4 py-3 text-left font-medium text-[var(--text-secondary)] md:table-cell">
                         创建时间
@@ -392,21 +415,21 @@ export function ColumnsRightPanel({
                   <tbody>
                     {errorMsg && (
                       <tr>
-                        <td colSpan={5} className="px-4 py-2 text-center text-xs text-red-500">
+                        <td colSpan={6} className="px-4 py-2 text-center text-xs text-red-500">
                           {errorMsg}
                         </td>
                       </tr>
                     )}
                     {isSaving && (
                       <tr>
-                        <td colSpan={5} className="px-4 py-1.5 text-center text-xs text-[var(--text-tertiary)]">
+                        <td colSpan={6} className="px-4 py-1.5 text-center text-xs text-[var(--text-tertiary)]">
                           正在保存排序...
                         </td>
                       </tr>
                     )}
                     {posts.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="px-4 py-12 text-center text-[var(--text-tertiary)]">
+                        <td colSpan={6} className="px-4 py-12 text-center text-[var(--text-tertiary)]">
                           该章节暂无文章
                         </td>
                       </tr>

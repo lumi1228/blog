@@ -20,7 +20,8 @@ interface Post {
   created_at: string;
   title_zh: string;
   title_en: string | null;
-  categories: { name_zh: string }[] | null;
+  category: { name_zh: string } | null;
+  post_tags: { tags: { name_zh: string } | null }[] | null;
 }
 
 interface PostsPageClientProps {
@@ -105,7 +106,7 @@ export function PostsPageClient({
     supabase
       .from("posts")
       .select(
-        `id, slug, status, created_at, title_zh, title_en, categories(name_zh)`
+        `id, slug, status, created_at, title_zh, title_en, category:categories(name_zh), post_tags(tags(name_zh))`
       )
       .is("column_id", null)
       .order("created_at", { ascending: false })
@@ -168,6 +169,9 @@ export function PostsPageClient({
               <th className="hidden px-4 py-3 text-left font-medium text-[var(--text-secondary)] sm:table-cell">
                 分类
               </th>
+              <th className="hidden px-4 py-3 text-left font-medium text-[var(--text-secondary)] lg:table-cell">
+                标签
+              </th>
               <th className="px-4 py-3 text-left font-medium text-[var(--text-secondary)]">状态</th>
               <th className="hidden px-4 py-3 text-left font-medium text-[var(--text-secondary)] md:table-cell">
                 创建时间
@@ -178,7 +182,7 @@ export function PostsPageClient({
           <tbody>
             {posts.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-12 text-center text-[var(--text-tertiary)]">
+                <td colSpan={6} className="px-4 py-12 text-center text-[var(--text-tertiary)]">
                   暂无常规文章，点击右上角「新建文章」开始写作
                 </td>
               </tr>
@@ -200,7 +204,25 @@ export function PostsPageClient({
                     )}
                   </td>
                   <td className="hidden px-4 py-3 text-[var(--text-secondary)] sm:table-cell">
-                    {post.categories?.[0]?.name_zh || "-"}
+                    {post.category?.name_zh || "-"}
+                  </td>
+                  <td className="hidden px-4 py-3 lg:table-cell">
+                    {post.post_tags && post.post_tags.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {post.post_tags.map((pt, i) =>
+                          pt.tags ? (
+                            <span
+                              key={i}
+                              className="inline-flex items-center rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-xs text-[var(--accent-secondary)]"
+                            >
+                              {pt.tags.name_zh}
+                            </span>
+                          ) : null
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-[var(--text-tertiary)]">-</span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <ToggleStatusButton postId={post.id} currentStatus={post.status} />

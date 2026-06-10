@@ -35,6 +35,7 @@ interface ColumnPost {
   chapter_id: string | null;
   title_zh: string;
   title_en: string | null;
+  post_tags: { tags: { name_zh: string } | null }[] | null;
 }
 
 interface Chapter {
@@ -99,6 +100,26 @@ function SortablePostRow({ post, isSaving }: { post: ColumnPost; isSaving: boole
         </div>
         {post.title_en && (
           <div className="mt-0.5 pl-10 text-xs text-[var(--text-tertiary)]">EN: {post.title_en}</div>
+        )}
+      </td>
+
+      {/* 标签 */}
+      <td className="hidden px-4 py-2.5 lg:table-cell">
+        {post.post_tags && post.post_tags.length > 0 ? (
+          <div className="flex flex-wrap gap-1">
+            {post.post_tags.map((pt, i) =>
+              pt.tags ? (
+                <span
+                  key={i}
+                  className="inline-flex items-center rounded-full bg-[var(--accent-muted)] px-2 py-0.5 text-xs text-[var(--accent-secondary)]"
+                >
+                  {pt.tags.name_zh}
+                </span>
+              ) : null
+            )}
+          </div>
+        ) : (
+          <span className="text-xs text-[var(--text-tertiary)]">-</span>
         )}
       </td>
 
@@ -176,7 +197,7 @@ function ChapterInlineForm({
 
   return (
     <tr className="border-t border-[var(--border-subtle)] bg-[var(--bg-secondary)]">
-      <td colSpan={5} className="px-4 py-3">
+      <td colSpan={6} className="px-4 py-3">
         <div className="flex flex-wrap items-center gap-2">
           <input
             autoFocus
@@ -333,7 +354,7 @@ function ChapterSection({
           </td>
 
           {/* 章节信息 */}
-          <td colSpan={3} className="px-4 py-2">
+          <td colSpan={4} className="px-4 py-2">
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-[var(--text-secondary)]">
                 § {isUngrouped ? "未分组" : chapter.title_zh}
@@ -373,7 +394,7 @@ function ChapterSection({
         <>
           {posts.length === 0 ? (
             <tr className="border-t border-[var(--border-subtle)]">
-              <td colSpan={5} className="px-4 py-2 pl-14 text-xs text-[var(--text-tertiary)]">
+              <td colSpan={6} className="px-4 py-2 pl-14 text-xs text-[var(--text-tertiary)]">
                 暂无文章
               </td>
             </tr>
@@ -534,6 +555,9 @@ export function ColumnPostsList({
             <tr>
               <th className="w-10 px-3 py-3" />
               <th className="px-4 py-3 text-left font-medium text-[var(--text-secondary)]">标题</th>
+              <th className="hidden px-4 py-3 text-left font-medium text-[var(--text-secondary)] lg:table-cell">
+                标签
+              </th>
               <th className="px-4 py-3 text-left font-medium text-[var(--text-secondary)]">状态</th>
               <th className="hidden px-4 py-3 text-left font-medium text-[var(--text-secondary)] md:table-cell">
                 创建时间
@@ -543,7 +567,7 @@ export function ColumnPostsList({
           </thead>
           <tbody>
             <tr>
-              <td colSpan={5} className="px-4 py-12 text-center text-[var(--text-tertiary)]">
+              <td colSpan={6} className="px-4 py-12 text-center text-[var(--text-tertiary)]">
                 请在上方选择一个专栏查看并管理章节
               </td>
             </tr>
@@ -562,6 +586,9 @@ export function ColumnPostsList({
           <tr>
             <th className="w-10 px-3 py-3" />
             <th className="px-4 py-3 text-left font-medium text-[var(--text-secondary)]">标题</th>
+            <th className="hidden px-4 py-3 text-left font-medium text-[var(--text-secondary)] lg:table-cell">
+              标签
+            </th>
             <th className="px-4 py-3 text-left font-medium text-[var(--text-secondary)]">状态</th>
             <th className="hidden px-4 py-3 text-left font-medium text-[var(--text-secondary)] md:table-cell">
               创建时间
@@ -573,14 +600,14 @@ export function ColumnPostsList({
           {/* 全局状态提示 */}
           {errorMsg && (
             <tr>
-              <td colSpan={5} className="px-4 py-2 text-center text-xs text-red-500">
+              <td colSpan={6} className="px-4 py-2 text-center text-xs text-red-500">
                 {errorMsg}
               </td>
             </tr>
           )}
           {isSaving && (
             <tr>
-              <td colSpan={5} className="px-4 py-1.5 text-center text-xs text-[var(--text-tertiary)]">
+              <td colSpan={6} className="px-4 py-1.5 text-center text-xs text-[var(--text-tertiary)]">
                 正在保存排序...
               </td>
             </tr>
@@ -588,7 +615,7 @@ export function ColumnPostsList({
 
           {chapters.length === 0 && initialPosts.length === 0 ? (
             <tr>
-              <td colSpan={5} className="px-4 py-8 text-center text-[var(--text-tertiary)]">
+              <td colSpan={6} className="px-4 py-8 text-center text-[var(--text-tertiary)]">
                 该专栏暂无章节和文章，点击下方「新建章节」开始
               </td>
             </tr>
@@ -644,7 +671,7 @@ export function ColumnPostsList({
             />
           ) : (
             <tr className="border-t border-[var(--border-subtle)] bg-[var(--bg-primary)]">
-              <td colSpan={5} className="px-4 py-2.5">
+              <td colSpan={6} className="px-4 py-2.5">
                 <button
                   onClick={() => setShowNewChapterForm(true)}
                   className="flex items-center gap-1.5 text-xs text-[var(--text-tertiary)] transition-colors hover:text-[var(--accent-primary)]"

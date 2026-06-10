@@ -43,6 +43,7 @@ export default async function AdminColumnsPage() {
     chapter_id: string | null;
     title_zh: string;
     title_en: string | null;
+    post_tags: { tags: { name_zh: string } | null }[] | null;
   }[] = [];
   let initialChapterId: string | null = null;
 
@@ -59,7 +60,7 @@ export default async function AdminColumnsPage() {
 
     const { data: posts } = await supabase
       .from("posts")
-      .select("id, slug, status, created_at, column_order, chapter_id, title_zh, title_en")
+      .select("id, slug, status, created_at, column_order, chapter_id, title_zh, title_en, post_tags(tags(name_zh))")
       .eq("column_id", firstColumn.id)
       .filter(
         "chapter_id",

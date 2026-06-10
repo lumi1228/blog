@@ -13,7 +13,7 @@ export default async function AdminPostsPage() {
   ] = await Promise.all([
     supabase
       .from("posts")
-      .select(`id, slug, status, created_at, title_zh, title_en, categories(name_zh)`)
+      .select(`id, slug, status, created_at, title_zh, title_en, category:categories(name_zh), post_tags(tags(name_zh))`)
       .is("column_id", null)
       .order("created_at", { ascending: false }),
     supabase.from("categories").select("id, slug, name_zh").order("sort"),
