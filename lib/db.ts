@@ -45,6 +45,12 @@ export async function getPosts(options?: {
   const supabase = await getSupabase();
   const isZh = locale === "zh-CN";
 
+  // 按分类筛选时使用 inner join，否则筛选条件无法过滤父表（posts）行，
+  // 会导致返回所有已发布文章（即“该分类下无文章却展示了数据”的根因）
+  const categoryJoin = categorySlug
+    ? "category:categories!inner(id, slug, name_zh, name_en)"
+    : "category:categories(id, slug, name_zh, name_en)";
+
   let query = supabase
     .from("posts")
     .select(
@@ -52,7 +58,7 @@ export async function getPosts(options?: {
       id, slug, cover_image, status, published_at, updated_at, reading_time, view_count,
       title_zh, title_en, excerpt_zh, excerpt_en, available_locales,
       column_id, chapter_id, column_order, show_in_list,
-      category:categories(id, slug, name_zh, name_en),
+      ${categoryJoin},
       post_tags(tags(id, slug, name_zh, name_en))
     `,
       { count: "exact" }
@@ -62,7 +68,8 @@ export async function getPosts(options?: {
     .range(offset, offset + limit - 1);
 
   if (categorySlug) {
-    query = query.eq("categories.slug", categorySlug);
+    // 使用 select 中的别名 category 进行过滤
+    query = query.eq("category.slug", categorySlug);
   }
 
   // 默认排除专栏文章（show_in_list 为 false 的专栏文章）
