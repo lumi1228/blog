@@ -123,8 +123,9 @@ export function ColumnsWorkspace({
     setRightLoading(false);
 
     if (!error && data) {
-      postCache.current.set(key, data);
-      setRightPosts(data);
+      const posts = data as unknown as Post[];
+      postCache.current.set(key, posts);
+      setRightPosts(posts);
     }
   }, []);
 

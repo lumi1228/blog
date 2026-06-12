@@ -70,7 +70,7 @@ export default async function AdminColumnsPage() {
       .order("column_order", { ascending: true, nullsFirst: false })
       .order("created_at", { ascending: false });
 
-    initialPosts = posts ?? [];
+    initialPosts = (posts ?? []) as unknown as typeof initialPosts;
   }
 
   return (

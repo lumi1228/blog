@@ -111,7 +111,7 @@ export function PostsPageClient({
       .is("column_id", null)
       .order("created_at", { ascending: false })
       .then(({ data }) => {
-        if (data) setPosts(data as Post[]);
+        if (data) setPosts(data as unknown as Post[]);
       });
   }, [router]);
 
