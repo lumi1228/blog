@@ -148,7 +148,7 @@ function PostContent({ post, prev, next, headings, jsonLd, translations }: PostC
         {/* 外层容器：居中 + 水平 padding */}
         <div className="mx-auto max-w-[1200px] px-6 py-12 sm:py-16">
           {/* 双栏布局：文章主体 + 右侧 TOC */}
-          <div className="flex items-start gap-12">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:gap-12">
 
             {/* ── 文章主体 ── */}
             <article className="min-w-0 flex-1">

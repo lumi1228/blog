@@ -174,7 +174,7 @@ function ColumnPostContent({
         {/* 右侧文章内容区 */}
         <main className="flex-1 min-w-0">
           {/* 内层双栏：文章主体 + 右侧 TOC */}
-          <div className="flex items-start gap-10 px-6 py-12 sm:py-16">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:gap-10 px-6 py-12 sm:py-16">
 
             {/* ── 文章主体 ── */}
             <article className="min-w-0 flex-1">

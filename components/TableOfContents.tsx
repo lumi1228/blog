@@ -6,7 +6,8 @@
  * - 接收服务端解析好的 headings，不在客户端重新解析 Markdown
  * - 用 IntersectionObserver 监听各标题 DOM，高亮当前可视区域内最近的标题
  * - 点击条目平滑滚动到对应锚点
- * - 移动端隐藏（由父级布局控制）
+ * - PC 端（lg+）：右侧固定侧边栏
+ * - 移动端：右下角悬浮按钮 + 底部抽屉
  */
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -18,6 +19,7 @@ interface TableOfContentsProps {
 
 export function TableOfContents({ headings }: TableOfContentsProps) {
   const [activeId, setActiveId] = useState<string>("");
+  const [drawerOpen, setDrawerOpen] = useState(false);
   // 记录用户是否正在手动点击跳转，跳转期间暂停 observer 更新
   const isClickingRef = useRef(false);
   const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -32,6 +34,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
       // 标记点击中，避免 IntersectionObserver 立刻覆盖 active 状态
       isClickingRef.current = true;
       setActiveId(id);
+      setDrawerOpen(false);
 
       el.scrollIntoView({ behavior: "smooth", block: "start" });
 
@@ -82,79 +85,194 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
     };
   }, [headings]);
 
+  // 抽屉打开时禁止 body 滚动
+  useEffect(() => {
+    if (drawerOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [drawerOpen]);
+
   if (headings.length === 0) return null;
 
+  /** 目录条目列表，PC 和移动端共用 */
+  const tocList = (
+    <ul className="space-y-0.5">
+      {headings.map((heading) => {
+        const isActive = activeId === heading.id;
+
+        return (
+          <li key={heading.id}>
+            <a
+              href={`#${heading.id}`}
+              onClick={(e) => handleClick(e, heading.id)}
+              className="group flex items-start gap-2 rounded-[var(--radius-sm)] py-1 pr-2 text-sm
+                         transition-colors duration-[var(--duration-fast)] outline-none
+                         focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]"
+              style={{
+                // 缩进：h1 无缩进，h2 缩进 12px，h3 缩进 24px
+                paddingLeft: `${(heading.level - 1) * 12 + 8}px`,
+                color: isActive
+                  ? "var(--accent-primary)"
+                  : "var(--text-tertiary)",
+              }}
+            >
+              {/* 激活状态左侧指示点 */}
+              <span
+                className="mt-[5px] h-1.5 w-1.5 shrink-0 rounded-full transition-all duration-[var(--duration-fast)]"
+                style={{
+                  background: isActive
+                    ? "var(--accent-primary)"
+                    : "var(--border-default)",
+                  boxShadow: isActive
+                    ? "0 0 6px var(--glow-primary)"
+                    : "none",
+                }}
+              />
+              <span
+                className="leading-snug line-clamp-2 transition-colors duration-[var(--duration-fast)]
+                           group-hover:text-[var(--text-primary)]"
+                style={{
+                  color: isActive
+                    ? "var(--accent-primary)"
+                    : "var(--text-tertiary)",
+                }}
+              >
+                {heading.text}
+              </span>
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  );
+
   return (
-    <aside
-      aria-label="文章目录"
-      className="sticky top-24 w-[220px] shrink-0 self-start"
-    >
-      {/* 标题 */}
-      <div className="mb-3 flex items-center gap-2">
-        {/* 装饰竖线 */}
-        <span
-          className="h-4 w-0.5 rounded-full"
-          style={{ background: "var(--accent-primary)" }}
-        />
-        <span
-          className="text-xs font-semibold uppercase tracking-widest"
-          style={{ color: "var(--text-tertiary)" }}
+    <>
+      {/* ── PC 端侧边栏（lg+） ── */}
+      <aside
+        aria-label="文章目录"
+        className="hidden lg:block sticky top-24 w-[220px] shrink-0 self-start"
+      >
+        {/* 标题 */}
+        <div className="mb-3 flex items-center gap-2">
+          {/* 装饰竖线 */}
+          <span
+            className="h-4 w-0.5 rounded-full"
+            style={{ background: "var(--accent-primary)" }}
+          />
+          <span
+            className="text-xs font-semibold uppercase tracking-widest"
+            style={{ color: "var(--text-tertiary)" }}
+          >
+            目录
+          </span>
+        </div>
+
+        <nav>{tocList}</nav>
+      </aside>
+
+      {/* ── 移动端悬浮按钮（lg 以下） ── */}
+      <button
+        aria-label="打开目录"
+        onClick={() => setDrawerOpen(true)}
+        className="lg:hidden fixed bottom-20 right-4 z-40 flex h-11 w-11 items-center justify-center
+                   rounded-full shadow-lg border border-[var(--border-subtle)]
+                   bg-[var(--bg-secondary)] text-[var(--text-secondary)]
+                   transition-all duration-[var(--duration-fast)]
+                   hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)]
+                   active:scale-95"
+      >
+        {/* 目录 icon */}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
         >
-          目录
-        </span>
-      </div>
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="12" x2="15" y2="12" />
+          <line x1="3" y1="18" x2="18" y2="18" />
+        </svg>
+      </button>
 
-      {/* 条目列表 */}
-      <nav>
-        <ul className="space-y-0.5">
-          {headings.map((heading) => {
-            const isActive = activeId === heading.id;
+      {/* ── 移动端底部抽屉（lg 以下） ── */}
+      {drawerOpen && (
+        <div className="lg:hidden">
+          {/* 遮罩 */}
+          <div
+            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+            onClick={() => setDrawerOpen(false)}
+            aria-hidden="true"
+          />
 
-            return (
-              <li key={heading.id}>
-                <a
-                  href={`#${heading.id}`}
-                  onClick={(e) => handleClick(e, heading.id)}
-                  className="group flex items-start gap-2 rounded-[var(--radius-sm)] py-1 pr-2 text-sm
-                             transition-colors duration-[var(--duration-fast)] outline-none
-                             focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]"
-                  style={{
-                    // 缩进：h1 无缩进，h2 缩进 12px，h3 缩进 24px
-                    paddingLeft: `${(heading.level - 1) * 12 + 8}px`,
-                    color: isActive
-                      ? "var(--accent-primary)"
-                      : "var(--text-tertiary)",
-                  }}
+          {/* 抽屉主体 */}
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="文章目录"
+            className="fixed bottom-0 left-0 right-0 z-50 max-h-[65vh]
+                       overflow-y-auto rounded-t-2xl
+                       bg-[var(--bg-primary)] border-t border-[var(--border-subtle)]
+                       px-4 pb-8 pt-1
+                       animate-slide-up"
+          >
+            {/* 拖拽指示条 */}
+            <div className="mx-auto mb-3 mt-2 h-1 w-10 rounded-full bg-[var(--border-default)]" />
+
+            {/* 标题行 */}
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span
+                  className="h-4 w-0.5 rounded-full"
+                  style={{ background: "var(--accent-primary)" }}
+                />
+                <span
+                  className="text-xs font-semibold uppercase tracking-widest"
+                  style={{ color: "var(--text-tertiary)" }}
                 >
-                  {/* 激活状态左侧指示点 */}
-                  <span
-                    className="mt-[5px] h-1.5 w-1.5 shrink-0 rounded-full transition-all duration-[var(--duration-fast)]"
-                    style={{
-                      background: isActive
-                        ? "var(--accent-primary)"
-                        : "var(--border-default)",
-                      boxShadow: isActive
-                        ? "0 0 6px var(--glow-primary)"
-                        : "none",
-                    }}
-                  />
-                  <span
-                    className="leading-snug line-clamp-2 transition-colors duration-[var(--duration-fast)]
-                               group-hover:text-[var(--text-primary)]"
-                    style={{
-                      color: isActive
-                        ? "var(--accent-primary)"
-                        : "var(--text-tertiary)",
-                    }}
-                  >
-                    {heading.text}
-                  </span>
-                </a>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-    </aside>
+                  目录
+                </span>
+              </div>
+              <button
+                aria-label="关闭目录"
+                onClick={() => setDrawerOpen(false)}
+                className="flex h-7 w-7 items-center justify-center rounded-full
+                           text-[var(--text-tertiary)] hover:text-[var(--text-primary)]
+                           transition-colors duration-[var(--duration-fast)]"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            <nav>{tocList}</nav>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
