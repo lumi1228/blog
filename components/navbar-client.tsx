@@ -137,29 +137,35 @@ export function NavbarClient({ navItems, locale }: NavbarClientProps) {
 
     // type === "columns"
     return (
-      <div key="columns">
-        <div className="my-1 h-px bg-[var(--border-subtle)]" />
+      <div key="columns" className="flex flex-col gap-0.5">
+        {/* 专栏标题单独一行 */}
         <Link
           href="/columns"
           className="rounded-[var(--radius-md)] px-3 py-2.5 text-sm font-medium 
-                     text-[var(--text-tertiary)] transition-colors duration-[var(--duration-fast)]
+                     text-[var(--text-secondary)] transition-colors duration-[var(--duration-fast)]
                      hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
           onClick={() => setMobileMenuOpen(false)}
         >
           {item.label}
         </Link>
-        {item.items.map((col) => (
-          <Link
-            key={col.href}
-            href={col.href}
-            className="rounded-[var(--radius-md)] px-6 py-2 text-sm font-medium 
-                       text-[var(--text-tertiary)] transition-colors duration-[var(--duration-fast)]
-                       hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            {col.label}
-          </Link>
-        ))}
+        {/* 子专栏：缩进 + accent 竖线体现层级 */}
+        <div
+          className="ml-4 flex flex-col gap-0.5 border-l-2 pl-1"
+          style={{ borderColor: "var(--accent-primary)" , opacity: 0.7 }}
+        >
+          {item.items.map((col) => (
+            <Link
+              key={col.href}
+              href={col.href}
+              className="rounded-[var(--radius-md)] px-3 py-2 text-sm
+                         text-[var(--text-secondary)] transition-colors duration-[var(--duration-fast)]
+                         hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {col.label}
+            </Link>
+          ))}
+        </div>
       </div>
     );
   };

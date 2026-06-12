@@ -72,7 +72,7 @@ export function ColumnSidebar({
             {/* 章节标题行（可点击收起/展开） */}
             <button
               onClick={() => toggleChapter(chapter.id)}
-              className={`group w-full flex items-center gap-2 rounded-[var(--radius-sm)] px-1 py-1.5
+              className={`group w-full flex items-center gap-2 rounded-[var(--radius-sm)] px-2 py-2 lg:px-1 lg:py-1.5
                           transition-colors duration-[var(--duration-fast)]
                           hover:bg-[var(--bg-tertiary)]
                           ${hasActive ? "text-[var(--accent-primary)]" : "text-[var(--text-secondary)]"}`}
@@ -86,13 +86,13 @@ export function ColumnSidebar({
               </span>
 
               {/* 章节名 */}
-              <span className="flex-1 text-left text-xs font-semibold truncate">
+              <span className="flex-1 text-left text-sm lg:text-xs font-semibold truncate">
                 {chapter.title}
               </span>
 
               {/* 展开/收起箭头 */}
               <svg
-                className={`h-3 w-3 shrink-0 transition-transform duration-[var(--duration-normal)] text-[var(--text-tertiary)]
+                className={`h-3.5 w-3.5 lg:h-3 lg:w-3 shrink-0 transition-transform duration-[var(--duration-normal)] text-[var(--text-tertiary)]
                             ${isExpanded ? "rotate-0" : "-rotate-90"}`}
                 fill="none"
                 viewBox="0 0 24 24"
@@ -107,11 +107,12 @@ export function ColumnSidebar({
             <div
               className={`overflow-hidden transition-all duration-[var(--duration-normal)]`}
               style={{
-                maxHeight: isExpanded ? `${chapter.posts.length * 36 + 8}px` : "0px",
+                maxHeight: isExpanded ? `${chapter.posts.length * 44 + 8}px` : "0px",
                 opacity: isExpanded ? 1 : 0,
               }}
             >
-              <ul className="mt-0.5 space-y-0.5 pb-1">
+              {/* 移动端：带左侧竖线的缩进容器；PC端：普通缩进 */}
+              <ul className="mt-1 space-y-0.5 pb-1 ml-3 lg:ml-0 border-l-2 lg:border-l-0 border-[var(--border-subtle)]">
                 {chapter.posts.map((post) => {
                   const isActive = post.slug === currentPostSlug;
                   return (
@@ -119,7 +120,7 @@ export function ColumnSidebar({
                       <Link
                         href={`/columns/${columnSlug}/${post.slug}`}
                         onClick={() => setMobileDrawerOpen(false)}
-                        className={`block rounded-[var(--radius-sm)] px-1 py-1.5 pl-8 text-xs leading-tight transition-colors duration-[var(--duration-fast)]
+                        className={`block rounded-[var(--radius-sm)] px-3 py-2.5 lg:px-1 lg:py-1.5 lg:pl-8 text-sm lg:text-xs leading-snug transition-colors duration-[var(--duration-fast)]
                           ${
                             isActive
                               ? "bg-[var(--accent-muted)] text-[var(--accent-primary)] font-medium"
