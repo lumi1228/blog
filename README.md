@@ -1,82 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+这是一个使用 [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app) 创建的 [Next.js](https://nextjs.org) 项目。
 
-[中文版](./README.zh-CN.md)
+[English](./README.en.md)
 
-## Tech Stack
+## 技术栈
 
-### Runtime Environment
+### 运行环境
 
-| Technology | Version | Description |
+| 技术 | 版本 | 说明 |
 |---|---|---|
-| [Node.js](https://nodejs.org) | v20.20.2 | JavaScript runtime environment |
-| [npm](https://www.npmjs.com) | v10.8.2 | Node.js package manager |
+| [Node.js](https://nodejs.org) | v20.20.2 | JavaScript 运行时环境 |
+| [npm](https://www.npmjs.com) | v10.8.2 | Node.js 包管理器 |
 
-### Project Dependencies
+### 项目依赖
 
-| Technology | Version | Description |
+| 技术 | 版本 | 说明 |
 |---|---|---|
-| [Next.js](https://nextjs.org) | 16.2.3 | React framework with SSR, SSG, routing, and API support |
-| [React](https://react.dev) | 19.2.4 | UI component library for building user interfaces |
-| [TypeScript](https://www.typescriptlang.org) | ^5 | Typed superset of JavaScript for better developer experience |
-| [Tailwind CSS](https://tailwindcss.com) | ^4 | Utility-first CSS framework for rapid styling |
-| [PostCSS](https://postcss.org) | - | CSS transformation tool, used as Tailwind CSS build pipeline |
-| [ESLint](https://eslint.org) | ^9 | JavaScript/TypeScript linter for code quality |
+| [Next.js](https://nextjs.org) | 16.2.3 | React 全栈框架，支持 SSR、SSG、路由和 API |
+| [React](https://react.dev) | 19.2.4 | 用于构建用户界面的 UI 组件库 |
+| [TypeScript](https://www.typescriptlang.org) | ^5 | JavaScript 的类型超集，提升开发体验和代码可靠性 |
+| [Tailwind CSS](https://tailwindcss.com) | ^4 | 原子化 CSS 框架，快速实现样式开发 |
+| [PostCSS](https://postcss.org) | - | CSS 转换工具，作为 Tailwind CSS 的构建管道 |
+| [ESLint](https://eslint.org) | ^9 | JavaScript/TypeScript 代码检查工具，保障代码质量 |
 
-## Project Structure
+## 项目结构
 
 ```
 blog/
-├── app/                    # App Router directory (Next.js core)
-│   ├── favicon.ico         # Site favicon
-│   ├── globals.css         # Global styles (Tailwind directives)
-│   ├── layout.tsx          # Root layout component
-│   └── page.tsx            # Home page component
-├── public/                 # Static assets served at root path
+├── app/                    # App Router 目录（Next.js 核心）
+│   ├── favicon.ico         # 网站图标
+│   ├── globals.css         # 全局样式（Tailwind 指令）
+│   ├── layout.tsx          # 根布局组件
+│   └── page.tsx            # 首页组件
+├── public/                 # 静态资源目录，映射到根路径
 │   ├── file.svg
 │   ├── globe.svg
 │   ├── next.svg
 │   ├── vercel.svg
 │   └── window.svg
-├── .gitignore              # Git ignore rules
-├── eslint.config.mjs       # ESLint configuration
-├── next.config.ts          # Next.js configuration
-├── package.json            # Project dependencies and scripts
-├── postcss.config.mjs      # PostCSS configuration (Tailwind plugin)
-├── tsconfig.json           # TypeScript configuration
-└── README.md               # Project documentation
+├── .gitignore              # Git 忽略规则
+├── eslint.config.mjs       # ESLint 配置
+├── next.config.ts          # Next.js 配置
+├── package.json            # 项目依赖和脚本
+├── postcss.config.mjs      # PostCSS 配置（Tailwind 插件）
+├── tsconfig.json           # TypeScript 配置
+└── README.md               # 项目文档
 ```
 
-## Getting Started
+## 快速开始
 
-First, run the development server:
+首先，启动开发服务器：
 
 ```bash
 npm run dev
-# or
+# 或
 yarn dev
-# or
+# 或
 pnpm dev
-# or
+# 或
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+在浏览器中打开 [http://localhost:3000](http://localhost:3000) 查看效果。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+你可以通过编辑 `app/page.tsx` 来修改页面，页面会在你编辑时自动更新。
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+本项目使用 [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) 自动优化并加载 [Geist](https://vercel.com/font) 字体。
 
-## Learn More
+## Next官方资源
 
-To learn more about Next.js, take a look at the following resources:
+- [Next.js 官方文档](https://nextjs.org/docs) - 了解 Next.js 的功能和 API。
+- [Next.js 交互式教程](https://nextjs.org/learn) - 通过实践学习 Next.js。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+欢迎访问 [Next.js GitHub 仓库](https://github.com/vercel/next.js)，期待你的反馈和贡献。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 部署到 Vercel
 
-## Deploy on Vercel
+部署 Next.js 应用最简单的方式是使用 Next.js 团队打造的 [Vercel 平台](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme)。
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+更多部署细节请参阅 [Next.js 部署文档](https://nextjs.org/docs/app/building-your-application/deploying)。
