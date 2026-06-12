@@ -276,10 +276,10 @@ export async function MarkdownRenderer({
     },
 
     // code：区分行内代码 vs 代码块（代码块由 pre 处理）
-    code: ({ children, className, node, ...props }) => {
-      // 如果有 className（如 language-xxx），说明是代码块内的 <code>，交由 pre 处理
-      // 行内代码没有 className
-      const isInline = !className;
+    code: ({ children, className, style, ...props }) => {
+      // Shiki 输出的代码块 <code> 可能没有 language-* className，
+      // 但 children 会是 span/line 元素；只有纯字符串才按行内代码处理。
+      const isInline = !className && typeof children === "string";
 
       if (isInline) {
         return (
@@ -295,16 +295,20 @@ export async function MarkdownRenderer({
         );
       }
 
-      // 代码块内的 code 元素，透传给父级 pre 处理
+      // 代码块内的 code 元素，保留 shiki 颜色并强制背景透明
       return (
-        <code className={className} {...props}>
+        <code
+          className={className}
+          {...props}
+          style={{ ...style, backgroundColor: "transparent" }}
+        >
           {children}
         </code>
       );
     },
 
     // pre：委托给 CodeBlockWrapper，传入原始文本和语言
-    pre: ({ children, node, ...props }) => {
+    pre: ({ children, node, className, style, ...props }) => {
       // 从 hast node 中提取原始文本和语言信息
       let raw = "";
       let lang = "";
@@ -315,13 +319,25 @@ export async function MarkdownRenderer({
         lang = info.lang;
       }
 
+      const preClassName = [
+        "shiki",
+        className,
+        "overflow-x-auto border-l-[3px] border-[var(--accent-secondary)] px-4 py-4 text-sm leading-relaxed",
+      ]
+        .filter(Boolean)
+        .join(" ");
+
       return (
         <CodeBlockWrapper raw={raw} lang={lang}>
           <pre
-            className="overflow-x-auto border-l-[3px] border-[var(--accent-secondary)] px-4 py-4
-                       text-sm leading-relaxed"
-            style={{ fontFamily: "var(--font-mono)" }}
             {...props}
+            className={preClassName}
+            style={{
+              ...style,
+              fontFamily: "var(--font-mono)",
+              background: "#24292e",
+              backgroundColor: "#24292e",
+            }}
           >
             {children}
           </pre>

@@ -254,11 +254,20 @@ body {
 }
 
 /* ============================================
-   Shiki 双主题切换
-   light 模式隐藏 dark 主题代码块，反之亦然
+   Shiki 代码块样式
+   始终使用深色主题，清除代码文本局部背景
    ============================================ */
-html.light .shiki[data-theme="dark"] { display: none; }
-html:not(.light) .shiki[data-theme="light"] { display: none; }
+.shiki {
+  background-color: #24292e !important;
+}
+
+.shiki code,
+.shiki .line,
+.shiki span,
+.shiki * {
+  background-color: transparent !important;
+  background: transparent !important;
+}
 
 /* ============================================
    移动端 prose 字号（≤ 640px）
