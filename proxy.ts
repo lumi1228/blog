@@ -6,7 +6,7 @@ import { updateSession } from "@/utils/supabase/middleware";
 // next-intl 中间件
 const intlMiddleware = createMiddleware(routing);
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // /admin 路由：只走 Supabase 认证中间件，不走国际化
