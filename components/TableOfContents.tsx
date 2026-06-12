@@ -241,7 +241,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
                   className="text-xs font-semibold uppercase tracking-widest"
                   style={{ color: "var(--text-tertiary)" }}
                 >
-                  目录
+                  文章目录
                 </span>
               </div>
               <button
