@@ -101,7 +101,10 @@ export function ArticleCard({ post, index, locale = "zh-CN" }: ArticleCardProps)
 }
 
 function formatDate(dateStr: string, locale: string): string {
+  if (!dateStr) return "-";
   const date = new Date(dateStr);
+  if (Number.isNaN(date.getTime())) return "-";
+
   if (locale === "en") {
     return date.toLocaleDateString("en-US", {
       year: "numeric",

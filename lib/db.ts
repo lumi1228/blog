@@ -55,7 +55,7 @@ export async function getPosts(options?: {
     .from("posts")
     .select(
       `
-      id, slug, cover_image, status, published_at, updated_at, reading_time, view_count,
+      id, slug, cover_image, status, published_at, created_at, updated_at, reading_time, view_count,
       title_zh, title_en, excerpt_zh, excerpt_en, available_locales,
       column_id, chapter_id, column_order, show_in_list,
       ${categoryJoin},
@@ -98,7 +98,7 @@ export async function getPosts(options?: {
     title: isZh ? row.title_zh : (row.title_en || row.title_zh),
     excerpt: isZh ? row.excerpt_zh : (row.excerpt_en || row.excerpt_zh),
     coverImage: row.cover_image,
-    publishedAt: row.published_at,
+    publishedAt: row.published_at || row.created_at,
     updatedAt: row.updated_at ?? undefined,
     readingTime: row.reading_time,
     viewCount: row.view_count,
@@ -139,7 +139,7 @@ export async function getPostBySlug(
     .from("posts")
     .select(
       `
-      id, slug, cover_image, status, published_at, updated_at, reading_time, view_count,
+      id, slug, cover_image, status, published_at, created_at, updated_at, reading_time, view_count,
       title_zh, title_en, excerpt_zh, excerpt_en, content_zh, content_en, available_locales,
       column_id, chapter_id, column_order, show_in_list,
       category:categories(id, slug, name_zh, name_en),
@@ -162,7 +162,7 @@ export async function getPostBySlug(
     excerpt: isZh ? data.excerpt_zh : (data.excerpt_en || data.excerpt_zh),
     content: isZh ? data.content_zh : (data.content_en || data.content_zh),
     coverImage: data.cover_image,
-    publishedAt: data.published_at,
+    publishedAt: data.published_at || data.created_at,
     updatedAt: data.updated_at ?? undefined,
     readingTime: data.reading_time,
     viewCount: data.view_count,
@@ -503,7 +503,7 @@ export async function getColumnBySlug(
     .from("posts")
     .select(
       `
-      id, slug, cover_image, status, published_at, updated_at, reading_time, view_count,
+      id, slug, cover_image, status, published_at, created_at, updated_at, reading_time, view_count,
       title_zh, title_en, excerpt_zh, excerpt_en, available_locales,
       column_id, chapter_id, column_order, show_in_list,
       category:categories(id, slug, name_zh, name_en),
@@ -524,7 +524,7 @@ export async function getColumnBySlug(
     title: isZh ? row.title_zh : (row.title_en || row.title_zh),
     excerpt: isZh ? row.excerpt_zh : (row.excerpt_en || row.excerpt_zh),
     coverImage: row.cover_image,
-    publishedAt: row.published_at,
+    publishedAt: row.published_at || row.created_at,
     updatedAt: row.updated_at ?? undefined,
     readingTime: row.reading_time,
     viewCount: row.view_count,
