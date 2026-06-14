@@ -145,10 +145,10 @@ export function ColumnSidebar({
     <aside
       className={`shrink-0 border-r border-[var(--border-subtle)] bg-[var(--bg-secondary)] transition-all duration-[var(--duration-normal)] ${
         sidebarCollapsed ? "w-12" : "w-64"
-      } hidden lg:block`}
+      } hidden lg:flex lg:flex-col lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:self-start`}
     >
       {/* 折叠侧边栏按钮 + 专栏标题 */}
-      <div className="flex items-center gap-2 border-b border-[var(--border-subtle)] px-3 py-3">
+      <div className="flex shrink-0 items-center gap-2 border-b border-[var(--border-subtle)] px-3 py-3">
         <button
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
           className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--radius-sm)] 
@@ -185,7 +185,7 @@ export function ColumnSidebar({
 
       {/* 目录内容 */}
       {!sidebarCollapsed && (
-        <nav className="max-h-[calc(100vh-8rem)] overflow-y-auto p-3">
+        <nav className="flex-1 overflow-y-auto p-3">
           {chapterList}
         </nav>
       )}
