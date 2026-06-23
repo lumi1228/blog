@@ -3,6 +3,7 @@
  *
  * 规则：
  * - 只提取 h1 ~ h3（TOC 通常不超过三级）
+ * - 过滤代码块中的标题，避免代码示例中的标题出现在目录
  * - 使用 makeUniqueSlug + 同一 Set 维护去重，保证与渲染侧的 id 完全对齐
  * - 纯服务端工具，不依赖浏览器 API
  */
@@ -30,6 +31,10 @@ const HEADING_RE = /^(#{1,3})\s+(.+?)(?:\s+#+\s*)?$/gm;
 export function extractHeadings(content: string): Heading[] {
   if (!content) return [];
 
+  // 先移除代码块内容，避免提取代码块中的标题
+  // 匹配三个反引号包裹的代码块（包括带语言标识的）
+  const contentWithoutCodeBlocks = content.replace(/```[\s\S]*?```/g, "");
+
   const headings: Heading[] = [];
   const usedSlugs = new Set<string>();
 
@@ -38,7 +43,7 @@ export function extractHeadings(content: string): Heading[] {
   // 重置 lastIndex（全局正则复用时需要）
   HEADING_RE.lastIndex = 0;
 
-  while ((match = HEADING_RE.exec(content)) !== null) {
+  while ((match = HEADING_RE.exec(contentWithoutCodeBlocks)) !== null) {
     const hashes = match[1];
     const rawText = match[2].trim();
     const level = hashes.length as 1 | 2 | 3;
