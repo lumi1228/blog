@@ -117,14 +117,14 @@ function HomeContent({
           
           {/* 极简紫色光晕背景 + 流星动画 */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
-            {/* 主光晕 - 中央 (移动端隐藏) */}
+            {/* 主光晕 - 中央 (移动端隐藏，PC端降低透明度) */}
             <div
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full opacity-0 lg:opacity-20 blur-[140px] animate-aurora-1"
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full opacity-0 lg:opacity-8 blur-[140px] animate-aurora-1"
               style={{ background: "var(--accent-primary)" }}
             />
-            {/* 次光晕 - 右上 (移动端隐藏) */}
+            {/* 次光晕 - 右上 (移动端隐藏，PC端降低透明度) */}
             <div
-              className="absolute -right-20 -top-20 h-[400px] w-[400px] rounded-full opacity-0 lg:opacity-15 blur-[120px] animate-aurora-2"
+              className="absolute -right-20 -top-20 h-[400px] w-[400px] rounded-full opacity-0 lg:opacity-6 blur-[120px] animate-aurora-2"
               style={{ background: "var(--accent-primary)" }}
             />
             
