@@ -49,8 +49,8 @@
   "about": {
     "greeting": "Hi, I'm",
     "sectionAbout": "About Me",
-    "sectionSkills": "Tech Stack",
-    "sectionTimeline": "Journey",
+    "sectionSkills": "Skills & Core Strengths",
+    "sectionCollaboration": "Work With Me",
     "sectionContact": "Contact"
   },
   "common": {

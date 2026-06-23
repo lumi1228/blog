@@ -49,8 +49,8 @@
   "about": {
     "greeting": "Hi, I'm",
     "sectionAbout": "关于我",
-    "sectionSkills": "技术栈",
-    "sectionTimeline": "成长轨迹",
+    "sectionSkills": "技能与核心竞争力",
+    "sectionCollaboration": "与我合作",
     "sectionContact": "联系我"
   },
   "common": {

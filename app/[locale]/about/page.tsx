@@ -118,6 +118,46 @@ function AboutContent() {
         <div className="mx-auto max-w-[900px] space-y-16 px-6 py-12 sm:py-16">
           <section>
             <SectionTitle number="01" title={t("sectionAbout")} />
+            
+            {/* 个人信息卡片 */}
+            <div className="mb-6 rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-secondary)] p-5">
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--accent-muted)] text-[var(--accent-primary)]">
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="text-xs text-[var(--text-tertiary)]">英文名</div>
+                    <div className="text-sm font-medium text-[var(--text-primary)]">{aboutConfig.profile.englishName}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--accent-muted)] text-[var(--accent-primary)]">
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="text-xs text-[var(--text-tertiary)]">昵称</div>
+                    <div className="text-sm font-medium text-[var(--text-primary)]">{aboutConfig.profile.nickname}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--accent-muted)] text-[var(--accent-primary)]">
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="text-xs text-[var(--text-tertiary)]">中文名</div>
+                    <div className="text-sm font-medium text-[var(--text-primary)]">{aboutConfig.profile.chineseName}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="space-y-4 text-base leading-[1.75] text-[var(--text-secondary)]">
               {aboutConfig.intro.map((paragraph, i) => (
                 <p key={i}>{paragraph}</p>
@@ -128,7 +168,7 @@ function AboutContent() {
           <section>
             <SectionTitle number="02" title={t("sectionSkills")} />
             <div className="grid gap-6 sm:grid-cols-2">
-              {Object.entries(aboutConfig.skills).map(([category, items]) => (
+              {Object.entries(aboutConfig.skills).map(([category, data]) => (
                 <div
                   key={category}
                   className="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-secondary)] p-5"
@@ -139,17 +179,20 @@ function AboutContent() {
                   >
                     {category}
                   </h3>
+                  <p className="mb-3 text-sm leading-relaxed text-[var(--text-secondary)]">
+                    {data.description}
+                  </p>
                   <div className="flex flex-wrap gap-2">
-                    {items.map((skill) => (
+                    {data.tags.map((tag) => (
                       <span
-                        key={skill}
+                        key={tag}
                         className="rounded-[var(--radius-sm)] border border-[var(--border-subtle)] 
                                    bg-[var(--bg-primary)] px-2.5 py-1 text-xs 
                                    text-[var(--text-secondary)] transition-colors duration-[var(--duration-fast)]
                                    hover:border-[var(--accent-primary)]/40 hover:text-[var(--accent-primary)]"
                         style={{ fontFamily: "var(--font-mono)" }}
                       >
-                        {skill}
+                        {tag}
                       </span>
                     ))}
                   </div>
@@ -159,37 +202,31 @@ function AboutContent() {
           </section>
 
           <section>
-            <SectionTitle number="03" title={t("sectionTimeline")} />
-            <div className="relative">
-              <div
-                className="absolute left-[7px] top-2 bottom-2 w-px"
-                style={{ background: "linear-gradient(to bottom, var(--accent-primary), transparent)" }}
-              />
-              <div className="space-y-8">
-                {aboutConfig.timeline.map((item) => (
-                  <div key={item.year} className="relative pl-8">
+            <SectionTitle number="03" title={t("sectionCollaboration")} />
+            <div className="space-y-6">
+              <p className="text-base leading-[1.75] text-[var(--text-secondary)]">
+                {aboutConfig.collaboration.intro}
+              </p>
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-[var(--text-primary)]" style={{ fontFamily: "var(--font-display)" }}>
+                  你可以从我这里获得：
+                </h3>
+                <div className="space-y-3">
+                  {aboutConfig.collaboration.offers.map((offer) => (
                     <div
-                      className="absolute left-0 top-1.5 h-3.5 w-3.5 rounded-full border-2 
-                                 border-[var(--accent-primary)] bg-[var(--bg-primary)]"
-                      style={{ boxShadow: "var(--shadow-glow-accent)" }}
-                    />
-                    <div
-                      className="mb-1 text-xs font-medium text-[var(--accent-primary)]"
-                      style={{ fontFamily: "var(--font-mono)" }}
+                      key={offer.title}
+                      className="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-secondary)] p-4
+                                 transition-all duration-[var(--duration-fast)] hover:border-[var(--accent-primary)]/30"
                     >
-                      {item.year}
+                      <h4 className="mb-1 text-sm font-medium text-[var(--text-primary)]">
+                        {offer.title}
+                      </h4>
+                      <p className="text-sm text-[var(--text-secondary)]">
+                        {offer.description}
+                      </p>
                     </div>
-                    <h3
-                      className="mb-1 text-lg font-semibold text-[var(--text-primary)]"
-                      style={{ fontFamily: "var(--font-display)" }}
-                    >
-                      {item.title}
-                    </h3>
-                    <p className="text-sm leading-relaxed text-[var(--text-secondary)]">
-                      {item.description}
-                    </p>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </section>
