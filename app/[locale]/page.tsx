@@ -4,12 +4,14 @@ import { setRequestLocale } from "next-intl/server";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { ArticleCard } from "@/components/article-card";
+import { ColumnCard } from "@/components/column-card";
 import { Pagination } from "@/components/pagination";
-import { getPosts } from "@/lib/db";
+import { getPosts, getColumns } from "@/lib/db";
 import { buildAlternates } from "@/lib/seo";
 import type { Locale } from "@/i18n/config";
 
 const PAGE_SIZE = 10;
+const FEATURED_COLUMNS_COUNT = 3;
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -53,15 +55,19 @@ export default async function HomePage({ params, searchParams }: PageProps) {
   const { page } = await searchParams;
   setRequestLocale(locale);
 
-  // 解析页码，确保合法
   const currentPage = Math.max(1, parseInt(page || "1", 10) || 1);
   const offset = (currentPage - 1) * PAGE_SIZE;
 
+  // 获取博客列表
   const { posts, total } = await getPosts({
     locale: locale as "zh-CN" | "en",
     limit: PAGE_SIZE,
     offset,
   });
+
+  // 获取精选专栏（前3个）
+  const allColumns = await getColumns(locale as Locale);
+  const featuredColumns = allColumns.slice(0, FEATURED_COLUMNS_COUNT);
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
@@ -69,6 +75,8 @@ export default async function HomePage({ params, searchParams }: PageProps) {
     <HomeContent
       posts={posts}
       total={total}
+      columns={featuredColumns}
+      hasMoreColumns={allColumns.length > FEATURED_COLUMNS_COUNT}
       locale={locale}
       currentPage={currentPage}
       totalPages={totalPages}
@@ -79,12 +87,16 @@ export default async function HomePage({ params, searchParams }: PageProps) {
 function HomeContent({
   posts,
   total,
+  columns,
+  hasMoreColumns,
   locale,
   currentPage,
   totalPages,
 }: {
   posts: any[];
   total: number;
+  columns: any[];
+  hasMoreColumns: boolean;
   locale: string;
   currentPage: number;
   totalPages: number;
@@ -144,13 +156,13 @@ function HomeContent({
               {/* CTA */}
               <div className="flex items-center gap-3 animate-fade-in-up stagger-4">
                 <a
-                  href="#posts"
+                  href="#columns"
                   className="inline-flex items-center gap-2 rounded-[var(--radius-md)] 
                              bg-[var(--accent-primary)] px-5 py-2.5 text-sm font-medium
                              text-[var(--bg-primary)] transition-all duration-[var(--duration-fast)]
                              hover:shadow-[var(--shadow-glow-accent)]"
                 >
-                  {t("home.startReading")}
+                  {t("home.browseColumns")}
                   <svg
                     className="h-4 w-4"
                     fill="none"
@@ -166,6 +178,15 @@ function HomeContent({
                   </svg>
                 </a>
                 <a
+                  href="#posts"
+                  className="inline-flex items-center gap-2 rounded-[var(--radius-md)] 
+                             border border-[var(--border-default)] px-5 py-2.5 text-sm font-medium
+                             text-[var(--text-secondary)] transition-all duration-[var(--duration-fast)]
+                             hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)]"
+                >
+                  {t("home.latestArticles")}
+                </a>
+                <a
                   href="/about"
                   className="inline-flex items-center gap-2 rounded-[var(--radius-md)] 
                              border border-[var(--border-default)] px-5 py-2.5 text-sm font-medium
@@ -178,6 +199,40 @@ function HomeContent({
             </div>
           </div>
         </section>
+
+        {/* 精选专栏区 */}
+        {columns.length > 0 && (
+          <section id="columns" className="mx-auto max-w-[1200px] px-6 py-12 sm:py-16">
+            <div className="mb-8 flex items-center justify-between">
+              <div>
+                <h2
+                  className="text-xl font-semibold text-[var(--text-primary)] sm:text-2xl"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  {t("home.featuredColumns")}
+                </h2>
+                <p className="mt-1 text-sm text-[var(--text-tertiary)]">
+                  {t("home.featuredColumnsDesc")}
+                </p>
+              </div>
+              {hasMoreColumns && (
+                <a
+                  href={`/${locale}/columns`}
+                  className="text-sm text-[var(--text-secondary)] transition-colors 
+                             duration-[var(--duration-fast)] hover:text-[var(--accent-primary)]"
+                >
+                  {t("home.allColumns")} →
+                </a>
+              )}
+            </div>
+
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {columns.map((column, index) => (
+                <ColumnCard key={column.id} column={column} locale={locale} index={index} />
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* 文章列表 */}
         <section id="posts" className="mx-auto max-w-[1200px] px-6 py-12 sm:py-16">
