@@ -42,11 +42,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       : "dark";
   }, []);
 
-  // 设置主题
+  // 设置主题（仅在当前会话生效，不持久化）
   const setTheme = useCallback(
     (newTheme: Theme) => {
       setThemeState(newTheme);
-      localStorage.setItem("theme", newTheme);
+      // 不再保存到 localStorage，刷新后恢复默认 dark 主题
 
       if (newTheme === "system") {
         applyTheme(getSystemTheme());
@@ -57,23 +57,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     [applyTheme, getSystemTheme]
   );
 
-  // 初始化：读取 localStorage
+  // 初始化：始终使用默认的 dark 主题，不读取 localStorage
   useEffect(() => {
-    const stored = localStorage.getItem("theme") as Theme | null;
-    if (stored && ["dark", "light", "system"].includes(stored)) {
-      setThemeState(stored);
-      if (stored === "system") {
-        applyTheme(getSystemTheme());
-      } else {
-        applyTheme(stored);
-      }
-    } else {
-      // // 默认跟随系统
-      // applyTheme(getSystemTheme());
-      // 默认深色
-      applyTheme("dark");
-    }
-  }, [applyTheme, getSystemTheme]);
+    // 每次进入页面都重置为 dark 主题
+    applyTheme("dark");
+  }, [applyTheme]);
 
   // 监听系统主题变化
   useEffect(() => {
