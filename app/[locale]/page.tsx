@@ -112,19 +112,19 @@ function HomeContent({
       <main className="flex-1">
         {/* Hero 区域 */}
         <section className="relative overflow-hidden border-b border-[var(--border-subtle)] bg-[var(--bg-primary)] py-16 sm:py-20 lg:py-24">
-          {/* 移动端背景加深层 */}
-          <div className="absolute inset-0 bg-black/40 lg:bg-transparent pointer-events-none" />
+          {/* 移动端暗色模式背景加深层 - 仅暗色模式显示 */}
+          <div className="absolute inset-0 pointer-events-none bg-[transparent]  lg:bg-[transparent] dark:lg:bg-[transparent]" />
           
           {/* 极简紫色光晕背景 + 流星动画 */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
-            {/* 主光晕 - 中央 (移动端隐藏，PC端降低透明度) */}
+            {/* 主光晕 - 中央 (移动端亮色模式隐藏) */}
             <div
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full opacity-0 lg:opacity-8 blur-[140px] animate-aurora-1"
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full opacity-0 dark:lg:opacity-10 lg:opacity-8 blur-[140px] animate-aurora-1"
               style={{ background: "var(--accent-primary)" }}
             />
-            {/* 次光晕 - 右上 (移动端隐藏，PC端降低透明度) */}
+            {/* 次光晕 - 右上 (移动端亮色模式隐藏) */}
             <div
-              className="absolute -right-20 -top-20 h-[400px] w-[400px] rounded-full opacity-0 lg:opacity-6 blur-[120px] animate-aurora-2"
+              className="absolute -right-20 -top-20 h-[400px] w-[400px] rounded-full opacity-0 dark:lg:opacity-8 lg:opacity-6 blur-[120px] animate-aurora-2"
               style={{ background: "var(--accent-primary)" }}
             />
             
@@ -237,9 +237,9 @@ function HomeContent({
             {aboutConfig.avatar && (
               <div className="flex justify-center lg:justify-end">
                 <div className="relative h-[400px] w-[400px] lg:h-[600px] lg:w-[600px]">
-                  {/* 背景光晕圈 - 最外层 */}
+                  {/* 背景光晕圈 - 最外层 (移动端亮色模式完全隐藏) */}
                   <div 
-                    className="absolute inset-0 rounded-full opacity-20 blur-[100px] animate-pulse"
+                    className="absolute inset-0 rounded-full opacity-0 dark:opacity-20 lg:dark:opacity-20 lg:opacity-10 blur-[100px] animate-pulse"
                     style={{ 
                       background: "radial-gradient(circle, var(--accent-primary) 0%, transparent 70%)",
                       animationDuration: "4s"
@@ -248,7 +248,7 @@ function HomeContent({
                   
                   {/* 装饰圆环 1 - 外圈 */}
                   <div 
-                    className="absolute inset-[8%] rounded-full border-2 border-[var(--accent-primary)]/10 opacity-30 lg:opacity-100"
+                    className="absolute inset-[8%] rounded-full border-2 border-[var(--accent-primary)]/10 opacity-5 dark:opacity-30 lg:dark:opacity-100 lg:opacity-60"
                     style={{
                       background: "conic-gradient(from 0deg, transparent 0deg, var(--accent-primary) 60deg, transparent 120deg)",
                       animation: "spin 20s linear infinite"
@@ -257,7 +257,7 @@ function HomeContent({
                   
                   {/* 装饰圆环 2 - 中圈（反向旋转）*/}
                   <div 
-                    className="absolute inset-[18%] rounded-full border border-[var(--accent-primary)]/15 opacity-30 lg:opacity-100"
+                    className="absolute inset-[18%] rounded-full border border-[var(--accent-primary)]/15 opacity-5 dark:opacity-30 lg:dark:opacity-100 lg:opacity-60"
                     style={{
                       background: "conic-gradient(from 180deg, transparent 0deg, var(--accent-primary) 90deg, transparent 180deg)",
                       animation: "spin-reverse 15s linear infinite"
@@ -288,7 +288,7 @@ function HomeContent({
                   
                   {/* 装饰粒子点 - 动态闪烁 */}
                   <div 
-                    className="absolute top-[15%] right-[20%] h-2 w-2 rounded-full bg-[var(--accent-primary)] opacity-40 lg:opacity-100"
+                    className="absolute top-[15%] right-[20%] h-2 w-2 rounded-full bg-[var(--accent-primary)] opacity-5 dark:opacity-40 lg:dark:opacity-100 lg:opacity-50"
                     style={{
                       boxShadow: "0 0 20px var(--accent-primary)",
                       animation: "pulse 3s ease-in-out infinite",
@@ -296,7 +296,7 @@ function HomeContent({
                     }}
                   />
                   <div 
-                    className="absolute bottom-[25%] left-[15%] h-1.5 w-1.5 rounded-full bg-[var(--accent-secondary)] opacity-40 lg:opacity-100"
+                    className="absolute bottom-[25%] left-[15%] h-1.5 w-1.5 rounded-full bg-[var(--accent-secondary)] opacity-5 dark:opacity-40 lg:dark:opacity-100 lg:opacity-50"
                     style={{
                       boxShadow: "0 0 15px var(--accent-secondary)",
                       animation: "pulse 3s ease-in-out infinite",
@@ -304,7 +304,7 @@ function HomeContent({
                     }}
                   />
                   <div 
-                    className="absolute top-[55%] right-[12%] h-1 w-1 rounded-full bg-[var(--accent-tertiary)] opacity-40 lg:opacity-100"
+                    className="absolute top-[55%] right-[12%] h-1 w-1 rounded-full bg-[var(--accent-tertiary)] opacity-5 dark:opacity-40 lg:dark:opacity-100 lg:opacity-50"
                     style={{
                       boxShadow: "0 0 10px var(--accent-tertiary)",
                       animation: "pulse 3s ease-in-out infinite",
