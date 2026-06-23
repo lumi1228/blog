@@ -267,6 +267,44 @@ body {
   }
 }
 
+/* 顺时针旋转 */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 逆时针旋转 */
+@keyframes spin-reverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+/* 流星划过效果 */
+@keyframes shooting-star {
+  0% {
+    transform: translateX(0) translateY(0) rotate(-45deg);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(-300px) translateY(300px) rotate(-45deg);
+    opacity: 0;
+  }
+}
+
 /* 工具类 */
 .animate-fade-in-up {
   animation: fade-in-up var(--duration-slow) var(--ease-out) both;

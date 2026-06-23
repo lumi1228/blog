@@ -7,7 +7,7 @@ export const aboutConfig = {
   name: "lumi",
   title: "前端工程师 · Next.js 全栈实践者 · AI Coding 探索者",
   tagline: "用代码把想法变成现实，用 AI 让开发更高效。",
-  avatar: null as string | null,
+  avatar: "/avatar.png",
 
   profile: {
     englishName: "lumi",

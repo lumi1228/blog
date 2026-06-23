@@ -9,6 +9,8 @@ import { Pagination } from "@/components/pagination";
 import { getPosts, getColumns } from "@/lib/db";
 import { buildAlternates } from "@/lib/seo";
 import type { Locale } from "@/i18n/config";
+import { aboutConfig } from "@/config/about";
+import Image from "next/image";
 
 const PAGE_SIZE = 10;
 const FEATURED_COLUMNS_COUNT = 3;
@@ -109,8 +111,8 @@ function HomeContent({
 
       <main className="flex-1">
         {/* Hero 区域 */}
-        <section className="relative overflow-hidden border-b border-[var(--border-subtle)] bg-[var(--bg-primary)] py-20 sm:py-28 lg:py-36">
-          {/* 极简紫色光晕背景 */}
+        <section className="relative overflow-hidden border-b border-[var(--border-subtle)] bg-[var(--bg-primary)] py-16 sm:py-20 lg:py-24">
+          {/* 极简紫色光晕背景 + 流星动画 */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
             {/* 主光晕 - 中央 */}
             <div
@@ -122,23 +124,64 @@ function HomeContent({
               className="absolute -right-20 -top-20 h-[400px] w-[400px] rounded-full opacity-15 blur-[120px] animate-aurora-2"
               style={{ background: "var(--accent-primary)" }}
             />
+            
+            {/* 流星效果 - 多条流星 */}
+            <div 
+              className="absolute top-[10%] -right-[10%] h-[2px] w-[150px] opacity-0"
+              style={{
+                background: "linear-gradient(90deg, transparent, var(--accent-primary), transparent)",
+                boxShadow: "0 0 8px var(--accent-primary)",
+                animation: "shooting-star 3s ease-in-out infinite",
+                animationDelay: "0s"
+              }}
+            />
+            <div 
+              className="absolute top-[30%] -right-[5%] h-[1.5px] w-[120px] opacity-0"
+              style={{
+                background: "linear-gradient(90deg, transparent, var(--accent-secondary), transparent)",
+                boxShadow: "0 0 6px var(--accent-secondary)",
+                animation: "shooting-star 4s ease-in-out infinite",
+                animationDelay: "1.5s"
+              }}
+            />
+            <div 
+              className="absolute top-[60%] right-[20%] h-[2px] w-[100px] opacity-0"
+              style={{
+                background: "linear-gradient(90deg, transparent, var(--accent-primary), transparent)",
+                boxShadow: "0 0 8px var(--accent-primary)",
+                animation: "shooting-star 3.5s ease-in-out infinite",
+                animationDelay: "3s"
+              }}
+            />
+            <div 
+              className="absolute top-[20%] left-[10%] h-[1.5px] w-[130px] opacity-0"
+              style={{
+                background: "linear-gradient(90deg, transparent, var(--accent-tertiary), transparent)",
+                boxShadow: "0 0 6px var(--accent-tertiary)",
+                animation: "shooting-star 4.5s ease-in-out infinite",
+                animationDelay: "2s"
+              }}
+            />
           </div>
 
           <div className="relative mx-auto max-w-[1200px] px-6">
-            <div className="max-w-3xl text-center mx-auto">
-              {/* 极光微章 */}
-              <div className="mb-6 animate-fade-in-up stagger-1 flex justify-center">
-                <span
-                  className="inline-flex items-center gap-1.5 rounded-full 
-                             bg-[var(--accent-muted)] px-3.5 py-1 text-xs font-semibold tracking-wider text-[var(--accent-primary)]
-                             border border-[var(--accent-primary)]/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]"
-                >
-                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent-primary)] animate-ping" />
-                  {t("home.badge")}
-                </span>
-              </div>
+            {/* 左右分栏布局容器 */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+              {/* 左侧：文本内容 */}
+              <div className="max-w-2xl relative z-10">
+                {/* 极光微章 */}
+                <div className="mb-6 animate-fade-in-up stagger-1 flex justify-start">
+                  <span
+                    className="inline-flex items-center gap-1.5 rounded-full 
+                               bg-[var(--accent-muted)] px-3.5 py-1 text-xs font-semibold tracking-wider text-[var(--accent-primary)]
+                               border border-[var(--accent-primary)]/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]"
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent-primary)] animate-ping" />
+                    {t("home.badge")}
+                  </span>
+                </div>
 
-              {/* 标题 */}
+              {/* 博客标题 */}
               <h1
                 className="mb-6 text-4xl font-extrabold leading-tight tracking-tight text-[var(--text-primary)] 
                            sm:text-5xl lg:text-6xl animate-fade-in-up stagger-2"
@@ -151,35 +194,125 @@ function HomeContent({
                 </span>
               </h1>
 
-              {/* 描述 */}
-              <p className="mb-10 max-w-xl mx-auto text-base leading-relaxed text-[var(--text-secondary)] sm:text-lg lg:text-xl animate-fade-in-up stagger-3">
-                {t("home.description1")} {t("home.description2")}
+              {/* 博客描述 */}
+              <p className="mb-10 max-w-xl text-base leading-relaxed text-[var(--text-secondary)] sm:text-lg animate-fade-in-up stagger-3">
+                {t("home.description1")}
+                <br />
+                {t("home.description2")}
               </p>
 
               {/* CTA 按钮组 */}
-              <div className="flex flex-wrap items-center justify-center gap-4 animate-fade-in-up stagger-4">
+              <div className="flex flex-wrap items-start gap-4 animate-fade-in-up stagger-4">
                 <a
-                  href="#columns"
+                  href="#posts"
                   className="inline-flex items-center gap-2 rounded-[var(--radius-md)] 
-                             bg-[var(--accent-primary)] px-6 py-3 text-sm font-semibold
+                             bg-[var(--accent-primary)] px-7 py-3.5 text-sm font-semibold
                              text-[var(--bg-primary)] transition-all duration-[var(--duration-normal)]
                              hover:shadow-[0_0_30px_var(--glow-primary)] hover:scale-[1.03] active:scale-95"
                 >
-                  {t("home.browseColumns")}
+                  {t("home.startReading")}
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>
                 </a>
                 <a
-                  href="#posts"
+                  href={`/${locale}/about`}
                   className="frosted-glass inline-flex items-center gap-2 rounded-[var(--radius-md)] 
-                             px-6 py-3 text-sm font-semibold text-[var(--text-primary)] 
+                             px-7 py-3.5 text-sm font-semibold text-[var(--text-primary)] 
                              transition-all duration-[var(--duration-fast)]
                              hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)] hover:scale-[1.03]"
                 >
-                  {t("home.latestArticles")}
+                  {t("home.aboutMe")}
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
                 </a>
               </div>
+            </div>
+
+            {/* 右侧：头像艺术装置 */}
+            {aboutConfig.avatar && (
+              <div className="flex justify-center lg:justify-end">
+                <div className="relative h-[400px] w-[400px] lg:h-[600px] lg:w-[600px]">
+                  {/* 背景光晕圈 - 最外层 */}
+                  <div 
+                    className="absolute inset-0 rounded-full opacity-20 blur-[100px] animate-pulse"
+                    style={{ 
+                      background: "radial-gradient(circle, var(--accent-primary) 0%, transparent 70%)",
+                      animationDuration: "4s"
+                    }}
+                  />
+                  
+                  {/* 装饰圆环 1 - 外圈 */}
+                  <div 
+                    className="absolute inset-[8%] rounded-full border-2 border-[var(--accent-primary)]/10"
+                    style={{
+                      background: "conic-gradient(from 0deg, transparent 0deg, var(--accent-primary) 60deg, transparent 120deg)",
+                      opacity: 0.08,
+                      animation: "spin 20s linear infinite"
+                    }}
+                  />
+                  
+                  {/* 装饰圆环 2 - 中圈（反向旋转）*/}
+                  <div 
+                    className="absolute inset-[18%] rounded-full border border-[var(--accent-primary)]/15"
+                    style={{
+                      background: "conic-gradient(from 180deg, transparent 0deg, var(--accent-primary) 90deg, transparent 180deg)",
+                      opacity: 0.1,
+                      animation: "spin-reverse 15s linear infinite"
+                    }}
+                  />
+                  
+                  {/* 主头像 - 保留原色的半透明效果 */}
+                  <div className="absolute inset-[28%] rounded-full overflow-hidden">
+                    <Image
+                      src={aboutConfig.avatar}
+                      alt={aboutConfig.name}
+                      fill
+                      className="object-cover opacity-[0.35] dark:opacity-[0.42]"
+                      style={{
+                        filter: "saturate(1.1) contrast(1.05) brightness(1.05)"
+                      }}
+                      priority
+                    />
+                    {/* 头像上的轻微渐变遮罩 */}
+                    <div 
+                      className="absolute inset-0"
+                      style={{
+                        background: "radial-gradient(circle at 30% 30%, transparent 40%, var(--bg-primary) 100%)",
+                        opacity: 0.15
+                      }}
+                    />
+                  </div>
+                  
+                  {/* 装饰粒子点 - 动态闪烁 */}
+                  <div 
+                    className="absolute top-[15%] right-[20%] h-2 w-2 rounded-full bg-[var(--accent-primary)]"
+                    style={{
+                      boxShadow: "0 0 20px var(--accent-primary)",
+                      animation: "pulse 3s ease-in-out infinite",
+                      animationDelay: "0s"
+                    }}
+                  />
+                  <div 
+                    className="absolute bottom-[25%] left-[15%] h-1.5 w-1.5 rounded-full bg-[var(--accent-secondary)]"
+                    style={{
+                      boxShadow: "0 0 15px var(--accent-secondary)",
+                      animation: "pulse 3s ease-in-out infinite",
+                      animationDelay: "1s"
+                    }}
+                  />
+                  <div 
+                    className="absolute top-[55%] right-[12%] h-1 w-1 rounded-full bg-[var(--accent-tertiary)]"
+                    style={{
+                      boxShadow: "0 0 10px var(--accent-tertiary)",
+                      animation: "pulse 3s ease-in-out infinite",
+                      animationDelay: "2s"
+                    }}
+                  />
+                </div>
+              </div>
+            )}
             </div>
           </div>
         </section>
