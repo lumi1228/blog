@@ -52,7 +52,7 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        {/* 主题初始化脚本，避免闪烁 */}
+        {/* 主题初始化脚本，避免闪烁 - 默认暗色主题 */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -63,10 +63,14 @@ export default async function RootLayout({
                     document.documentElement.classList.add('light');
                   } else if (theme === 'dark') {
                     document.documentElement.classList.remove('light');
-                  } else {
+                  } else if (theme === 'system') {
+                    // 仅当用户明确选择"跟随系统"时才跟随
                     if (window.matchMedia('(prefers-color-scheme: light)').matches) {
                       document.documentElement.classList.add('light');
                     }
+                  } else {
+                    // 默认暗色主题（无存储或首次访问）
+                    document.documentElement.classList.remove('light');
                   }
                 } catch (e) {}
               })();

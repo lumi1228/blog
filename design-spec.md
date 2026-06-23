@@ -1,7 +1,8 @@
 # Design Specification
 
-> **Version**: 1.0.0  
+> **Version**: 2.2.0  
 > **Last Updated**: 2026-06-23  
+> **Design Theme**: Midnight Elegance（极夜优雅·深邃暗紫版）  
 > **Purpose**: 前端样式规范文档，确保 AI 和开发者输出一致的视觉设计和样式代码
 
 ---
@@ -28,14 +29,29 @@
 
 ## 2. 设计风格定位
 
-**Neo-futuristic Elegance**  
-几何感 × 柔和渐变 × 未来科技感 × 女性化优雅
+**Midnight Elegance（极夜优雅·深邃暗紫版）**  
+极简克制 × 单色主导 × 深邃神秘 × 女性高贵
 
 **核心理念**：
-- 深色调主导，玫瑰金/冰蓝作为强调色
-- 流畅的动效过渡，呼吸感强
-- 高对比度保证可读性
-- 细腻的边框和光晕效果
+- 极深紫黑背景主导，深邃暗紫作为唯一主色
+- 单一主色系统，建立强烈品牌感和视觉聚焦
+- 80-15-5 配色黄金比例：80% 灰度 + 15% 紫色 + 5% 金色
+- 精致的 6 层紫调灰度系统，细腻渐进
+- 深紫色营造神秘、高贵、专业的氛围
+- 极少量金色点缀，强化高级感
+
+**设计灵感**：
+- 极夜中的深紫星空，神秘而高贵
+- 皇室紫色的优雅与力量感
+- 科技感与女性美的完美平衡
+- 极简克制，摆脱"AI 模板感"
+
+**适用人群**：女性开发者、设计师、追求高级感的创作者
+
+**色彩哲学**：
+- **极简克制**：只用一个主色，建立记忆点
+- **单色主导**：深紫贯穿始终，强化品牌感
+- **精准点缀**：金色占比 < 5%，仅用于特殊标记
 
 ---
 
@@ -43,38 +59,44 @@
 
 ### 3.1 语义化 Token
 
-#### 背景色
+#### 背景色（Dark Mode 默认）
 ```css
---bg-primary: #0B0D11       /* 主背景（深黑） */
---bg-secondary: #12151C     /* 次级背景（卡片底色） */
---bg-tertiary: #1A1E28      /* 三级背景 */
---bg-elevated: #1F2430      /* 浮层背景 */
+--bg-primary: #0A0A0F;         /* 极深紫黑 */
+--bg-secondary: rgba(19, 19, 24, 0.4); /* 深紫灰（半透明，用于磨砂卡片） */
+--bg-tertiary: #1A1A22;        /* 中深紫灰 */
+--bg-elevated: #212129;        /* 浮层背景 */
 ```
 
 #### 文字色
 ```css
---text-primary: #E8E6E3     /* 标题、正文 */
---text-secondary: #9CA3AF   /* 次要文字、摘要 */
---text-tertiary: #6B7280    /* 辅助信息、占位符 */
+--text-primary: #E8E6F0;       /* 淡紫白（柔和） */
+--text-secondary: #A8A3B8;     /* 淡紫灰 */
+--text-tertiary: #6B6878;      /* 中紫灰 */
 ```
 
-#### 强调色 - 玫瑰金系（主强调）
+#### 主色 - 深邃暗紫系（唯一主色）
 ```css
---accent-primary: #E8A0BF       /* 主强调色 */
---accent-hover: #F0B8D0         /* hover 状态 */
---accent-muted: rgba(232, 160, 191, 0.15)  /* 半透明背景 */
+--accent-primary: #9333EA       /* 深紫（Purple 600）- 神秘高贵 */
+--accent-hover: #A855F7         /* 中紫（Purple 500）*/
+--accent-muted: rgba(147, 51, 234, 0.1)  /* 半透明背景 */
 ```
 
-#### 强调色 - 冰蓝系（次强调）
+#### 点缀色 - 玫瑰金系（极少使用，< 5%）
 ```css
---accent-secondary: #7DD3FC
---accent-secondary-hover: #BAE6FD
+--accent-gold: #FCD34D          /* 柔和金色（Amber 300）*/
+--accent-gold-muted: rgba(252, 211, 77, 0.1)
 ```
 
 #### 边框
 ```css
---border-default: #1F2937       /* 标准边框 */
---border-subtle: rgba(255, 255, 255, 0.06)  /* 微妙边框 */
+--border-default: rgba(147, 51, 234, 0.08)  /* 深紫色调边框 */
+--border-subtle: rgba(147, 51, 234, 0.04)   /* 极细深紫边框 */
+```
+
+#### 光晕
+```css
+--glow-primary: rgba(147, 51, 234, 0.25)     /* 深紫光晕 */
+--glow-gold: rgba(252, 211, 77, 0.15)        /* 金色光晕 */
 ```
 
 #### 语义色
@@ -86,9 +108,14 @@
 
 ### 3.2 Light Mode 覆盖
 在 `.light` class 下，颜色系统自动切换至浅色模式：
-- 背景从深黑切换至米白色系（`#FAFAF9` → `#FFFFFF`）
-- 强调色从玫瑰金切换至暗玫红（`#BE185D`）
-- 文字从浅色切换至深色（`#1C1917`）
+- 背景从极深紫黑切换至淡紫白（`#FAFAFC` → `#FFFFFF`）
+- 主色从中亮度紫切换至深紫（`#9333EA` → `#7C3AED`）
+  - **原因**：保证在浅色背景上有足够对比度（≥ 4.5:1）
+- 金色从柔和金切换至深金（`#FCD34D` → `#D97706`）
+- 文字从淡紫白切换至深紫黑（`#E8E6F0` → `#1A1A22`）
+
+**色彩自适应原则**：
+不同背景需要不同明度的主色以保证对比度和可读性。Dark Mode 用中亮度紫（Purple 600），Light Mode 用深紫（Purple 700），确保两种模式下都符合 WCAG 无障碍标准。
 
 ### 3.3 使用规范
 ✅ **推荐**：直接使用 CSS 变量  
@@ -148,10 +175,10 @@ xl: 1280px  → 桌面
 
 ### 5.3 圆角体系
 ```css
---radius-sm: 4px    /* 小标签 */
---radius-md: 8px    /* 按钮、输入框 */
---radius-lg: 12px   /* 卡片 */
---radius-xl: 16px   /* 大型容器 */
+--radius-sm: 6px    /* 小标签 */
+--radius-md: 10px   /* 按钮、输入框 */
+--radius-lg: 16px   /* 卡片 */
+--radius-xl: 24px   /* 大型容器 */
 --radius-full: 9999px  /* 圆形/胶囊按钮 */
 ```
 
@@ -167,10 +194,10 @@ className="rounded-[var(--radius-full)]"  // 分类标签
 
 ### 6.1 时长与缓动函数
 ```css
---duration-fast: 150ms      /* 快速反馈（hover、focus） */
---duration-normal: 250ms    /* 标准过渡 */
---duration-slow: 400ms      /* 淡入淡出 */
---duration-slower: 600ms    /* 复杂动画 */
+--duration-fast: 200ms      /* 快速反馈（hover、focus） */
+--duration-normal: 350ms    /* 标准过渡 */
+--duration-slow: 500ms      /* 淡入淡出 */
+--duration-slower: 800ms    /* 复杂动画 */
 
 --ease-out: cubic-bezier(0.16, 1, 0.3, 1)  /* 减速退出 */
 --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1)
@@ -180,10 +207,42 @@ className="rounded-[var(--radius-full)]"  // 分类标签
 ### 6.2 内置动画关键帧
 | 动画名 | 效果 | 使用场景 |
 |-------|------|---------|
-| `fade-in-up` | 上浮淡入 | 列表项、卡片进场 |
+| `fade-in-up` | 上浮淡入（24px） | 列表项、卡片进场 |
 | `fade-in` | 淡入 | 模态框、提示 |
 | `slide-up` | 底部滑入 | 底部弹窗 |
 | `glow-pulse` | 呼吸光晕 | 强调元素 |
+| `aurora-float` | 极光流体飘动 | Hero 区域背景极光球 |
+| `snow-drift` | 冰雪微粒飘落 | Hero 区域雪花特效 |
+
+**新增：极光与冰雪动效**
+```css
+/* 极光缓慢飘流（25-35秒周期） */
+@keyframes aurora-float {
+  0%   { transform: translate(0px, 0px) rotate(0deg) scale(1); }
+  33%  { transform: translate(40px, -60px) rotate(120deg) scale(1.2); }
+  66%  { transform: translate(-30px, 30px) rotate(240deg) scale(0.85); }
+  100% { transform: translate(0px, 0px) rotate(360deg) scale(1); }
+}
+
+/* 冰雪微粒缓慢飘落（12-18秒周期） */
+@keyframes snow-drift {
+  0%   { transform: translateY(-10px) translateX(0) rotate(0deg); opacity: 0; }
+  10%  { opacity: 0.3; }
+  90%  { opacity: 0.3; }
+  100% { transform: translateY(120vh) translateX(50px) rotate(360deg); opacity: 0; }
+}
+```
+
+**使用示例**：
+```tsx
+{/* 极光背景球 */}
+<div className="animate-aurora-1" />  {/* 25s 周期 */}
+<div className="animate-aurora-2" />  {/* 35s 周期，反向 */}
+<div className="animate-aurora-3" />  {/* 30s 周期 */}
+
+{/* 冰雪微粒 */}
+<div style={{ animation: "snow-drift 12s linear infinite" }} />
+```
 
 ### 6.3 交错动画延迟
 ```css
@@ -215,13 +274,16 @@ className="rounded-[var(--radius-full)]"  // 分类标签
 ### 7.1 article-card（文章卡片）
 **路径**: `components/article-card.tsx`
 
-**样式特征**：
-- 卡片底色：`bg-[var(--bg-secondary)]`
-- 边框：`border-[var(--border-subtle)]`，hover 时切换为 `border-[var(--accent-primary)]/30`
-- 光晕效果：`hover:shadow-[var(--shadow-glow-accent)]`
-- 分类标签：胶囊形状 `rounded-[var(--radius-full)]`，背景 `bg-[var(--accent-muted)]`
-- 标签：小圆角 `rounded-[var(--radius-sm)]`，边框样式
-- 底部装饰线：hover 时从左到右展开的渐变线条
+**样式特征**（Nordic Aurora 版本）：
+- **冰晶磨砂质感**：使用 `.frosted-glass` 类（`backdrop-blur-md` + 半透明背景）
+- 边框：`border border-[var(--border-default)]`，hover 时切换为 `border-[var(--accent-primary)]/40`
+- 光晕效果：`hover:shadow-[var(--shadow-glow-accent)]`（极光绿光晕）
+- 分类标签：圆形胶囊 `rounded-full`，背景 `bg-[var(--accent-muted)]`，带细边框 `border-[var(--accent-primary)]/10`
+  - Hover 时完全填充：`hover:bg-[var(--accent-primary)] hover:text-[#030712]`
+- 标签：小圆角 `rounded-[var(--radius-sm)]`，半透明背景 `bg-[var(--bg-primary)]/30`
+  - Hover 时边框和文字变为冰川蓝：`hover:border-[var(--accent-secondary)]`
+- 底部装饰线：hover 时从左到右展开的**极光渐变流光**（绿→蓝→透明，2px 粗细）
+- 封面图：带暗色渐变遮罩 `bg-gradient-to-t from-black/20`
 
 **动画**：
 - 进场动画：`animate-fade-in-up`，交错延迟 `animationDelay: ${index * 80}ms`
@@ -297,15 +359,56 @@ className="rounded-[var(--radius-full)]"  // 分类标签
 
 ---
 
-### 7.7 column-sidebar（专栏侧边栏）
-**路径**: `components/column-sidebar.tsx`
+### 7.7 column-card（专栏卡片）
+**路径**: `components/column-card.tsx`
 
-**样式特征**：
-- 卡片容器：`bg-[var(--bg-secondary)]`
-- 章节列表：可拖拽排序（仅管理员）
-- 当前章节高亮：`bg-[var(--accent-muted)]`
+**样式特征**（Nordic Aurora 版本）：
+- **冰晶磨砂质感**：使用 `.frosted-glass` 类
+- 边框：hover 时切换为 `border-[var(--accent-secondary)]/40`（冰川蓝）
+- 光晕效果：`hover:shadow-[var(--shadow-glow-blue)]`（冰川蓝光晕）
+- 封面图遮罩：极夜渐变 `from-[#030712]/90 via-[#030712]/20 to-transparent`
+- 封面图缩放：`group-hover:scale-[1.03]`（更细腻的缩放比例）
+- 底部操作区：带顶部细边框分隔 `border-t border-[var(--border-subtle)]`
+- 冰晶箭头按钮：
+  - 圆形容器 `h-7 w-7 rounded-full`
+  - 半透明背景 `bg-[var(--bg-primary)]/50`
+  - Hover 时边框和背景变为冰川蓝：`hover:border-[var(--accent-secondary)]/30 hover:bg-[var(--accent-secondary)]/10`
 
-**使用场景**：专栏详情页
+**动画**：
+- 进场动画：`animate-fade-in-up`，交错延迟 `${index * 100}ms`
+- 箭头微移：`group-hover:translate-x-0.5`
+
+**使用场景**：首页精选专栏、专栏列表页
+
+---
+
+### 7.8 .frosted-glass（冰晶磨砂通用类）
+**定义位置**: `app/globals.css`
+
+**核心代码**：
+```css
+.frosted-glass {
+  background: var(--bg-secondary);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-default);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
+}
+
+.light .frosted-glass {
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4);
+}
+```
+
+**使用场景**：
+- 所有卡片容器（文章卡片、专栏卡片）
+- 按钮（次要按钮、导航按钮）
+- 需要毛玻璃效果的浮层元素
+
+**说明**：
+- `backdrop-filter: blur(12px)` 创建毛玻璃效果
+- `bg-secondary` 使用半透明背景（`rgba(11, 17, 37, 0.4)`）
+- `inset` 阴影营造内发光质感
 
 ---
 
@@ -408,65 +511,201 @@ className="rounded-[var(--radius-full)]"  // 分类标签
 
 ## 附录：快速查询表
 
-### CSS 变量速查
+### CSS 变量速查（Midnight Elegance v2.2）
 ```css
 /* 背景 */
-var(--bg-primary)
-var(--bg-secondary)
-var(--bg-tertiary)
+var(--bg-primary)    /* #0A0A0F 极深紫黑 */
+var(--bg-secondary)  /* rgba(19,19,24,0.4) 深紫灰（半透明） */
+var(--bg-tertiary)   /* #1A1A22 中深紫灰 */
 
 /* 文字 */
-var(--text-primary)
-var(--text-secondary)
-var(--text-tertiary)
+var(--text-primary)    /* #E8E6F0 淡紫白 */
+var(--text-secondary)  /* #A8A3B8 淡紫灰 */
+var(--text-tertiary)   /* #6B6878 中紫灰 */
 
-/* 强调色 */
-var(--accent-primary)
-var(--accent-hover)
-var(--accent-muted)
+/* 主色（唯一） */
+var(--accent-primary)    /* #9333EA 深紫（Purple 600）- 神秘高贵 */
+var(--accent-hover)      /* #A855F7 中紫（Purple 500）*/
+var(--accent-muted)      /* rgba(147,51,234,0.1) 半透明背景 */
+
+/* 点缀色（< 5% 使用率） */
+var(--accent-gold)       /* #FCD34D 柔和金色 */
 
 /* 边框 */
-var(--border-default)
-var(--border-subtle)
+var(--border-default)  /* rgba(255,255,255,0.08) 标准边框 */
+var(--border-subtle)   /* rgba(255,255,255,0.04) 极细冰晶边框 */
 
 /* 圆角 */
-var(--radius-sm)
-var(--radius-md)
-var(--radius-lg)
-var(--radius-full)
+var(--radius-sm)    /* 6px 小标签 */
+var(--radius-md)    /* 10px 按钮 */
+var(--radius-lg)    /* 16px 卡片 */
+var(--radius-full)  /* 9999px 胶囊 */
 
 /* 动效 */
-var(--duration-fast)
-var(--duration-normal)
-var(--ease-out)
+var(--duration-fast)    /* 200ms 快速反馈 */
+var(--duration-normal)  /* 350ms 标准过渡 */
+var(--ease-out)         /* cubic-bezier(0.16,1,0.3,1) */
 ```
 
-### 常用组合 Pattern
+### 常用组合 Pattern（Nordic Aurora 版本）
 ```tsx
-/* 卡片容器 */
-className="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] 
-           bg-[var(--bg-secondary)] p-5 sm:p-6
+/* 冰晶磨砂卡片容器 */
+className="frosted-glass rounded-[var(--radius-lg)] p-6 sm:p-7
            transition-all duration-[var(--duration-normal)]
-           hover:border-[var(--accent-primary)]/30"
+           hover:border-[var(--accent-primary)]/40 
+           hover:shadow-[var(--shadow-glow-accent)]"
 
-/* 主要按钮 */
-className="rounded-[var(--radius-md)] bg-[var(--accent-primary)]
-           px-4 py-2 text-sm font-medium text-[var(--bg-primary)]
-           transition-colors duration-[var(--duration-fast)]
-           hover:bg-[var(--accent-hover)]"
+/* 主要按钮（极光渐变） */
+className="rounded-[var(--radius-md)] 
+           bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)]
+           px-6 py-3 text-sm font-semibold text-[#030712]
+           transition-all duration-[var(--duration-normal)]
+           hover:shadow-[0_0_25px_var(--glow-primary)] hover:scale-[1.03]"
 
-/* 次要按钮 */
-className="rounded-[var(--radius-md)] border border-[var(--border-default)]
-           px-4 py-2 text-sm font-medium text-[var(--text-secondary)]
+/* 次要按钮（冰晶磨砂） */
+className="frosted-glass rounded-[var(--radius-md)]
+           px-6 py-3 text-sm font-semibold text-[var(--text-primary)]
            transition-all duration-[var(--duration-fast)]
-           hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)]"
+           hover:border-[var(--accent-secondary)] 
+           hover:text-[var(--accent-secondary)]"
 
-/* 标签样式 */
-className="rounded-[var(--radius-full)] bg-[var(--accent-muted)]
-           px-2.5 py-0.5 text-xs font-medium text-[var(--accent-primary)]"
+/* 分类标签（冰晶宝石质感） */
+className="rounded-full bg-[var(--accent-muted)] px-3 py-0.5
+           font-semibold text-[var(--accent-primary)] text-xs
+           border border-[var(--accent-primary)]/10
+           transition-all duration-[var(--duration-fast)]
+           hover:bg-[var(--accent-primary)] hover:text-[#030712]"
+
+/* 小标签（半透明冰晶） */
+className="rounded-[var(--radius-sm)] border border-[var(--border-subtle)]
+           bg-[var(--bg-primary)]/30 px-2.5 py-0.5 text-xs text-[var(--text-tertiary)]
+           transition-all duration-[var(--duration-fast)]
+           hover:border-[var(--accent-secondary)] 
+           hover:text-[var(--accent-secondary)]"
+
+/* 极光流光边框（hover 展开） */
+<div
+  className="absolute bottom-0 left-6 right-6 h-[2px] origin-left scale-x-0
+             transition-transform duration-[var(--duration-normal)]
+             group-hover:scale-x-100"
+  style={{
+    background: "linear-gradient(to right, var(--accent-primary), var(--accent-secondary), transparent)"
+  }}
+/>
 ```
 
 ---
 
 **文档结束**  
-最后更新：2026-06-23
+最后更新：2026-06-23  
+设计主题：Midnight Elegance（极夜优雅·深邃暗紫版）v2.2
+
+---
+
+## 附录：设计更新日志
+
+### v2.2.0 (2026-06-23)
+**配色最终优化**：极简克制，单色主导
+
+**核心变更**：
+1. **从多色到单色**
+   - 删除所有次要强调色（青绿、冰川蓝）
+   - 只保留一个主色：深邃暗紫 `#9333EA`（Purple 600）
+   - 金色作为极少量点缀（< 5% 使用率）
+
+2. **主色升级**：淡紫 → 深紫
+   - 原主色：`#A78BFA`（Violet 400）- 柔和梦幻
+   - 新主色：`#9333EA`（Purple 600）- 神秘高贵
+   - **理由**：更深沉、更神秘、更有力量感
+
+3. **配色比例优化**：80-15-5 黄金法则
+   - 80% 灰度系统（背景、文字、边框）
+   - 15% 深紫主色（按钮、链接、强调）
+   - 5% 金色点缀（特殊标记）
+
+4. **背景系统精细化**
+   - 从冰蓝调改为紫调灰度
+   - 6 层精致的紫黑灰度渐进
+   - 营造更加统一的视觉氛围
+
+5. **简化视觉元素**
+   - Hero 区域：3色极光 → 2个紫色光晕
+   - 流光边框：紫→蓝渐变 → 紫色单色渐变
+   - 按钮：渐变 → 实心深紫
+   - SectionTitle：渐变方块 → 深紫实心方块
+
+6. **色彩自适应原则明确**
+   - Dark Mode：`#9333EA`（Purple 600）- 中亮度
+   - Light Mode：`#7C3AED`（Purple 700）- 深色
+   - 确保两种模式下对比度都 ≥ 4.5:1
+
+**设计哲学转变**：
+- 从"多色共存"到"单色主导"
+- 从"复杂丰富"到"极简克制"
+- 从"追求变化"到"建立记忆点"
+
+**适用场景**：追求高级感、专业感、品牌辨识度的个人博客
+
+---
+
+### v2.1.0 (2026-06-23)
+**配色升级**：Nordic Aurora → Midnight Stardust（极夜星辰·女性版）
+
+**变更摘要**：
+1. **主强调色升级**：翡翠绿 `#10B981` → 青绿极光 `#14B8A6`
+   - 更柔和优雅，更符合女性审美
+   - 保持科技感，同时增加温暖质感
+
+2. **次强调色重构**：冰川蓝 `#38BDF8` → 淡紫星光 `#A78BFA`
+   - 从冷峻蓝色转向梦幻紫色
+   - 增加神秘感和女性化特质
+   - 更独特，市面罕见
+
+3. **辅助色优化**：极光紫 `#F472B6` → 玫瑰金星尘 `#F59E0B`
+   - 从粉色改为金色系
+   - 更温暖、更优雅
+   - 作为点缀色更醒目
+
+4. **设计理念转变**：
+   - 从"北欧极光冰川"转向"极夜星辰星光"
+   - 强化神秘感、科技感与女性优雅的平衡
+   - 色彩更柔和梦幻，同时保持专业感
+
+**适用人群**：女性开发者、设计师、创作者
+
+---
+
+### v2.0.0 (2026-06-23)
+**重大设计重构**：从 Neo-futuristic Elegance 升级到 Nordic Aurora & Glacial Light
+
+**变更摘要**：
+1. **色彩系统全面升级**
+   - 主强调色：玫瑰金 → 翡翠绿 (#10B981)
+   - 次强调色：冰蓝 → 冰川蓝 (#38BDF8)
+   - 新增三级强调色：极光紫/粉 (#F472B6)
+   - 背景：从深黑优化为极深夜空黑 (#030712)
+
+2. **新增核心通用类**
+   - `.frosted-glass`：冰晶磨砂玻璃质感（backdrop-blur + 半透明）
+   - `.animate-aurora-1/2/3`：极光流体飘动动画
+   - 冰雪飘落动画：`snow-drift` keyframe
+
+3. **组件样式升级**
+   - 文章卡片：应用冰晶磨砂质感 + 极光流光边框
+   - 专栏卡片：冰川蓝光晕 + 冰晶箭头按钮
+   - Hero 区域：三色极光背景 + 5个冰雪微粒
+
+4. **圆角体系调整**
+   - 小圆角：4px → 6px
+   - 中圆角：8px → 10px
+   - 大圆角：12px → 16px
+   - 超大圆角：16px → 24px
+
+5. **动效时长调整**
+   - 快速：150ms → 200ms
+   - 标准：250ms → 350ms
+   - 慢速：400ms → 500ms
+   - 超慢：600ms → 800ms
+
+**设计理念**：
+营造北欧冬夜仰望极光的空灵、优雅视觉体验，摆脱 AI 模板感，强调冰晶质感和流体美学。

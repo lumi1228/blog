@@ -109,91 +109,75 @@ function HomeContent({
 
       <main className="flex-1">
         {/* Hero 区域 */}
-        <section className="relative overflow-hidden border-b border-[var(--border-subtle)]">
-          {/* 背景装饰 */}
-          <div className="absolute inset-0 overflow-hidden">
+        <section className="relative overflow-hidden border-b border-[var(--border-subtle)] bg-[var(--bg-primary)] py-20 sm:py-28 lg:py-36">
+          {/* 极简紫色光晕背景 */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
+            {/* 主光晕 - 中央 */}
             <div
-              className="absolute -right-32 -top-32 h-96 w-96 rounded-full opacity-30 blur-[100px]"
-              style={{ background: "var(--glow-primary)" }}
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full opacity-20 blur-[140px] animate-aurora-1"
+              style={{ background: "var(--accent-primary)" }}
             />
+            {/* 次光晕 - 右上 */}
             <div
-              className="absolute -left-20 bottom-0 h-64 w-64 rounded-full opacity-20 blur-[80px]"
-              style={{ background: "var(--glow-secondary)" }}
+              className="absolute -right-20 -top-20 h-[400px] w-[400px] rounded-full opacity-15 blur-[120px] animate-aurora-2"
+              style={{ background: "var(--accent-primary)" }}
             />
           </div>
 
-          <div className="relative mx-auto max-w-[1200px] px-6 py-16 sm:py-24">
-            <div className="max-w-2xl">
-              {/* 标签 */}
-              <div className="mb-4 animate-fade-in-up stagger-1">
+          <div className="relative mx-auto max-w-[1200px] px-6">
+            <div className="max-w-3xl text-center mx-auto">
+              {/* 极光微章 */}
+              <div className="mb-6 animate-fade-in-up stagger-1 flex justify-center">
                 <span
-                  className="inline-flex items-center gap-1.5 rounded-[var(--radius-full)] 
-                             bg-[var(--accent-muted)] px-3 py-1 text-xs font-medium text-[var(--accent-primary)]"
+                  className="inline-flex items-center gap-1.5 rounded-full 
+                             bg-[var(--accent-muted)] px-3.5 py-1 text-xs font-semibold tracking-wider text-[var(--accent-primary)]
+                             border border-[var(--accent-primary)]/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]"
                 >
-                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent-primary)] animate-pulse" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent-primary)] animate-ping" />
                   {t("home.badge")}
                 </span>
               </div>
 
               {/* 标题 */}
               <h1
-                className="mb-4 text-3xl font-bold leading-tight tracking-tight text-[var(--text-primary)] 
-                           sm:text-4xl lg:text-5xl animate-fade-in-up stagger-2"
+                className="mb-6 text-4xl font-extrabold leading-tight tracking-tight text-[var(--text-primary)] 
+                           sm:text-5xl lg:text-6xl animate-fade-in-up stagger-2"
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 {t("home.title1")}
                 <br />
-                <span className="text-[var(--accent-primary)]">{t("home.title2")}</span>
+                <span className="bg-gradient-to-r from-[var(--accent-primary)] via-[var(--accent-secondary)] to-[var(--accent-tertiary)] bg-clip-text text-transparent">
+                  {t("home.title2")}
+                </span>
               </h1>
 
               {/* 描述 */}
-              <p className="mb-8 max-w-lg text-base leading-relaxed text-[var(--text-secondary)] sm:text-lg animate-fade-in-up stagger-3">
-                {t("home.description1")}
-                <br className="hidden sm:block" />
-                {t("home.description2")}
+              <p className="mb-10 max-w-xl mx-auto text-base leading-relaxed text-[var(--text-secondary)] sm:text-lg lg:text-xl animate-fade-in-up stagger-3">
+                {t("home.description1")} {t("home.description2")}
               </p>
 
-              {/* CTA */}
-              <div className="flex items-center gap-3 animate-fade-in-up stagger-4">
+              {/* CTA 按钮组 */}
+              <div className="flex flex-wrap items-center justify-center gap-4 animate-fade-in-up stagger-4">
                 <a
                   href="#columns"
                   className="inline-flex items-center gap-2 rounded-[var(--radius-md)] 
-                             bg-[var(--accent-primary)] px-5 py-2.5 text-sm font-medium
-                             text-[var(--bg-primary)] transition-all duration-[var(--duration-fast)]
-                             hover:shadow-[var(--shadow-glow-accent)]"
+                             bg-[var(--accent-primary)] px-6 py-3 text-sm font-semibold
+                             text-[var(--bg-primary)] transition-all duration-[var(--duration-normal)]
+                             hover:shadow-[0_0_30px_var(--glow-primary)] hover:scale-[1.03] active:scale-95"
                 >
                   {t("home.browseColumns")}
-                  <svg
-                    className="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M19 9l-7 7-7-7"
-                    />
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>
                 </a>
                 <a
                   href="#posts"
-                  className="inline-flex items-center gap-2 rounded-[var(--radius-md)] 
-                             border border-[var(--border-default)] px-5 py-2.5 text-sm font-medium
-                             text-[var(--text-secondary)] transition-all duration-[var(--duration-fast)]
-                             hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)]"
+                  className="frosted-glass inline-flex items-center gap-2 rounded-[var(--radius-md)] 
+                             px-6 py-3 text-sm font-semibold text-[var(--text-primary)] 
+                             transition-all duration-[var(--duration-fast)]
+                             hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)] hover:scale-[1.03]"
                 >
                   {t("home.latestArticles")}
-                </a>
-                <a
-                  href="/about"
-                  className="inline-flex items-center gap-2 rounded-[var(--radius-md)] 
-                             border border-[var(--border-default)] px-5 py-2.5 text-sm font-medium
-                             text-[var(--text-secondary)] transition-all duration-[var(--duration-fast)]
-                             hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)]"
-                >
-                  {t("home.aboutMe")}
                 </a>
               </div>
             </div>
