@@ -120,7 +120,7 @@ function SortableColumnRow({
           {loading && <div className="px-2 py-1 text-xs text-[var(--text-tertiary)]">加载中...</div>}
           {!loading && chapters.length === 0 && <div className="px-2 py-1 text-xs text-[var(--text-tertiary)]">暂无章节</div>}
           {chapters.length > 0 && (
-            <DndContext sensors={chapterSensors} collisionDetection={closestCenter} onDragEnd={handleChapterDragEnd}>
+            <DndContext id={`admin-chapters-${col.id}`} sensors={chapterSensors} collisionDetection={closestCenter} onDragEnd={handleChapterDragEnd}>
               <SortableContext items={chapters.map((c) => c.id)} strategy={verticalListSortingStrategy}>
                 {chapters.map((ch) => (
                   <SortableChapterItem
@@ -612,7 +612,7 @@ export function ColumnsLeftPanel({
       )}
 
       <div className="flex-1 overflow-y-auto space-y-2 p-3">
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <DndContext id="admin-columns" sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={columns.map((c) => c.id)} strategy={verticalListSortingStrategy}>
             {columns.map((col) => {
               const chapters = chapterCache.get(col.id) ?? [];

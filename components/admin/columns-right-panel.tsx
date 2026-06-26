@@ -392,6 +392,7 @@ export function ColumnsRightPanel({
             </div>
           ) : (
             <DndContext
+              id="admin-column-posts"
               sensors={sensors}
               collisionDetection={closestCenter}
               onDragEnd={handleDragEnd}
