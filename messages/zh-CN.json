@@ -3,7 +3,7 @@
     "home": "首页",
     "about": "关于",
     "search": "搜索",
-    "docs": "文档"
+    "docs": "知识库"
   },
   "home": {
     "badge": "女性开发者 · 前端工程师",
@@ -12,13 +12,13 @@
     "description1": "记录技术探索、设计思考与成长感悟。",
     "description2": "用代码构建，用设计表达，用文字沉淀。",
     "startReading": "开始阅读",
-    "browseColumns": "浏览文档",
+    "browseColumns": "浏览知识库",
     "latestArticles": "最新文章",
     "aboutMe": "了解我",
-    "featuredColumns": "精选文档",
+    "featuredColumns": "精选知识库",
     "featuredColumnsDesc": "系统化主题内容，深度学习笔记",
-    "allColumns": "查看全部文档",
-    "exploreColumn": "进入文档",
+    "allColumns": "查看全部知识库",
+    "exploreColumn": "进入知识库",
     "latestPosts": "最新博客",
     "totalPosts": "共 {count} 篇",
     "noPosts": "还没有发布文章，敬请期待 ✨"
@@ -94,14 +94,14 @@
     "chapterArticleCount": "{count}篇"
   },
   "docs": {
-    "label": "文档",
-    "title": "文档",
-    "subtitle": "系统化知识库，沉淀深度笔记",
-    "empty": "暂无文档，敬请期待 ✨",
+    "label": "知识库",
+    "title": "知识库",
+    "subtitle": "系统化整理，沉淀深度笔记",
+    "empty": "暂无内容，敬请期待 ✨",
     "home": "首页",
-    "allDocs": "全部文档",
-    "backToDocs": "返回文档",
-    "noArticles": "该文档集暂无内容",
+    "allDocs": "全部知识库",
+    "backToDocs": "返回知识库",
+    "noArticles": "该知识库暂无内容",
     "articleCount": "{count} 篇",
     "totalArticles": "{count} 篇内容"
   }
