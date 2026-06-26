@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { DocsChaptersList } from "./docs-chapters-list";
 import { DocsSidebar } from "./docs-sidebar";
 import type { Post, ColumnChapter } from "@/lib/types";
 
@@ -34,27 +33,6 @@ const chapters: (ColumnChapter & { posts: Post[] })[] = [
     posts: [makePost("p3", "advanced", "进阶用法")],
   },
 ];
-
-describe("DocsChaptersList", () => {
-  it("文章链接指向 /docs/[set]/[slug]", () => {
-    render(
-      <DocsChaptersList setSlug="react" chapters={chapters} emptyText="空" />
-    );
-    expect(screen.getByText("介绍").closest("a")).toHaveAttribute(
-      "href",
-      "/docs/react/intro"
-    );
-    expect(screen.getByText("进阶用法").closest("a")).toHaveAttribute(
-      "href",
-      "/docs/react/advanced"
-    );
-  });
-
-  it("无章节时显示空状态文案", () => {
-    render(<DocsChaptersList setSlug="react" chapters={[]} emptyText="暂无内容" />);
-    expect(screen.getByText("暂无内容")).toBeInTheDocument();
-  });
-});
 
 describe("DocsSidebar", () => {
   it("文章链接指向 /docs/[set]/[slug]，当前文章高亮", () => {

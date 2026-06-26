@@ -49,6 +49,24 @@ describe("DocsTopbar", () => {
     expect(inactiveLink?.className).toContain("border-transparent");
   });
 
+  it("Tab 携带 firstPostSlug 时链接直达首篇文章", () => {
+    const tabsWithFirst: DocsTab[] = [
+      { slug: "react", title: "React 深入", firstPostSlug: "intro" },
+      { slug: "node", title: "Node 实战" },
+    ];
+    render(<DocsTopbar tabs={tabsWithFirst} locale="zh-CN" docsLabel="文档" />);
+
+    expect(screen.getByText("React 深入").closest("a")).toHaveAttribute(
+      "href",
+      "/docs/react/intro"
+    );
+    // 无 firstPostSlug 时回退到文档集入口
+    expect(screen.getByText("Node 实战").closest("a")).toHaveAttribute(
+      "href",
+      "/docs/node"
+    );
+  });
+
   it("无文档集时不渲染 Tab 导航", () => {
     const { container } = render(
       <DocsTopbar tabs={[]} locale="zh-CN" docsLabel="文档" />

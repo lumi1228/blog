@@ -6,6 +6,7 @@ import type {
   Tag,
   Column,
   ColumnDetail,
+  ColumnWithFirstPost,
   SearchIndexEntry,
   SitemapPost,
   SitemapCategoryOrTag,
@@ -544,8 +545,74 @@ export async function getColumns(locale: Locale = "zh-CN"): Promise<Column[]> {
 }
 
 /**
- * 根据 slug 获取专栏详情（含章节和文章）
+ * 获取所有专栏列表，并附带每个专栏的「首篇文章」slug。
+ *
+ * 首篇定义与详情页/侧边栏展示顺序一致：
+ * 按章节 sort 升序，章节内按 column_order 升序，未归类文章（无 chapter_id）排在最后。
+ * 用于文档站顶栏 Tab 直达首篇，以及 /docs 入口重定向。
+ *
+ * firstPostSlug 为 null 表示该文档集暂无已发布文章。
  */
+export async function getColumnsWithFirstPost(
+  locale: Locale = "zh-CN"
+): Promise<ColumnWithFirstPost[]> {
+  const supabase = await getSupabase();
+  const isZh = locale === "zh-CN";
+
+  const { data: cols, error } = await supabase
+    .from("columns")
+    .select("id, slug, sort, title_zh, title_en, description_zh, description_en, cover_image")
+    .order("sort", { ascending: true });
+
+  if (error || !cols || cols.length === 0) return [];
+
+  const columnIds = cols.map((c: any) => c.id);
+
+  // 章节 sort 映射（chapter_id -> sort），用于确定首篇所在章节顺序
+  const { data: chapters } = await supabase
+    .from("column_chapters")
+    .select("id, sort")
+    .in("column_id", columnIds);
+
+  const chapterSort = new Map<string, number>();
+  (chapters || []).forEach((ch: any) => chapterSort.set(ch.id, ch.sort));
+
+  // 各专栏已发布文章（仅取定位首篇所需字段）
+  const { data: posts } = await supabase
+    .from("posts")
+    .select("slug, column_id, chapter_id, column_order")
+    .in("column_id", columnIds)
+    .eq("status", "published");
+
+  // 为每个专栏挑选最优候选（章节 sort 最小，其次 column_order 最小）
+  const best = new Map<
+    string,
+    { chSort: number; order: number; slug: string }
+  >();
+
+  (posts || []).forEach((p: any) => {
+    const chSort = p.chapter_id ? chapterSort.get(p.chapter_id) ?? 9999 : 9999;
+    const order = p.column_order ?? Number.MAX_SAFE_INTEGER;
+    const cur = best.get(p.column_id);
+    if (
+      !cur ||
+      chSort < cur.chSort ||
+      (chSort === cur.chSort && order < cur.order)
+    ) {
+      best.set(p.column_id, { chSort, order, slug: p.slug });
+    }
+  });
+
+  return cols.map((row: any) => ({
+    id: row.id,
+    slug: row.slug,
+    sort: row.sort,
+    title: isZh ? row.title_zh : (row.title_en || row.title_zh),
+    description: isZh ? row.description_zh : (row.description_en || row.description_zh),
+    coverImage: row.cover_image ?? null,
+    firstPostSlug: best.get(row.id)?.slug ?? null,
+  }));
+}
 export async function getColumnBySlug(
   columnSlug: string,
   locale: Locale = "zh-CN"

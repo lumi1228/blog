@@ -65,6 +65,14 @@ export interface ColumnDetail extends Column {
 }
 
 /**
+ * 专栏 + 首篇文章 slug（用于文档站 Tab 直达首篇 / 入口重定向）。
+ * firstPostSlug 为 null 表示该文档集暂无已发布文章。
+ */
+export interface ColumnWithFirstPost extends Column {
+  firstPostSlug: string | null;
+}
+
+/**
  * 搜索索引条目（精简字段，供 /api/search-index 输出）
  */
 export interface SearchIndexEntry {

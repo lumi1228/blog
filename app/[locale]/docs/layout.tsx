@@ -1,5 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { getColumns } from "@/lib/db";
+import { getColumnsWithFirstPost } from "@/lib/db";
 import { Footer } from "@/components/footer";
 import { DocsTopbar, type DocsTab } from "@/components/docs/docs-topbar";
 import type { Locale } from "@/i18n/config";
@@ -19,11 +19,12 @@ export default async function DocsLayout({ children, params }: DocsLayoutProps) 
   setRequestLocale(locale);
 
   const t = await getTranslations("docs");
-  const columns = await getColumns(locale as Locale);
+  const columns = await getColumnsWithFirstPost(locale as Locale);
 
   const tabs: DocsTab[] = columns.map((col) => ({
     slug: col.slug,
     title: col.title,
+    firstPostSlug: col.firstPostSlug,
   }));
 
   return (

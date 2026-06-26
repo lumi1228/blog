@@ -11,6 +11,8 @@ export interface DocsTab {
   slug: string;
   /** 文档集标题 */
   title: string;
+  /** 文档集首篇文章 slug；存在则 Tab 直达首篇，避免二次跳转 */
+  firstPostSlug?: string | null;
 }
 
 interface DocsTopbarProps {
@@ -131,10 +133,13 @@ export function DocsTopbar({ tabs, locale, docsLabel }: DocsTopbarProps) {
         >
           {tabs.map((tab) => {
             const isActive = tab.slug === activeSlug;
+            const href = tab.firstPostSlug
+              ? `/docs/${tab.slug}/${tab.firstPostSlug}`
+              : `/docs/${tab.slug}`;
             return (
               <Link
                 key={tab.slug}
-                href={`/docs/${tab.slug}`}
+                href={href}
                 className={`relative -mb-px border-b-2 px-3 py-2.5 text-sm font-medium
                             transition-colors duration-[var(--duration-fast)]
                             ${
@@ -156,10 +161,13 @@ export function DocsTopbar({ tabs, locale, docsLabel }: DocsTopbarProps) {
           <div className="flex flex-col gap-0.5">
             {tabs.map((tab) => {
               const isActive = tab.slug === activeSlug;
+              const href = tab.firstPostSlug
+                ? `/docs/${tab.slug}/${tab.firstPostSlug}`
+                : `/docs/${tab.slug}`;
               return (
                 <Link
                   key={tab.slug}
-                  href={`/docs/${tab.slug}`}
+                  href={href}
                   onClick={() => setMobileTabsOpen(false)}
                   className={`rounded-[var(--radius-md)] px-3 py-2.5 text-sm font-medium
                               transition-colors duration-[var(--duration-fast)]

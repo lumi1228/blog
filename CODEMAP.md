@@ -56,9 +56,9 @@ npm run test:e2e     # Playwright e2e tests
 │   │   ├── tag/[slug]/          # Tag filtered post list
 │   │   ├── posts/[slug]/        # Post detail (Markdown render + TOC + view counter)
 │   │   └── docs/                # Docs knowledge-base sub-site (replaces former /columns)
-│   │       ├── layout.tsx       # Docs shell: DocsTopbar (set tabs) + Footer
-│   │       ├── page.tsx         # Docs landing (knowledge-base overview)
-│   │       └── [set]/           # A doc set (= Column); [set]/page overview, [set]/[slug] detail
+│   │       ├── layout.tsx       # Docs shell: DocsTopbar (set tabs → first post) + Footer
+│   │       ├── page.tsx         # Docs entry: redirects to first set's first post (empty state if none)
+│   │       └── [set]/           # A doc set (= Column); [set] redirects to its first post, [set]/[slug] = detail
 │   ├── admin/                   # Admin dashboard (no locale prefix)
 │   │   ├── login/               # Admin login
 │   │   └── (dashboard)/         # Protected admin pages (posts, categories, tags, columns)
@@ -86,8 +86,7 @@ npm run test:e2e     # Playwright e2e tests
 │   │   ├── delete-post-button.tsx
 │   │   └── toggle-status-button.tsx
 │   ├── docs/                    # Docs sub-site components (public)
-│   │   ├── docs-topbar.tsx      # Docs shell top bar (set tabs, scoped search, theme/locale)
-│   │   ├── docs-chapters-list.tsx # Set overview chapter list (links to /docs/[set]/[slug])
+│   │   ├── docs-topbar.tsx      # Docs shell top bar (set tabs → first post, scoped search, theme/locale)
 │   │   └── docs-sidebar.tsx     # Persistent left chapter tree on doc detail pages
 │   ├── markdown/                # Markdown render components
 │   ├── search/                  # Search UI (SearchModal, SearchInput; supports scope=docs)
@@ -151,7 +150,7 @@ npm run test:e2e     # Playwright e2e tests
 - All public pages use `app/[locale]/` prefix — locale is always the first dynamic segment
 - Admin routes use `app/admin/` (no locale prefix, protected by middleware)
 - Locale values: `"zh-CN"` (default) | `"en"`
-- Docs sub-site lives at `/docs` with its own shell layout; the `Column` DB entity is surfaced as a "doc set". Legacy `/columns/*` URLs 301-redirect to `/docs/*` via `next.config.ts`.
+- Docs sub-site lives at `/docs` with its own shell layout; the `Column` DB entity is surfaced as a "doc set". Entry routes (`/docs`, `/docs/[set]`) redirect straight to the first article (TRAE-style direct-to-content); only `/docs/[set]/[slug]` renders the 3-column layout. Legacy `/columns/*` URLs 301-redirect to `/docs/*` via `next.config.ts`.
 
 ### Components
 - Admin components live in `components/admin/` — never import them in public pages
@@ -180,7 +179,7 @@ npm run test:e2e     # Playwright e2e tests
 | Search feature | `components/search/`, `app/api/search-index/` (supports `?scope=docs`) |
 | Categories | `app/[locale]/category/[slug]/page.tsx`, `lib/db.ts → getCategories` |
 | Tags | `app/[locale]/tag/[slug]/page.tsx`, `lib/db.ts → getTags` |
-| Docs sub-site (= Columns) | `app/[locale]/docs/`, `components/docs/`, `lib/db.ts → getColumnBySlug` |
+| Docs sub-site (= Columns) | `app/[locale]/docs/`, `components/docs/`, `lib/db.ts → getColumnBySlug`, `getColumnsWithFirstPost` |
 | Docs search scope | `lib/db.ts → getDocsSearchIndex`, `app/api/search-index/route.ts` |
 | Admin post editor | `components/admin/post-editor.tsx`, `app/admin/(dashboard)/` |
 | Admin categories/tags | `components/admin/category-manager.tsx`, `components/admin/tag-manager.tsx` |
@@ -204,6 +203,7 @@ Tag           // id, name, slug
 Column        // id, slug, sort, title, description?, coverImage?
 ColumnChapter // id, columnId, sort, title
 ColumnDetail  // extends Column + chapters: (ColumnChapter & { posts: Post[] })[]
+ColumnWithFirstPost // extends Column + firstPostSlug: string | null (docs tabs / entry redirect)
 SearchIndexEntry   // slug, title, excerpt, tags[], publishedAt, url? (docs entries carry /docs/[set]/[slug])
 SearchIndexResponse // locale, generatedAt, entries[]
 ```
