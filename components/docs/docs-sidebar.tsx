@@ -40,9 +40,10 @@ export function DocsSidebar({
   const [expandedChapters, setExpandedChapters] = useState<
     Record<string, boolean>
   >(() => {
+    // 默认折叠所有章节分组，仅展开包含当前文章的分组
     const initial: Record<string, boolean> = {};
     chapters.forEach((ch) => {
-      initial[ch.id] = true;
+      initial[ch.id] = chapterHasActivePost(ch, currentPostSlug);
     });
     return initial;
   });
@@ -70,7 +71,7 @@ export function DocsSidebar({
   const chapterList = (
     <ul className="space-y-1">
       {chapters.map((chapter) => {
-        const isExpanded = expandedChapters[chapter.id] ?? true;
+        const isExpanded = expandedChapters[chapter.id] ?? false;
         const hasActive = chapterHasActivePost(chapter, currentPostSlug);
 
         return (
