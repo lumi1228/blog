@@ -104,11 +104,17 @@ export default async function DocsPostDetailPage({ params }: PageProps) {
     updatedAt: post.updatedAt,
   });
 
+  // 定位当前文章所属章节（用于面包屑；排除虚拟「未分类」章节）
+  const currentChapter = setData.chapters.find(
+    (ch) =>
+      ch.id !== "__uncategorized__" &&
+      ch.posts.some((p) => p.slug === post.slug)
+  );
+  const chapterTitle = currentChapter?.title ?? null;
+
   const t = await getTranslations();
 
   const translations = {
-    home: t("docs.home"),
-    docsLabel: t("docs.label"),
     drawerLabel: t("docs.label"),
     readingTime: (time: number) => t("post.readingTime", { time }),
     views: (count: number) => t("post.views", { count }),
@@ -120,6 +126,7 @@ export default async function DocsPostDetailPage({ params }: PageProps) {
     <DocsPostContent
       post={post}
       setData={setData}
+      chapterTitle={chapterTitle}
       prev={prev}
       next={next}
       headings={headings}
@@ -132,13 +139,12 @@ export default async function DocsPostDetailPage({ params }: PageProps) {
 interface DocsPostContentProps {
   post: Post;
   setData: ColumnDetail;
+  chapterTitle: string | null;
   prev: Post | null;
   next: Post | null;
   headings: Heading[];
   jsonLd: Record<string, unknown>;
   translations: {
-    home: string;
-    docsLabel: string;
     drawerLabel: string;
     readingTime: (time: number) => string;
     views: (count: number) => string;
@@ -150,6 +156,7 @@ interface DocsPostContentProps {
 function DocsPostContent({
   post,
   setData,
+  chapterTitle,
   prev,
   next,
   headings,
@@ -181,55 +188,28 @@ function DocsPostContent({
               dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
 
-            {/* 面包屑 */}
+            {/* 面包屑：专栏 / 章节 / 文章（无章节则专栏 / 文章） */}
             <nav className="mb-6 flex items-center gap-2 text-xs text-[var(--text-tertiary)]">
-              <Link
-                href="/"
-                className="transition-colors duration-[var(--duration-fast)] hover:text-[var(--accent-primary)]"
-              >
-                {t.home}
-              </Link>
-              <span>/</span>
-              <Link
-                href="/docs"
-                className="transition-colors duration-[var(--duration-fast)] hover:text-[var(--accent-primary)]"
-              >
-                {t.docsLabel}
-              </Link>
-              <span>/</span>
               <Link
                 href={`/docs/${setData.slug}`}
                 className="transition-colors duration-[var(--duration-fast)] hover:text-[var(--accent-primary)]"
               >
                 {setData.title}
               </Link>
+              {chapterTitle && (
+                <>
+                  <span>/</span>
+                  <span>{chapterTitle}</span>
+                </>
+              )}
+              <span>/</span>
+              <span className="text-[var(--text-secondary)] line-clamp-1">
+                {post.title}
+              </span>
             </nav>
 
             {/* 文章头部 */}
             <header className="mb-10 animate-fade-in-up">
-              <div className="mb-4 flex items-center gap-2">
-                <Link
-                  href={`/docs/${setData.slug}`}
-                  className="inline-flex items-center gap-1.5 rounded-[var(--radius-full)]
-                             bg-[var(--accent-muted)] px-3 py-1 text-xs font-medium text-[var(--accent-primary)]
-                             transition-colors duration-[var(--duration-fast)]
-                             hover:bg-[var(--accent-primary)] hover:text-[var(--bg-primary)]"
-                >
-                  {setData.title}
-                </Link>
-                {post.category.slug && (
-                  <Link
-                    href={`/category/${post.category.slug}`}
-                    className="inline-flex items-center gap-1.5 rounded-[var(--radius-full)]
-                               border border-[var(--border-subtle)] px-3 py-1 text-xs font-medium text-[var(--text-tertiary)]
-                               transition-colors duration-[var(--duration-fast)]
-                               hover:border-[var(--accent-secondary)] hover:text-[var(--accent-secondary)]"
-                  >
-                    {post.category.name}
-                  </Link>
-                )}
-              </div>
-
               <h1
                 className="mb-4 text-3xl font-bold leading-tight tracking-tight text-[var(--text-primary)]
                            sm:text-4xl lg:text-5xl"

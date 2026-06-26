@@ -193,23 +193,6 @@ export function DocsSidebar({
         {!sidebarCollapsed && (
           <nav className="flex-1 overflow-y-auto p-3">{chapterList}</nav>
         )}
-
-        {/* 侧边栏收起时显示小图标 */}
-        {sidebarCollapsed && (
-          <div className="flex justify-center pt-4">
-            <Link
-              href={`/docs/${setSlug}`}
-              className="flex h-6 w-6 items-center justify-center rounded-[var(--radius-sm)]
-                         text-[var(--text-tertiary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--accent-primary)]
-                         transition-colors duration-[var(--duration-fast)]"
-              title={`返回 ${setTitle}`}
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h8m-8 6h16" />
-              </svg>
-            </Link>
-          </div>
-        )}
       </aside>
 
       {/* ── 移动端悬浮按钮（lg 以下） ── */}
