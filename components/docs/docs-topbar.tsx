@@ -55,7 +55,7 @@ export function DocsTopbar({ tabs, locale, docsLabel }: DocsTopbarProps) {
     >
       {/* 单行 header：logo + 文档标识 + 文档集 Tab（桌面）+ 右侧操作区 */}
       <div className="mx-auto flex h-14 max-w-[1400px] items-center px-6">
-        <div className="flex shrink-0 items-center gap-3">
+        <div className="flex shrink-0 items-center gap-2.5">
           {/* 返回主站 logo */}
           <Link
             href="/"
@@ -67,15 +67,34 @@ export function DocsTopbar({ tabs, locale, docsLabel }: DocsTopbarProps) {
             <span className="text-[var(--accent-primary)]">L</span>umi
           </Link>
 
-          {/* 分隔符 + 文档标识 */}
-          <span className="text-[var(--border-default)]" aria-hidden="true">
-            /
-          </span>
+          {/* 竖线分隔符（可见且克制） */}
+          <span
+            className="h-4 w-px shrink-0 bg-[var(--border-default)]"
+            aria-hidden="true"
+          />
+
+          {/* 知识库标识：精致徽章，带图标，自然融入而非孤立文字 */}
           <Link
             href="/docs"
-            className="text-sm font-semibold text-[var(--text-secondary)]
-                       transition-colors duration-[var(--duration-fast)] hover:text-[var(--text-primary)]"
+            className="group inline-flex items-center gap-1.5 rounded-[var(--radius-md)]
+                       bg-[var(--accent-muted)] px-2.5 py-1
+                       text-sm font-medium text-[var(--accent-primary)]
+                       transition-colors duration-[var(--duration-fast)]
+                       hover:bg-[var(--accent-primary)]/15"
           >
+            <svg
+              className="h-3.5 w-3.5 shrink-0"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+            </svg>
             {docsLabel}
           </Link>
         </div>

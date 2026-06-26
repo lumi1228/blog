@@ -181,7 +181,7 @@ function DocsPostContent({
         {/* 内层双栏：文章主体 + 右侧 TOC */}
         <div className="flex flex-col lg:flex-row lg:items-start lg:gap-10 px-6 py-12 sm:py-16">
           {/* ── 文章主体 ── */}
-          <article className="min-w-0 flex-1">
+          <article className="min-w-0 flex-1 lg:max-w-[46rem]">
             {/* JSON-LD */}
             <script
               type="application/ld+json"
@@ -211,14 +211,14 @@ function DocsPostContent({
             {/* 文章头部 */}
             <header className="mb-10 animate-fade-in-up">
               <h1
-                className="mb-4 text-3xl font-bold leading-tight tracking-tight text-[var(--text-primary)]
-                           sm:text-4xl lg:text-5xl"
+                className="mb-3 text-[1.75rem] font-bold leading-tight tracking-tight text-[var(--text-primary)]
+                           sm:text-[2rem] lg:text-[2.125rem]"
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 {post.title}
               </h1>
 
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[var(--text-tertiary)]">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-[var(--text-tertiary)]">
                 <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
                 <span>·</span>
                 <span>{t.readingTime(post.readingTime)}</span>
@@ -250,12 +250,7 @@ function DocsPostContent({
 
             <ViewCounter postId={post.id} />
 
-            <div
-              className="mb-8 h-px"
-              style={{
-                background: "linear-gradient(to right, var(--accent-primary), transparent)",
-              }}
-            />
+            <div className="mb-8 h-px bg-[var(--border-default)]" />
 
             {post.content && <MarkdownRenderer content={post.content} />}
 

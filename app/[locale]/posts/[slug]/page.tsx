@@ -144,14 +144,14 @@ function PostContent({ post, prev, next, headings, jsonLd, translations }: PostC
     <>
       <Navbar />
 
-      <main className="flex-1">
+      <main className="article-theme flex-1">
         {/* 外层容器：居中 + 水平 padding */}
         <div className="mx-auto max-w-[1200px] px-6 py-12 sm:py-16">
           {/* 双栏布局：文章主体 + 右侧 TOC */}
-          <div className="flex flex-col lg:flex-row lg:items-start lg:gap-12">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:gap-10">
 
             {/* ── 文章主体 ── */}
-            <article className="min-w-0 flex-1">
+            <article className="min-w-0 flex-1 lg:max-w-[46rem]">
               {/* JSON-LD 结构化数据 */}
               <script
                 type="application/ld+json"
@@ -190,14 +190,14 @@ function PostContent({ post, prev, next, headings, jsonLd, translations }: PostC
                 </div>
 
                 <h1
-                  className="mb-4 text-3xl font-bold leading-tight tracking-tight text-[var(--text-primary)] 
-                             sm:text-4xl lg:text-5xl"
+                  className="mb-3 text-[1.75rem] font-bold leading-tight tracking-tight text-[var(--text-primary)] 
+                             sm:text-[2rem] lg:text-[2.125rem]"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
                   {post.title}
                 </h1>
 
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[var(--text-tertiary)]">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-[var(--text-tertiary)]">
                   <time dateTime={post.publishedAt}>
                     {formatDate(post.publishedAt)}
                   </time>
@@ -231,12 +231,7 @@ function PostContent({ post, prev, next, headings, jsonLd, translations }: PostC
 
               <ViewCounter postId={post.id} />
 
-              <div
-                className="mb-8 h-px"
-                style={{
-                  background: "linear-gradient(to right, var(--accent-primary), transparent)",
-                }}
-              />
+              <div className="mb-8 h-px bg-[var(--border-default)]" />
 
               {post.content && <MarkdownRenderer content={post.content} />}
 

@@ -28,7 +28,7 @@ export default async function DocsLayout({ children, params }: DocsLayoutProps) 
   }));
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="article-theme flex min-h-screen flex-col">
       <DocsTopbar tabs={tabs} locale={locale} docsLabel={t("label")} />
       <div className="flex-1">{children}</div>
       <Footer />

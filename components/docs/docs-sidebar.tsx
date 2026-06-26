@@ -84,16 +84,8 @@ export function DocsSidebar({
                           hover:bg-[var(--bg-tertiary)]
                           ${hasActive ? "text-[var(--accent-primary)]" : "text-[var(--text-secondary)]"}`}
             >
-              {/* 序号 badge */}
-              <span
-                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-[var(--radius-sm)] text-[10px] font-bold transition-colors duration-[var(--duration-fast)]
-                            ${hasActive ? "bg-[var(--accent-muted)] text-[var(--accent-primary)]" : "bg-[var(--bg-tertiary)] text-[var(--text-tertiary)] group-hover:bg-[var(--accent-muted)] group-hover:text-[var(--accent-primary)]"}`}
-              >
-                {chapter.sort < 9999 ? chapter.sort : "·"}
-              </span>
-
               {/* 章节名 */}
-              <span className="flex-1 text-left text-sm lg:text-xs font-semibold truncate">
+              <span className="flex-1 text-left text-sm lg:text-[13px] font-semibold truncate">
                 {chapter.title}
               </span>
 
@@ -119,7 +111,7 @@ export function DocsSidebar({
               }}
             >
               {/* 移动端：带左侧竖线的缩进容器；PC端：普通缩进 */}
-              <ul className="mt-1 space-y-0.5 pb-1 ml-3 lg:ml-0 border-l-2 lg:border-l-0 border-[var(--border-subtle)]">
+              <ul className="mt-1 space-y-0.5 pb-1 ml-3 lg:ml-2 border-l border-[var(--border-default)]">
                 {chapter.posts.map((post) => {
                   const isActive = post.slug === currentPostSlug;
                   return (
@@ -127,11 +119,11 @@ export function DocsSidebar({
                       <Link
                         href={`/docs/${setSlug}/${post.slug}`}
                         onClick={() => setMobileDrawerOpen(false)}
-                        className={`block rounded-[var(--radius-sm)] px-3 py-2.5 lg:px-1 lg:py-1.5 lg:pl-8 text-sm lg:text-xs leading-snug transition-colors duration-[var(--duration-fast)]
+                        className={`-ml-px block border-l rounded-r-[var(--radius-sm)] pl-4 pr-2 py-2.5 lg:py-1.5 text-sm lg:text-[13px] leading-snug transition-colors duration-[var(--duration-fast)]
                           ${
                             isActive
-                              ? "bg-[var(--accent-muted)] text-[var(--accent-primary)] font-medium"
-                              : "text-[var(--text-tertiary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+                              ? "border-[var(--accent-primary)] bg-[var(--accent-muted)] text-[var(--accent-primary)] font-medium"
+                              : "border-transparent text-[var(--text-tertiary)] hover:border-[var(--border-default)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
                           }`}
                       >
                         {post.title}

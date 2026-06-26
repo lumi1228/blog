@@ -101,7 +101,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
 
   /** 目录条目列表，PC 和移动端共用 */
   const tocList = (
-    <ul className="space-y-0.5">
+    <ul className="space-y-0.5 border-l border-[var(--border-default)]">
       {headings.map((heading) => {
         const isActive = activeId === heading.id;
 
@@ -110,29 +110,22 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
             <a
               href={`#${heading.id}`}
               onClick={(e) => handleClick(e, heading.id)}
-              className="group flex items-start gap-2 rounded-[var(--radius-sm)] py-1 pr-2 text-sm
+              className={`group -ml-px flex items-start border-l rounded-r-[var(--radius-sm)] py-1 pr-2 text-[13px]
                          transition-colors duration-[var(--duration-fast)] outline-none
-                         focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]"
+                         focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]
+                         ${
+                           isActive
+                             ? "border-[var(--accent-primary)]"
+                             : "border-transparent hover:border-[var(--border-default)]"
+                         }`}
               style={{
                 // 缩进：h1 无缩进，h2 缩进 12px，h3 缩进 24px
-                paddingLeft: `${(heading.level - 1) * 12 + 8}px`,
+                paddingLeft: `${(heading.level - 1) * 12 + 12}px`,
                 color: isActive
                   ? "var(--accent-primary)"
                   : "var(--text-tertiary)",
               }}
             >
-              {/* 激活状态左侧指示点 */}
-              <span
-                className="mt-[5px] h-1.5 w-1.5 shrink-0 rounded-full transition-all duration-[var(--duration-fast)]"
-                style={{
-                  background: isActive
-                    ? "var(--accent-primary)"
-                    : "var(--border-default)",
-                  boxShadow: isActive
-                    ? "0 0 6px var(--glow-primary)"
-                    : "none",
-                }}
-              />
               <span
                 className="leading-snug line-clamp-2 transition-colors duration-[var(--duration-fast)]
                            group-hover:text-[var(--text-primary)]"
@@ -140,6 +133,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
                   color: isActive
                     ? "var(--accent-primary)"
                     : "var(--text-tertiary)",
+                  fontWeight: isActive ? 500 : 400,
                 }}
               >
                 {heading.text}
@@ -158,21 +152,6 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
         aria-label="文章目录"
         className="hidden lg:block sticky top-24 w-[220px] shrink-0 self-start"
       >
-        {/* 标题 */}
-        <div className="mb-3 flex items-center gap-2">
-          {/* 装饰竖线 */}
-          <span
-            className="h-4 w-0.5 rounded-full"
-            style={{ background: "var(--accent-primary)" }}
-          />
-          <span
-            className="text-xs font-semibold uppercase tracking-widest"
-            style={{ color: "var(--text-tertiary)" }}
-          >
-            目录
-          </span>
-        </div>
-
         <nav>{tocList}</nav>
       </aside>
 
