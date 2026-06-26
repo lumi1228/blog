@@ -20,7 +20,7 @@ export function ColumnCard({ column, locale, index = 0 }: ColumnCardProps) {
 
   return (
     <Link
-      href={`/${locale}/columns/${column.slug}`}
+      href={`/${locale}/docs/${column.slug}`}
       className="group frosted-glass relative flex flex-col overflow-hidden rounded-[var(--radius-lg)] 
                  transition-all duration-[var(--duration-normal)]
                  hover:border-[var(--accent-primary)]/40 hover:shadow-[var(--shadow-glow-accent)]

@@ -335,7 +335,7 @@ function HomeContent({
               </div>
               {hasMoreColumns && (
                 <a
-                  href={`/${locale}/columns`}
+                  href={`/${locale}/docs`}
                   className="text-sm text-[var(--text-secondary)] transition-colors 
                              duration-[var(--duration-fast)] hover:text-[var(--accent-primary)]"
                 >

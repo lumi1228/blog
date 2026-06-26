@@ -11,16 +11,23 @@ interface Chapter {
   posts: (Post & { readingTime: number })[];
 }
 
-interface ColumnChaptersListProps {
-  columnSlug: string;
+interface DocsChaptersListProps {
+  /** 文档集 slug */
+  setSlug: string;
   chapters: Chapter[];
+  /** 空状态文案 */
+  emptyText: string;
 }
 
-export function ColumnChaptersList({
-  columnSlug,
+/**
+ * 文档集概览页的章节目录列表。
+ * 基于原 ColumnChaptersList，链接指向 /docs/[set]/[slug]。
+ */
+export function DocsChaptersList({
+  setSlug,
   chapters,
-}: ColumnChaptersListProps) {
-  // 默认全部展开
+  emptyText,
+}: DocsChaptersListProps) {
   const [expandedChapters, setExpandedChapters] = useState<
     Record<string, boolean>
   >(() => {
@@ -41,7 +48,7 @@ export function ColumnChaptersList({
   if (chapters.length === 0) {
     return (
       <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--border-default)] bg-[var(--bg-secondary)] px-8 py-16 text-center">
-        <p className="text-sm text-[var(--text-secondary)]">该专栏暂无文章</p>
+        <p className="text-sm text-[var(--text-secondary)]">{emptyText}</p>
       </div>
     );
   }
@@ -121,14 +128,14 @@ export function ColumnChaptersList({
 
                 {chapter.posts.length === 0 ? (
                   <p className="py-3 text-xs text-[var(--text-tertiary)] pl-9">
-                    暂无文章
+                    暂无内容
                   </p>
                 ) : (
                   <div className="space-y-0.5">
                     {chapter.posts.map((post, idx) => (
                       <Link
                         key={post.id}
-                        href={`/columns/${columnSlug}/${post.slug}`}
+                        href={`/docs/${setSlug}/${post.slug}`}
                         className="group flex items-center gap-3 rounded-[var(--radius-md)] px-3 py-2.5
                                    transition-colors duration-[var(--duration-fast)]
                                    hover:bg-[var(--bg-tertiary)]"

@@ -4,11 +4,15 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import type { ColumnChapter, Post } from "@/lib/types";
 
-interface ColumnSidebarProps {
-  columnSlug: string;
-  columnTitle: string;
+interface DocsSidebarProps {
+  /** 文档集 slug */
+  setSlug: string;
+  /** 文档集标题 */
+  setTitle: string;
   chapters: (ColumnChapter & { posts: Post[] })[];
   currentPostSlug: string;
+  /** 移动端抽屉标题文案（如「文档目录」） */
+  drawerLabel: string;
 }
 
 /** 判断某章节是否包含当前文章，用于初始化展开状态 */
@@ -19,23 +23,25 @@ function chapterHasActivePost(
   return chapter.posts.some((p) => p.slug === currentSlug);
 }
 
-export function ColumnSidebar({
-  columnSlug,
-  columnTitle,
+/**
+ * 文档详情页左侧常驻章节目录。
+ * 基于原 ColumnSidebar，链接指向 /docs/[set]/[slug]。
+ */
+export function DocsSidebar({
+  setSlug,
+  setTitle,
   chapters,
   currentPostSlug,
-}: ColumnSidebarProps) {
+  drawerLabel,
+}: DocsSidebarProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
-  // 每个章节独立的展开/收起状态
-  // 默认：包含当前文章的章节展开，其余展开（符合"默认展开"的需求）
   const [expandedChapters, setExpandedChapters] = useState<
     Record<string, boolean>
   >(() => {
     const initial: Record<string, boolean> = {};
     chapters.forEach((ch) => {
-      // 默认全部展开；当前活跃章节一定展开
       initial[ch.id] = true;
     });
     return initial;
@@ -118,7 +124,7 @@ export function ColumnSidebar({
                   return (
                     <li key={post.id}>
                       <Link
-                        href={`/columns/${columnSlug}/${post.slug}`}
+                        href={`/docs/${setSlug}/${post.slug}`}
                         onClick={() => setMobileDrawerOpen(false)}
                         className={`block rounded-[var(--radius-sm)] px-3 py-2.5 lg:px-1 lg:py-1.5 lg:pl-8 text-sm lg:text-xs leading-snug transition-colors duration-[var(--duration-fast)]
                           ${
@@ -142,75 +148,73 @@ export function ColumnSidebar({
 
   return (
     <>
-    <aside
-      className={`shrink-0 border-r border-[var(--border-subtle)] bg-[var(--bg-secondary)] transition-all duration-[var(--duration-normal)] ${
-        sidebarCollapsed ? "w-12" : "w-64"
-      } hidden lg:flex lg:flex-col lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:self-start`}
-    >
-      {/* 折叠侧边栏按钮 + 专栏标题 */}
-      <div className="flex shrink-0 items-center gap-2 border-b border-[var(--border-subtle)] px-3 py-3">
-        <button
-          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--radius-sm)] 
-                     text-[var(--text-tertiary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]
-                     transition-colors duration-[var(--duration-fast)]"
-          title={sidebarCollapsed ? "展开目录" : "收起目录"}
-        >
-          <svg
-            className={`h-4 w-4 transition-transform duration-[var(--duration-normal)] ${
-              sidebarCollapsed ? "rotate-180" : ""
-            }`}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
-            />
-          </svg>
-        </button>
-        {!sidebarCollapsed && (
-          <Link
-            href={`/columns/${columnSlug}`}
-            className="text-sm font-semibold text-[var(--text-primary)] truncate hover:text-[var(--accent-primary)] transition-colors"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            {columnTitle}
-          </Link>
-        )}
-      </div>
-
-      {/* 目录内容 */}
-      {!sidebarCollapsed && (
-        <nav className="flex-1 overflow-y-auto p-3">
-          {chapterList}
-        </nav>
-      )}
-
-      {/* 侧边栏收起时显示小图标 */}
-      {sidebarCollapsed && (
-        <div className="flex justify-center pt-4">
-          <Link
-            href={`/columns/${columnSlug}`}
-            className="flex h-6 w-6 items-center justify-center rounded-[var(--radius-sm)] 
-                       text-[var(--text-tertiary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--accent-primary)]
+      <aside
+        className={`shrink-0 border-r border-[var(--border-subtle)] bg-[var(--bg-secondary)] transition-all duration-[var(--duration-normal)] ${
+          sidebarCollapsed ? "w-12" : "w-64"
+        } hidden lg:flex lg:flex-col lg:sticky lg:top-[7.5rem] lg:h-[calc(100vh-7.5rem)] lg:self-start`}
+      >
+        {/* 折叠侧边栏按钮 + 文档集标题 */}
+        <div className="flex shrink-0 items-center gap-2 border-b border-[var(--border-subtle)] px-3 py-3">
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--radius-sm)]
+                       text-[var(--text-tertiary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]
                        transition-colors duration-[var(--duration-fast)]"
-            title={`返回 ${columnTitle}`}
+            title={sidebarCollapsed ? "展开目录" : "收起目录"}
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h8m-8 6h16" />
+            <svg
+              className={`h-4 w-4 transition-transform duration-[var(--duration-normal)] ${
+                sidebarCollapsed ? "rotate-180" : ""
+              }`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
+              />
             </svg>
-          </Link>
+          </button>
+          {!sidebarCollapsed && (
+            <Link
+              href={`/docs/${setSlug}`}
+              className="text-sm font-semibold text-[var(--text-primary)] truncate hover:text-[var(--accent-primary)] transition-colors"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              {setTitle}
+            </Link>
+          )}
         </div>
-      )}
-    </aside>
+
+        {/* 目录内容 */}
+        {!sidebarCollapsed && (
+          <nav className="flex-1 overflow-y-auto p-3">{chapterList}</nav>
+        )}
+
+        {/* 侧边栏收起时显示小图标 */}
+        {sidebarCollapsed && (
+          <div className="flex justify-center pt-4">
+            <Link
+              href={`/docs/${setSlug}`}
+              className="flex h-6 w-6 items-center justify-center rounded-[var(--radius-sm)]
+                         text-[var(--text-tertiary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--accent-primary)]
+                         transition-colors duration-[var(--duration-fast)]"
+              title={`返回 ${setTitle}`}
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h8m-8 6h16" />
+              </svg>
+            </Link>
+          </div>
+        )}
+      </aside>
 
       {/* ── 移动端悬浮按钮（lg 以下） ── */}
       <button
-        aria-label="打开专栏目录"
+        aria-label={drawerLabel}
         onClick={() => setMobileDrawerOpen(true)}
         className="lg:hidden fixed bottom-32 right-4 z-40 flex h-11 w-11 items-center justify-center
                    rounded-full shadow-lg border border-[var(--border-subtle)]
@@ -219,7 +223,7 @@ export function ColumnSidebar({
                    hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)]
                    active:scale-95"
       >
-        {/* 专栏目录 icon（书本形状） */}
+        {/* 文档目录 icon（书本形状） */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="18"
@@ -251,7 +255,7 @@ export function ColumnSidebar({
           <div
             role="dialog"
             aria-modal="true"
-            aria-label="专栏目录"
+            aria-label={drawerLabel}
             className="fixed bottom-0 left-0 right-0 z-50 max-h-[70vh]
                        overflow-y-auto rounded-t-2xl
                        bg-[var(--bg-primary)] border-t border-[var(--border-subtle)]
@@ -273,20 +277,22 @@ export function ColumnSidebar({
                     className="shrink-0 text-[10px] font-semibold uppercase tracking-widest"
                     style={{ color: "var(--text-tertiary)" }}
                   >
-                    专栏目录
+                    {drawerLabel}
                   </span>
-                  <span style={{ color: "var(--border-default)" }} className="shrink-0 text-[10px]">/</span>
+                  <span style={{ color: "var(--border-default)" }} className="shrink-0 text-[10px]">
+                    /
+                  </span>
                   <Link
-                    href={`/columns/${columnSlug}`}
+                    href={`/docs/${setSlug}`}
                     onClick={() => setMobileDrawerOpen(false)}
                     className="truncate text-xs font-semibold text-[var(--text-primary)] hover:text-[var(--accent-primary)] transition-colors"
                   >
-                    {columnTitle}
+                    {setTitle}
                   </Link>
                 </div>
               </div>
               <button
-                aria-label="关闭专栏目录"
+                aria-label="关闭"
                 onClick={() => setMobileDrawerOpen(false)}
                 className="flex h-7 w-7 items-center justify-center rounded-full
                            text-[var(--text-tertiary)] hover:text-[var(--text-primary)]

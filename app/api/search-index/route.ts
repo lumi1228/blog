@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { routing } from "@/i18n/routing";
-import { getSearchIndex } from "@/lib/db";
+import { getSearchIndex, getDocsSearchIndex } from "@/lib/db";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const locale = searchParams.get("locale");
+  const scope = searchParams.get("scope"); // "docs" | null（默认全站）
 
   // 校验 locale 参数是否在允许的 locales 列表中
   if (!locale || !(routing.locales as readonly string[]).includes(locale)) {
@@ -17,11 +18,15 @@ export async function GET(request: Request) {
   const validLocale = locale as "zh-CN" | "en";
 
   try {
-    const entries = await getSearchIndex(validLocale);
+    const entries =
+      scope === "docs"
+        ? await getDocsSearchIndex(validLocale)
+        : await getSearchIndex(validLocale);
 
     return NextResponse.json(
       {
         locale: validLocale,
+        scope: scope === "docs" ? "docs" : "site",
         generatedAt: new Date().toISOString(),
         entries,
       },

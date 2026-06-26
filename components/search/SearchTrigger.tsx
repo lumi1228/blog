@@ -19,13 +19,15 @@ const SearchModal = dynamic(
 
 interface SearchTriggerProps {
   locale: "zh-CN" | "en";
+  /** 搜索作用域：全站（默认）或仅文档 */
+  scope?: "site" | "docs";
 }
 
 // ============================================================
 // SearchTrigger 客户端组件
 // ============================================================
 
-export function SearchTrigger({ locale }: SearchTriggerProps) {
+export function SearchTrigger({ locale, scope = "site" }: SearchTriggerProps) {
   const t = useTranslations("nav");
 
   const [open, setOpen] = useState(false);
@@ -105,6 +107,7 @@ export function SearchTrigger({ locale }: SearchTriggerProps) {
           onClose={handleClose}
           returnFocusTo={triggerRef.current as HTMLElement | null}
           locale={locale}
+          scope={scope}
         />
       )}
     </>

@@ -75,6 +75,12 @@ export interface SearchIndexEntry {
   tags: string[];
   /** ISO 8601 发布时间 */
   publishedAt: string;
+  /**
+   * 可选的目标相对路径（不含 locale 前缀）。
+   * 文档作用域条目会带上 /docs/[set]/[slug]；普通文章为空，
+   * 由前端回退到 /posts/[slug]。
+   */
+  url?: string;
 }
 
 /**

@@ -5,7 +5,6 @@ import type {
   Category,
   Tag,
   Column,
-  ColumnChapter,
   ColumnDetail,
   SearchIndexEntry,
   SitemapPost,
@@ -380,6 +379,43 @@ export async function getSearchIndex(locale: "zh-CN" | "en"): Promise<SearchInde
     }));
 }
 
+/**
+ * 获取文档作用域的搜索索引（供文档子站搜索使用）。
+ * 与站点搜索相反：仅包含归属文档集（专栏）的文章，
+ * 并附带 /docs/[set]/[slug] 目标路径。
+ * en 时按 availableLocales 过滤。
+ */
+export async function getDocsSearchIndex(
+  locale: "zh-CN" | "en"
+): Promise<SearchIndexEntry[]> {
+  const columns = await getColumns(locale);
+
+  const entries: SearchIndexEntry[] = [];
+
+  for (const column of columns) {
+    const detail = await getColumnBySlug(column.slug, locale);
+    if (!detail) continue;
+
+    for (const chapter of detail.chapters) {
+      for (const post of chapter.posts) {
+        if (locale === "en" && !(post.availableLocales?.includes("en") ?? false)) {
+          continue;
+        }
+        entries.push({
+          slug: post.slug,
+          title: post.title,
+          excerpt: post.excerpt,
+          tags: post.tags.map((t) => t.name),
+          publishedAt: post.publishedAt,
+          url: `/docs/${column.slug}/${post.slug}`,
+        });
+      }
+    }
+  }
+
+  return entries;
+}
+
 // ============================================
 // Sitemap 专用查询
 // ============================================
@@ -421,6 +457,46 @@ export async function getAllCategoriesForSitemap(): Promise<SitemapCategoryOrTag
   }
 
   return data.map((row: any) => ({ slug: row.slug }));
+}
+
+/**
+ * 获取文档站所有路径（用于 sitemap）。
+ * 返回每个文档集（专栏）及其下文章的相对路径与可用语言。
+ */
+export async function getAllDocsForSitemap(): Promise<{
+  setSlug: string;
+  postSlugs: { slug: string; availableLocales: ("zh-CN" | "en")[]; updatedAt?: string }[];
+}[]> {
+  const columns = await getColumns("zh-CN");
+  const result: {
+    setSlug: string;
+    postSlugs: { slug: string; availableLocales: ("zh-CN" | "en")[]; updatedAt?: string }[];
+  }[] = [];
+
+  for (const column of columns) {
+    const detail = await getColumnBySlug(column.slug, "zh-CN");
+    if (!detail) continue;
+
+    const postSlugs: {
+      slug: string;
+      availableLocales: ("zh-CN" | "en")[];
+      updatedAt?: string;
+    }[] = [];
+
+    for (const chapter of detail.chapters) {
+      for (const post of chapter.posts) {
+        postSlugs.push({
+          slug: post.slug,
+          availableLocales: post.availableLocales ?? ["zh-CN"],
+          updatedAt: post.updatedAt,
+        });
+      }
+    }
+
+    result.push({ setSlug: column.slug, postSlugs });
+  }
+
+  return result;
 }
 
 /**

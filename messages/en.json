@@ -2,7 +2,8 @@
   "nav": {
     "home": "Home",
     "about": "About",
-    "search": "Search"
+    "search": "Search",
+    "docs": "Docs"
   },
   "home": {
     "badge": "Female Developer · Frontend Engineer",
@@ -11,12 +12,12 @@
     "description1": "Documenting tech explorations, design thinking, and growth.",
     "description2": "Build with code, express with design, preserve with words.",
     "startReading": "Start Reading",
-    "browseColumns": "Browse Columns",
+    "browseColumns": "Browse Docs",
     "latestArticles": "Latest Articles",
     "aboutMe": "About Me",
-    "featuredColumns": "Featured Columns",
+    "featuredColumns": "Featured Docs",
     "featuredColumnsDesc": "Structured content for deep learning",
-    "allColumns": "View All Columns",
+    "allColumns": "View All Docs",
     "exploreColumn": "Explore",
     "latestPosts": "Latest Posts",
     "totalPosts": "{count} posts",
@@ -91,5 +92,17 @@
     "noArticles": "No articles in this column yet",
     "articleCount": "{count} articles",
     "chapterArticleCount": "{count} articles"
+  },
+  "docs": {
+    "label": "Docs",
+    "title": "Documentation",
+    "subtitle": "A structured knowledge base of in-depth notes",
+    "empty": "No docs yet, stay tuned ✨",
+    "home": "Home",
+    "allDocs": "All Docs",
+    "backToDocs": "Back to Docs",
+    "noArticles": "No content in this doc set yet",
+    "articleCount": "{count} articles",
+    "totalArticles": "{count} articles"
   }
 }

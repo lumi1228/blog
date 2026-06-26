@@ -26,6 +26,8 @@ export interface SearchModalProps {
   onClose: () => void;
   returnFocusTo: HTMLElement | null;
   locale: "zh-CN" | "en";
+  /** 搜索作用域：全站（默认）或仅文档 */
+  scope?: "site" | "docs";
 }
 
 // ============================================================
@@ -51,7 +53,7 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 分钟
 export function renderResults(
   fuse: FuseInstance,
   query: string
-): { slug: string; title: string; excerptText: string; publishedAt: string }[] {
+): { slug: string; title: string; excerptText: string; publishedAt: string; url?: string }[] {
   return (fuse.search(query) as FuseResult<SearchIndexEntry>[])
     .slice(0, 20)
     .map((r) => ({
@@ -117,6 +119,7 @@ export function SearchModal({
   onClose,
   returnFocusTo,
   locale,
+  scope = "site",
 }: SearchModalProps) {
   const t = useTranslations("search");
   const router = useRouter();
@@ -144,8 +147,9 @@ export function SearchModal({
   // ============================================================
 
   const loadIndex = useCallback(async () => {
+    const cacheKey = `${locale}:${scope}`;
     // 5 分钟缓存命中
-    const cached = indexCache.get(locale);
+    const cached = indexCache.get(cacheKey);
     if (cached && Date.now() - cached.fetchedAt < CACHE_TTL) {
       const FuseModule = await import("fuse.js").catch(() => null);
       if (!FuseModule) {
@@ -171,7 +175,9 @@ export function SearchModal({
       // 并行动态加载 fuse.js 与 fetch 索引数据
       const [FuseModule, response] = await Promise.all([
         import("fuse.js"),
-        fetch(`/api/search-index?locale=${locale}`),
+        fetch(
+          `/api/search-index?locale=${locale}${scope === "docs" ? "&scope=docs" : ""}`
+        ),
       ]);
 
       if (!response.ok) {
@@ -182,7 +188,7 @@ export function SearchModal({
       const entries: SearchIndexEntry[] = json.entries ?? [];
 
       // 更新模块级缓存
-      indexCache.set(locale, { fetchedAt: Date.now(), data: entries });
+      indexCache.set(cacheKey, { fetchedAt: Date.now(), data: entries });
 
       const fuse = new FuseModule.default(entries, {
         keys: [
@@ -199,7 +205,7 @@ export function SearchModal({
       console.warn("[SearchModal] 索引加载失败:", err);
       setLoadState({ kind: "error" });
     }
-  }, [locale]);
+  }, [locale, scope]);
 
   // open 变为 true 时触发索引加载
   useEffect(() => {
@@ -270,8 +276,9 @@ export function SearchModal({
 
       if (e.key === "Enter" && activeIndex >= 0 && results[activeIndex]) {
         e.preventDefault();
-        const slug = results[activeIndex].slug;
-        router.push(localizedPath(locale, `/posts/${slug}`));
+        const target = results[activeIndex];
+        const path = target.url ?? `/posts/${target.slug}`;
+        router.push(localizedPath(locale, path));
         onClose();
         return;
       }
@@ -546,7 +553,7 @@ export function SearchModal({
                     aria-selected={isActive}
                     onClick={() => {
                       router.push(
-                        localizedPath(locale, `/posts/${item.slug}`)
+                        localizedPath(locale, item.url ?? `/posts/${item.slug}`)
                       );
                       onClose();
                     }}
