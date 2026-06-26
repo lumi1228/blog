@@ -43,7 +43,7 @@ const navItems = [
     ),
   },
   {
-    label: "专栏",
+    label: "知识库",
     href: "/admin/columns",
     icon: (
       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
