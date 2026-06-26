@@ -151,7 +151,7 @@ export function DocsSidebar({
       <aside
         className={`shrink-0 border-r border-[var(--border-subtle)] bg-[var(--bg-secondary)] transition-all duration-[var(--duration-normal)] ${
           sidebarCollapsed ? "w-12" : "w-64"
-        } hidden lg:flex lg:flex-col lg:sticky lg:top-[7.5rem] lg:h-[calc(100vh-7.5rem)] lg:self-start`}
+        } hidden lg:flex lg:flex-col lg:sticky lg:top-[3.5rem] lg:h-[calc(100vh-3.5rem)] lg:self-start`}
       >
         {/* 折叠侧边栏按钮 + 文档集标题 */}
         <div className="flex shrink-0 items-center gap-2 border-b border-[var(--border-subtle)] px-3 py-3">
