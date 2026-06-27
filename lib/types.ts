@@ -116,3 +116,56 @@ export interface SitemapPost {
 export interface SitemapCategoryOrTag {
   slug: string;
 }
+
+// ============================================
+// 简历模块（已按 locale 解析后的前端类型）
+// ============================================
+
+/** 简历基本信息 */
+export interface ResumeProfile {
+  avatar: string | null;
+  phone: string | null;
+  email: string | null;
+  blogUrl: string | null;
+  /** 姓名 */
+  name: string;
+  /** 证书 */
+  certificate: string | null;
+  /** 求职意向 */
+  jobIntention: string | null;
+  /** 毕业院校（整段） */
+  edu: string | null;
+}
+
+/** 专业技能条目 */
+export interface ResumeSkill {
+  id: string;
+  content: string;
+}
+
+/** 工作经历条目 */
+export interface ResumeExperience {
+  id: string;
+  period: string | null;
+  company: string;
+  role: string | null;
+  /** 要点列表（已按行拆分） */
+  highlights: string[];
+}
+
+/** 项目经验条目 */
+export interface ResumeProject {
+  id: string;
+  name: string;
+  summary: string | null;
+  /** 核心贡献列表（已按行拆分） */
+  contributions: string[];
+}
+
+/** 简历聚合数据 */
+export interface ResumeData {
+  profile: ResumeProfile | null;
+  skills: ResumeSkill[];
+  experiences: ResumeExperience[];
+  projects: ResumeProject[];
+}

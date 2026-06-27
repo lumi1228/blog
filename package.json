@@ -19,6 +19,8 @@
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.103.0",
     "fuse.js": "^7.3.0",
+    "html2canvas-pro": "^1.5.11",
+    "jspdf": "^2.5.2",
     "next": "16.2.3",
     "next-intl": "^4.12.0",
     "react": "19.2.4",

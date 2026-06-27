@@ -42,6 +42,16 @@ npm run test:e2e     # Playwright e2e tests
 
 ---
 
+## Environment Variables
+
+| Var | Scope | Purpose |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | client+server | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | client+server | Supabase anon/publishable key |
+| `SUPABASE_SERVICE_ROLE_KEY` | **server only** | service_role key; used by `createAdminClient` (resume unlock API). Never expose to client. |
+
+---
+
 ## Directory Responsibilities
 
 ```
@@ -51,7 +61,7 @@ npm run test:e2e     # Playwright e2e tests
 │   │   ├── page.tsx             # Homepage (post list)
 │   │   ├── layout.tsx           # Locale layout (navbar + footer)
 │   │   ├── not-found.tsx        # 404 page
-│   │   ├── about/               # About page
+│   │   ├── about/               # About page (intro + skills + collaboration + contact + 查看简历 entry)
 │   │   ├── category/[slug]/     # Category filtered post list
 │   │   ├── tag/[slug]/          # Tag filtered post list
 │   │   ├── posts/[slug]/        # Post detail (Markdown render + TOC + view counter)
@@ -61,7 +71,7 @@ npm run test:e2e     # Playwright e2e tests
 │   │       └── [set]/           # A doc set (= Column); [set] redirects to its first post, [set]/[slug] = detail
 │   ├── admin/                   # Admin dashboard (no locale prefix)
 │   │   ├── login/               # Admin login
-│   │   └── (dashboard)/         # Protected admin pages (posts, categories, tags, columns)
+│   │   └── (dashboard)/         # Protected admin pages (posts, categories, tags, columns, resume)
 │   ├── api/
 │   │   └── search-index/        # GET /api/search-index?locale=zh-CN  → SearchIndexResponse
 │   ├── layout.tsx               # Root layout (ThemeProvider, fonts)
@@ -84,6 +94,7 @@ npm run test:e2e     # Playwright e2e tests
 │   │   ├── sidebar.tsx
 │   │   ├── markdown-preview.tsx
 │   │   ├── delete-post-button.tsx
+│   │   ├── resume-manager.tsx   # Resume admin CRUD (4 tabs: basic info / skills / experiences / projects)
 │   │   └── toggle-status-button.tsx
 │   ├── docs/                    # Docs sub-site components (public)
 │   │   ├── docs-topbar.tsx      # Docs shell top bar (set tabs → first post, scoped search, theme/locale)
@@ -94,6 +105,7 @@ npm run test:e2e     # Playwright e2e tests
 │   ├── navbar-client.tsx        # Client navbar (theme toggle, mobile menu, locale switch)
 │   ├── footer.tsx
 │   ├── article-card.tsx         # Post card used on list pages
+│   ├── resume-modal.tsx         # About page: 查看简历 entry + 授权码门禁 + preview modal + PDF export (jsPDF + html2canvas-pro)
 │   ├── column-card.tsx          # Doc-set card on homepage featured section (links to /docs)
 │   ├── pagination.tsx
 │   ├── TableOfContents.tsx      # Floating TOC for post detail
@@ -184,6 +196,10 @@ npm run test:e2e     # Playwright e2e tests
 | Admin post editor | `components/admin/post-editor.tsx`, `app/admin/(dashboard)/` |
 | Admin categories/tags | `components/admin/category-manager.tsx`, `components/admin/tag-manager.tsx` |
 | Admin columns | `components/admin/columns-workspace.tsx` |
+| About page | `app/[locale]/about/page.tsx`, `config/about.ts`, `components/resume-modal.tsx` |
+| Resume (about modal + PDF) | `components/resume-modal.tsx`, `lib/db.ts → getResume(locale, client?)`; 授权码门禁，打开时探测门禁状态，数据不随页面下发 |
+| Resume unlock API | `app/api/resume/unlock/route.ts`（POST，读 `resume_settings.gate_enabled`：关→直接返回；开→校验 `resume_access_codes` 后用 `createAdminClient` 返回简历）|
+| Admin resume | `app/admin/(dashboard)/resume/page.tsx`, `components/admin/resume-manager.tsx`（5 个 Tab：基本信息/技能/经历/项目/访问控制）；证件照上传到 Storage bucket `resume`（public）；门禁开关与授权码存 `resume_settings`/`resume_access_codes` |
 | SEO / metadata | `lib/seo.ts`, `app/sitemap.ts`, `app/robots.ts` |
 | URL redirects | `next.config.ts → redirects()` (`/columns/*` → `/docs/*`, 301, both locales) |
 | i18n UI strings | `messages/zh-CN.json`, `messages/en.json` |
@@ -206,6 +222,11 @@ ColumnDetail  // extends Column + chapters: (ColumnChapter & { posts: Post[] })[
 ColumnWithFirstPost // extends Column + firstPostSlug: string | null (docs tabs / entry redirect)
 SearchIndexEntry   // slug, title, excerpt, tags[], publishedAt, url? (docs entries carry /docs/[set]/[slug])
 SearchIndexResponse // locale, generatedAt, entries[]
+ResumeProfile      // name, avatar, phone, email, blogUrl, certificate, jobIntention, edu (locale-resolved)
+ResumeSkill        // id, content
+ResumeExperience   // id, period, company, role, highlights[] (split from newline-separated text)
+ResumeProject      // id, name, summary, contributions[] (split from newline-separated text)
+ResumeData         // profile + skills[] + experiences[] + projects[] (returned by getResume)
 ```
 
 ---

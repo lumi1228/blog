@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   Post,
   Category,
@@ -10,6 +11,7 @@ import type {
   SearchIndexEntry,
   SitemapPost,
   SitemapCategoryOrTag,
+  ResumeData,
 } from "@/lib/types";
 
 /**
@@ -822,4 +824,97 @@ export async function getColumnAdjacentPosts(
     prev: prevData ? mapSimplePost(prevData) : null,
     next: nextData ? mapSimplePost(nextData) : null,
   };
+}
+
+// ============================================
+// 简历查询
+// ============================================
+
+/** 将多行文本按换行拆分为去空白的非空数组 */
+function splitLines(text: string | null | undefined): string[] {
+  if (!text) return [];
+  return text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+}
+
+/**
+ * 获取简历完整数据（基本信息 + 技能 + 工作经历 + 项目经验）。
+ * 按 locale 解析双语字段（en 缺失时回退 zh），要点字段按行拆分为数组。
+ * 供关于我页面简历弹框使用。
+ *
+ * @param supabase 可选的 Supabase 客户端；不传则使用受 RLS 限制的 cookie 客户端。
+ *                 简历表已收紧 RLS，前台解锁接口需传入 service_role 客户端（createAdminClient）。
+ */
+export async function getResume(
+  locale: Locale = "zh-CN",
+  supabase?: SupabaseClient
+): Promise<ResumeData> {
+  const sb = supabase ?? (await getSupabase());
+  const isZh = locale === "zh-CN";
+  const pick = (zh: string | null, en: string | null) =>
+    isZh ? zh : en || zh;
+
+  const [profileRes, skillsRes, expRes, projRes] = await Promise.all([
+    sb
+      .from("resume_profile")
+      .select(
+        "avatar, phone, email, blog_url, name_zh, name_en, certificate_zh, certificate_en, job_intention_zh, job_intention_en, edu_zh, edu_en"
+      )
+      .limit(1)
+      .maybeSingle(),
+    sb
+      .from("resume_skills")
+      .select("id, content_zh, content_en")
+      .order("sort", { ascending: true }),
+    sb
+      .from("resume_experiences")
+      .select(
+        "id, period, company_zh, company_en, role_zh, role_en, highlights_zh, highlights_en"
+      )
+      .order("sort", { ascending: true }),
+    sb
+      .from("resume_projects")
+      .select(
+        "id, name_zh, name_en, summary_zh, summary_en, contributions_zh, contributions_en"
+      )
+      .order("sort", { ascending: true }),
+  ]);
+
+  const p = profileRes.data as any;
+  const profile = p
+    ? {
+        avatar: p.avatar ?? null,
+        phone: p.phone ?? null,
+        email: p.email ?? null,
+        blogUrl: p.blog_url ?? null,
+        name: pick(p.name_zh, p.name_en) ?? "",
+        certificate: pick(p.certificate_zh, p.certificate_en) ?? null,
+        jobIntention: pick(p.job_intention_zh, p.job_intention_en) ?? null,
+        edu: pick(p.edu_zh, p.edu_en) ?? null,
+      }
+    : null;
+
+  const skills = (skillsRes.data || []).map((row: any) => ({
+    id: row.id,
+    content: pick(row.content_zh, row.content_en) ?? "",
+  }));
+
+  const experiences = (expRes.data || []).map((row: any) => ({
+    id: row.id,
+    period: row.period ?? null,
+    company: pick(row.company_zh, row.company_en) ?? "",
+    role: pick(row.role_zh, row.role_en) ?? null,
+    highlights: splitLines(pick(row.highlights_zh, row.highlights_en)),
+  }));
+
+  const projects = (projRes.data || []).map((row: any) => ({
+    id: row.id,
+    name: pick(row.name_zh, row.name_en) ?? "",
+    summary: pick(row.summary_zh, row.summary_en) ?? null,
+    contributions: splitLines(pick(row.contributions_zh, row.contributions_en)),
+  }));
+
+  return { profile, skills, experiences, projects };
 }

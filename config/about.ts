@@ -15,16 +15,18 @@ export const aboutConfig = {
     chineseName: "娄女士",
   },
 
-  intro: [
-    "你好，我是 lumi，也可以叫我小咸菜，中文名娄女士。",
-    "我长期深耕前端开发，关注用户体验、工程质量和业务落地。从页面交互、组件体系到复杂系统的前端架构，都有持续的实践和积累。",
-    "近几年，我将能力重心拓展到 Next.js 全栈开发，覆盖服务端渲染、数据获取、SEO 优化到完整项目交付。最近也在深入探索 AI Coding，通过 AI 辅助开发和智能工作流，把想法更快、更稳地落到真实项目中。",
-    "这个空间记录我的技术思考和实践心得，也希望能与你一起探索更好的开发方式。",
-  ],
+  bio: "你好，我是 lumi，也可以叫我小咸菜。专注用工程化的方式构建可维护的产品，也在持续探索 AI 驱动的开发方式。",
+
+  highlights: [
+    { icon: "experience", title: "多年前端经验", desc: "从组件交互到复杂系统的前端架构" },
+    { icon: "domain", title: "金融 · 财税 · 技术中台", desc: "深耕 B/C 端复杂业务领域" },
+    { icon: "stack", title: "Next.js 全栈", desc: "由 Vue 全家桶拓展到全栈交付" },
+    { icon: "ai", title: "AI Coding", desc: "用 AI 辅助开发与智能工作流提效" },
+  ] as { icon: "experience" | "domain" | "stack" | "ai"; title: string; desc: string }[],
 
   skills: {
     "前端深耕": {
-      description: "长期专注前端开发，熟悉现代前端技术栈、组件化架构与复杂交互实现。",
+      description: "多年前端实战，历经金融、财税、技术中台等复杂业务，熟悉现代前端技术栈、组件化架构与复杂交互实现。",
       tags: ["React", "Vue", "TypeScript", "Component Design", "Performance"],
     },
     "Next.js 全栈": {
@@ -69,6 +71,12 @@ export const aboutConfig = {
 
   social: [
     { label: "GitHub", href: "https://github.com/lumi1228", handle: "@lumi1228" },
-    { label: "邮箱", href: "mailto:lumiya1228@gmail.com", handle: "lumiya1228@gmail.com" },
   ],
+
+  // 邮箱拆分存储，由客户端组件点击后拼接，避免明文邮箱出现在静态 HTML 中被爬虫采集
+  contactEmail: {
+    label: "邮箱",
+    user: "lumiya1228",
+    domain: "gmail.com",
+  },
 };

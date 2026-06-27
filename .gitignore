@@ -42,3 +42,6 @@ next-env.d.ts
 
 .docs/
 .kiro/
+
+# 本地数据库种子（含个人隐私信息，禁止提交）
+supabase/*.local.sql

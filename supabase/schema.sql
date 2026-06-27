@@ -312,3 +312,153 @@ BEGIN
   UPDATE posts SET view_count = view_count + 1 WHERE id = post_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ============================================
+-- 12. 简历模块（关于我页面 / 后台维护）
+-- ============================================
+
+-- 12.1 简历基本信息（单例表，仅一行）
+CREATE TABLE IF NOT EXISTS resume_profile (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  avatar TEXT,                       -- 证件照 URL
+  phone TEXT,
+  email TEXT,
+  blog_url TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  -- 多语言字段
+  name_zh TEXT NOT NULL,
+  name_en TEXT,
+  certificate_zh TEXT,
+  certificate_en TEXT,
+  job_intention_zh TEXT,
+  job_intention_en TEXT,
+  edu_zh TEXT,                       -- 毕业院校整段，如「统招本科，YYYY.MM-YYYY.MM，XX 大学，XX 专业」
+  edu_en TEXT
+);
+
+-- 12.2 专业技能
+CREATE TABLE IF NOT EXISTS resume_skills (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  sort INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  content_zh TEXT NOT NULL,
+  content_en TEXT
+);
+
+-- 12.3 工作经历
+CREATE TABLE IF NOT EXISTS resume_experiences (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  sort INTEGER DEFAULT 0,
+  period TEXT,                       -- 如「2021.09-至今」
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  company_zh TEXT NOT NULL,
+  company_en TEXT,
+  role_zh TEXT,
+  role_en TEXT,
+  highlights_zh TEXT,                -- 要点，按换行符分隔，每行一条
+  highlights_en TEXT
+);
+
+-- 12.4 项目经验
+CREATE TABLE IF NOT EXISTS resume_projects (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  sort INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  name_zh TEXT NOT NULL,
+  name_en TEXT,
+  summary_zh TEXT,
+  summary_en TEXT,
+  contributions_zh TEXT,             -- 核心贡献，按换行符分隔，每行一条
+  contributions_en TEXT
+);
+
+-- 索引
+CREATE INDEX IF NOT EXISTS idx_resume_skills_sort ON resume_skills(sort);
+CREATE INDEX IF NOT EXISTS idx_resume_experiences_sort ON resume_experiences(sort);
+CREATE INDEX IF NOT EXISTS idx_resume_projects_sort ON resume_projects(sort);
+
+-- 自动更新 updated_at
+CREATE TRIGGER resume_profile_updated_at
+  BEFORE UPDATE ON resume_profile
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+-- RLS
+ALTER TABLE resume_profile ENABLE ROW LEVEL SECURITY;
+ALTER TABLE resume_skills ENABLE ROW LEVEL SECURITY;
+ALTER TABLE resume_experiences ENABLE ROW LEVEL SECURITY;
+ALTER TABLE resume_projects ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "管理员完全访问简历基本信息" ON resume_profile FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "管理员完全访问简历技能" ON resume_skills FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "管理员完全访问简历工作经历" ON resume_experiences FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "管理员完全访问简历项目经验" ON resume_projects FOR ALL USING (auth.role() = 'authenticated');
+-- 说明：简历表「不」开放公开 SELECT —— 前台简历预览受授权码门禁保护，
+-- 由服务端接口 /api/resume/unlock 使用 service_role 客户端读取（绕过 RLS）。
+-- 因此匿名用户无法直接查询简历表，避免电话/邮箱等信息被绕过门禁获取。
+
+-- 若你之前已执行过含「公开读取简历…」策略的旧版本，请在 Supabase SQL Editor 执行以下语句移除公开读：
+--   DROP POLICY IF EXISTS "公开读取简历基本信息" ON resume_profile;
+--   DROP POLICY IF EXISTS "公开读取简历技能" ON resume_skills;
+--   DROP POLICY IF EXISTS "公开读取简历工作经历" ON resume_experiences;
+--   DROP POLICY IF EXISTS "公开读取简历项目经验" ON resume_projects;
+
+-- ============================================
+-- 12.5 证件照存储（Supabase Storage 公开 bucket）
+-- ============================================
+-- 证件照不再放代码仓库，改为后台上传到 Storage，resume_profile.avatar 存公开 URL。
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('resume', 'resume', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- 允许已认证用户（后台）上传/更新/删除 resume bucket 内对象；公开可读由 bucket public=true 提供。
+CREATE POLICY "管理员上传简历资源" ON storage.objects
+  FOR INSERT TO authenticated WITH CHECK (bucket_id = 'resume');
+CREATE POLICY "管理员更新简历资源" ON storage.objects
+  FOR UPDATE TO authenticated USING (bucket_id = 'resume');
+CREATE POLICY "管理员删除简历资源" ON storage.objects
+  FOR DELETE TO authenticated USING (bucket_id = 'resume');
+
+-- ============================================
+-- 12.6 简历访问控制（门禁开关 + 授权码，后台维护）
+-- ============================================
+-- 门禁总开关（单例）：true = 需授权码才能查看简历；false = 简历公开直接可看。
+CREATE TABLE IF NOT EXISTS resume_settings (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  gate_enabled BOOLEAN NOT NULL DEFAULT true,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 授权码（明文存储，仅后台可读写）：可设备注、到期日（空=长期）、单条启停。
+CREATE TABLE IF NOT EXISTS resume_access_codes (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  code TEXT NOT NULL,
+  label TEXT,
+  expires_at TIMESTAMPTZ,          -- 空 = 长期有效
+  enabled BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_resume_access_codes_enabled ON resume_access_codes(enabled);
+
+-- 默认插入一行门禁设置（默认开启门禁）
+INSERT INTO resume_settings (gate_enabled)
+SELECT true
+WHERE NOT EXISTS (SELECT 1 FROM resume_settings);
+
+ALTER TABLE resume_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE resume_access_codes ENABLE ROW LEVEL SECURITY;
+
+-- 仅认证用户（后台）可读写；前台不开放，解锁接口用 service_role 读取。
+CREATE POLICY "管理员访问简历门禁设置" ON resume_settings
+  FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "管理员访问简历授权码" ON resume_access_codes
+  FOR ALL USING (auth.role() = 'authenticated');
+
+-- ============================================
+-- 13. 简历初始数据
+-- ============================================
+-- 简历初始数据含个人隐私信息，不在此脚本中维护。
+-- 现网数据已写入数据库，日常通过后台「/admin/resume」编辑即可。
+-- 如需在新环境初始化，可在后台手动录入，或临时编写本地 seed（注意勿提交个人信息到 Git）。

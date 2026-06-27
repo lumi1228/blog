@@ -3,6 +3,8 @@ import { useTranslations } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
+import { ResumeModal } from "@/components/resume-modal";
+import { EmailContact } from "@/components/email-contact";
 import { aboutConfig } from "@/config/about";
 import { buildAlternates, SITE_NAME } from "@/lib/seo";
 
@@ -138,15 +140,68 @@ function AboutContent() {
               <p className="max-w-2xl text-lg leading-relaxed text-[var(--text-secondary)] animate-fade-in-up stagger-4">
                 {aboutConfig.tagline}
               </p>
+
+              {/* 查看简历入口 */}
+              <div className="mt-8 animate-fade-in-up stagger-5">
+                <ResumeModal />
+              </div>
             </div>
           </div>
         </section>
 
         {/* 内容区域 */}
         <div className="mx-auto max-w-[1100px] space-y-20 px-6 py-16 sm:py-24">
+          {/* 关于我 - 自我介绍 */}
+          <section>
+            <SectionTitle number="01" title={t("sectionAbout")} />
+            <p className="mx-auto max-w-2xl text-center text-base leading-relaxed text-[var(--text-secondary)] sm:text-lg">
+              {aboutConfig.bio}
+            </p>
+            <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {aboutConfig.highlights.map((item, index) => (
+                <div
+                  key={item.title}
+                  className="frosted-glass group relative overflow-hidden rounded-[var(--radius-lg)] p-5
+                             transition-all duration-[var(--duration-normal)]
+                             hover:border-[var(--accent-primary)]/40 hover:shadow-[var(--shadow-glow-accent)]
+                             animate-fade-in-up"
+                  style={{ animationDelay: `${index * 80}ms` }}
+                >
+                  <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-[var(--radius-md)]
+                                  bg-[var(--accent-muted)] text-[var(--accent-primary)]
+                                  border border-[var(--accent-primary)]/20
+                                  transition-all duration-[var(--duration-normal)]
+                                  group-hover:bg-[var(--accent-primary)] group-hover:text-[var(--bg-primary)]
+                                  group-hover:scale-110">
+                    <HighlightIcon name={item.icon} />
+                  </div>
+                  <h3
+                    className="mb-1.5 text-base font-bold leading-snug text-[var(--text-primary)]
+                               transition-colors duration-[var(--duration-fast)]
+                               group-hover:text-[var(--accent-primary)]"
+                    style={{ fontFamily: "var(--font-display)" }}
+                  >
+                    {item.title}
+                  </h3>
+                  <p className="text-sm leading-relaxed text-[var(--text-secondary)]">
+                    {item.desc}
+                  </p>
+                  <div
+                    className="absolute bottom-0 left-5 right-5 h-[2px] origin-left scale-x-0
+                               transition-transform duration-[var(--duration-normal)]
+                               group-hover:scale-x-100"
+                    style={{
+                      background: "linear-gradient(to right, var(--accent-primary), var(--accent-secondary), transparent)",
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
+
           {/* 技能矩阵 - 冰晶卡片 */}
           <section>
-            <SectionTitle number="01" title={t("sectionSkills")} />
+            <SectionTitle number="02" title={t("sectionSkills")} />
             <div className="grid gap-5 sm:grid-cols-2">
               {Object.entries(aboutConfig.skills).map(([category, data], index) => (
                 <div
@@ -206,7 +261,7 @@ function AboutContent() {
 
           {/* 合作服务 - 极光图标卡片 */}
           <section>
-            <SectionTitle number="02" title={t("sectionCollaboration")} />
+            <SectionTitle number="03" title={t("sectionCollaboration")} />
             <p className="mb-8 text-center text-base leading-relaxed text-[var(--text-secondary)] max-w-3xl mx-auto">
               {aboutConfig.collaboration.intro}
             </p>
@@ -276,7 +331,7 @@ function AboutContent() {
 
           {/* 联系方式 - 冰晶悬浮卡片 */}
           <section>
-            <SectionTitle number="03" title={t("sectionContact")} />
+            <SectionTitle number="04" title={t("sectionContact")} />
             <div className="grid gap-4 sm:grid-cols-2">
               {aboutConfig.social.map((item, index) => (
                 <a
@@ -326,6 +381,14 @@ function AboutContent() {
                   />
                 </a>
               ))}
+
+              {/* 邮箱：点击显示，防爬 */}
+              <EmailContact
+                label={aboutConfig.contactEmail.label}
+                user={aboutConfig.contactEmail.user}
+                domain={aboutConfig.contactEmail.domain}
+                delay={aboutConfig.social.length * 100}
+              />
             </div>
           </section>
         </div>
@@ -359,4 +422,41 @@ function SectionTitle({ number, title }: { number: string; title: string }) {
       />
     </div>
   );
+}
+
+function HighlightIcon({ name }: { name: "experience" | "domain" | "stack" | "ai" }) {
+  const common = {
+    className: "h-5 w-5",
+    fill: "none",
+    viewBox: "0 0 24 24",
+    stroke: "currentColor",
+    strokeWidth: 2,
+    "aria-hidden": true,
+  } as const;
+  switch (name) {
+    case "experience": // 经验 / 时间
+      return (
+        <svg {...common}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" />
+        </svg>
+      );
+    case "domain": // 领域 / 行业
+      return (
+        <svg {...common}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+        </svg>
+      );
+    case "stack": // 技术栈
+      return (
+        <svg {...common}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6.429 9.75L2.25 12l4.179 2.25m0-4.5l5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0l4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0l-5.571 3-5.571-3" />
+        </svg>
+      );
+    case "ai": // AI 探索
+      return (
+        <svg {...common}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
+        </svg>
+      );
+  }
 }

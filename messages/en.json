@@ -1,7 +1,7 @@
 {
   "nav": {
     "home": "Home",
-    "about": "About",
+    "about": "About Me",
     "search": "Search",
     "docs": "Knowledge Base"
   },
@@ -53,7 +53,36 @@
     "sectionAbout": "About Me",
     "sectionSkills": "Skills & Core Strengths",
     "sectionCollaboration": "Work With Me",
-    "sectionContact": "Contact"
+    "sectionContact": "Contact",
+    "viewResume": "View Resume",
+    "revealEmail": "Click to reveal email"
+  },
+  "resume": {
+    "title": "My Resume",
+    "export": "Export PDF",
+    "exporting": "Exporting...",
+    "exportError": "Failed to export PDF, please try again",
+    "close": "Close",
+    "lockTitle": "Resume is locked",
+    "lockDesc": "Enter the access code to view the full resume",
+    "codePlaceholder": "Enter access code",
+    "unlock": "Unlock",
+    "unlocking": "Verifying...",
+    "wrongCode": "Invalid or expired access code",
+    "tooMany": "Too many attempts, please try again later",
+    "sectionBasic": "Basic Info",
+    "sectionSkills": "Professional Skills",
+    "sectionExperience": "Work Experience",
+    "sectionProjects": "Project Experience",
+    "labelName": "Name",
+    "labelPhone": "Phone",
+    "labelEmail": "Email",
+    "labelBlog": "Blog",
+    "labelCertificate": "Certificate",
+    "labelJobIntention": "Objective",
+    "labelEdu": "Education",
+    "projectSummary": "Overview",
+    "projectContributions": "Key Contributions"
   },
   "common": {
     "home": "Home",

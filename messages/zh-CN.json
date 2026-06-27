@@ -1,7 +1,7 @@
 {
   "nav": {
     "home": "首页",
-    "about": "关于",
+    "about": "关于我",
     "search": "搜索",
     "docs": "知识库"
   },
@@ -53,7 +53,36 @@
     "sectionAbout": "关于我",
     "sectionSkills": "技能与核心竞争力",
     "sectionCollaboration": "与我合作",
-    "sectionContact": "联系我"
+    "sectionContact": "联系我",
+    "viewResume": "查看简历",
+    "revealEmail": "点击显示邮箱"
+  },
+  "resume": {
+    "title": "我的简历",
+    "export": "导出 PDF",
+    "exporting": "导出中...",
+    "exportError": "导出 PDF 失败，请重试",
+    "close": "关闭",
+    "lockTitle": "简历已加密",
+    "lockDesc": "请输入授权码查看完整简历",
+    "codePlaceholder": "请输入授权码",
+    "unlock": "解锁查看",
+    "unlocking": "校验中...",
+    "wrongCode": "授权码无效或已过期",
+    "tooMany": "尝试次数过多，请稍后再试",
+    "sectionBasic": "基本信息",
+    "sectionSkills": "专业技能",
+    "sectionExperience": "工作经历",
+    "sectionProjects": "项目经验",
+    "labelName": "姓名",
+    "labelPhone": "电话",
+    "labelEmail": "邮箱",
+    "labelBlog": "博客",
+    "labelCertificate": "证书",
+    "labelJobIntention": "求职意向",
+    "labelEdu": "毕业院校",
+    "projectSummary": "项目简介",
+    "projectContributions": "核心贡献与价值"
   },
   "common": {
     "home": "首页",
