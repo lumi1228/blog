@@ -176,12 +176,11 @@ function DocsPostContent({
         drawerLabel={t.drawerLabel}
       />
 
-      {/* 右侧文章内容区 */}
-      <main className="flex-1 min-w-0">
-        {/* 内层双栏：文章主体 + 右侧 TOC */}
-        <div className="flex flex-col lg:flex-row lg:items-start lg:gap-10 px-6 py-12 sm:py-16">
-          {/* ── 文章主体 ── */}
-          <article className="min-w-0 flex-1 lg:max-w-[46rem]">
+      {/* 中间文章内容区：填满左侧章节目录与右侧 TOC 之间的空间 */}
+      <main className="min-w-0 flex-1">
+        <div className="px-6 py-12 sm:py-16">
+          {/* ── 文章主体：限制最大阅读宽度并在中间区域水平居中 ── */}
+          <article className="mx-auto w-full min-w-0 max-w-[56rem]">
             {/* JSON-LD */}
             <script
               type="application/ld+json"
@@ -319,11 +318,11 @@ function DocsPostContent({
               )}
             </nav>
           </article>
-
-          {/* ── 右侧文章 TOC ── */}
-          <TableOfContents headings={headings} />
         </div>
       </main>
+
+      {/* ── 右侧文章 TOC（固定宽度，常驻；xl 以下转为右下浮层） ── */}
+      <TableOfContents headings={headings} />
     </div>
   );
 }

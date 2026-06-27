@@ -147,19 +147,19 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
 
   return (
     <>
-      {/* ── PC 端侧边栏（lg+） ── */}
+      {/* ── PC 端侧边栏（xl+，固定宽度） ── */}
       <aside
         aria-label="文章目录"
-        className="hidden lg:block sticky top-24 w-[220px] shrink-0 self-start"
+        className="hidden xl:block sticky top-24 w-[15rem] shrink-0 self-start"
       >
         <nav>{tocList}</nav>
       </aside>
 
-      {/* ── 移动端悬浮按钮（lg 以下） ── */}
+      {/* ── 移动端悬浮按钮（xl 以下） ── */}
       <button
         aria-label="打开目录"
         onClick={() => setDrawerOpen(true)}
-        className="lg:hidden fixed bottom-20 right-4 z-40 flex h-11 w-11 items-center justify-center
+        className="xl:hidden fixed bottom-20 right-4 z-40 flex h-11 w-11 items-center justify-center
                    rounded-full shadow-lg border border-[var(--border-subtle)]
                    bg-[var(--bg-secondary)] text-[var(--text-secondary)]
                    transition-all duration-[var(--duration-fast)]
@@ -185,9 +185,9 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
         </svg>
       </button>
 
-      {/* ── 移动端底部抽屉（lg 以下） ── */}
+      {/* ── 移动端底部抽屉（xl 以下） ── */}
       {drawerOpen && (
-        <div className="lg:hidden">
+        <div className="xl:hidden">
           {/* 遮罩 */}
           <div
             className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"

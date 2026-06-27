@@ -146,12 +146,17 @@ function PostContent({ post, prev, next, headings, jsonLd, translations }: PostC
 
       <main className="article-theme flex-1">
         {/* 外层容器：居中 + 水平 padding */}
-        <div className="mx-auto max-w-[1200px] px-6 py-12 sm:py-16">
-          {/* 双栏布局：文章主体 + 右侧 TOC */}
-          <div className="flex flex-col lg:flex-row lg:items-start lg:gap-10">
+        <div className="mx-auto max-w-[1400px] px-6 py-12 sm:py-16">
+          {/* 三栏布局：左留白(固定) + 文章主体(中间) + 右侧 TOC(固定)。
+              主站无左侧目录，用与 TOC 等宽的留白栏对称，使主体在视口中真正居中。
+              xl 以下回退为单列：主体 mx-auto 居中，TOC 转为右下浮层。 */}
+          <div className="xl:flex xl:items-start xl:justify-center xl:gap-10">
 
-            {/* ── 文章主体 ── */}
-            <article className="min-w-0 flex-1 lg:max-w-[46rem]">
+            {/* 左侧留白栏：与右侧 TOC 等宽，平衡居中（仅 xl+） */}
+            <div className="hidden xl:block xl:w-[15rem] xl:shrink-0" aria-hidden="true" />
+
+            {/* ── 文章主体（中间，最大阅读宽度，水平居中） ── */}
+            <article className="mx-auto w-full min-w-0 max-w-[56rem] xl:mx-0">
               {/* JSON-LD 结构化数据 */}
               <script
                 type="application/ld+json"
