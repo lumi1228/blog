@@ -16,7 +16,7 @@ export async function Navbar() {
       href: `/category/${cat.slug}`,
       label: cat.name,
     })),
-    { type: "link", href: "/docs", label: t("docs") },
+    { type: "link", href: "/docs", label: t("docs"), external: true },
     { type: "link", href: "/about", label: t("about") },
   ];
 

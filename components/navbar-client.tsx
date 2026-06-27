@@ -10,6 +10,8 @@ export interface NavItem {
   type: "link";
   href: string;
   label: string;
+  /** 为 true 时在新标签页打开（如知识库） */
+  external?: boolean;
 }
 
 interface NavbarClientProps {
@@ -27,30 +29,49 @@ export function NavbarClient({ navItems, locale }: NavbarClientProps) {
     router.replace(pathname, { locale: nextLocale });
   };
 
-  const renderDesktopItem = (item: NavItem) => (
-    <Link
-      key={item.href}
-      href={item.href}
-      className="relative px-3 py-2 text-sm font-medium text-[var(--text-secondary)] 
-                 transition-colors duration-[var(--duration-fast)]
-                 hover:text-[var(--text-primary)]"
-    >
-      {item.label}
-    </Link>
-  );
+  // 判断导航项是否为当前激活页：首页精确匹配，其他路径前缀匹配
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href);
 
-  const renderMobileItem = (item: NavItem) => (
-    <Link
-      key={item.href}
-      href={item.href}
-      className="rounded-[var(--radius-md)] px-3 py-2.5 text-sm font-medium 
-                 text-[var(--text-secondary)] transition-colors duration-[var(--duration-fast)]
-                 hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
-      onClick={() => setMobileMenuOpen(false)}
-    >
-      {item.label}
-    </Link>
-  );
+  const renderDesktopItem = (item: NavItem) => {
+    const active = isActive(item.href);
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+        className={`relative px-3 py-2 text-sm transition-colors duration-[var(--duration-fast)]
+                   ${
+                     active
+                       ? "font-semibold text-[var(--text-primary)]"
+                       : "font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                   }`}
+      >
+        {item.label}
+      </Link>
+    );
+  };
+
+  const renderMobileItem = (item: NavItem) => {
+    const active = isActive(item.href);
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+        className={`rounded-[var(--radius-md)] px-3 py-2.5 text-sm font-medium
+                   transition-colors duration-[var(--duration-fast)]
+                   ${
+                     active
+                       ? "bg-[var(--accent-muted)] text-[var(--accent-primary)]"
+                       : "text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+                   }`}
+        onClick={() => setMobileMenuOpen(false)}
+      >
+        {item.label}
+      </Link>
+    );
+  };
 
   return (
     <header
