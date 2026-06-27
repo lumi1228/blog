@@ -82,7 +82,7 @@ export function DocsSidebar({
               className={`group w-full flex items-center gap-2 rounded-[var(--radius-sm)] px-2 py-2 lg:px-1 lg:py-1.5
                           transition-colors duration-[var(--duration-fast)]
                           hover:bg-[var(--bg-tertiary)]
-                          ${hasActive ? "text-[var(--accent-primary)]" : "text-[var(--text-secondary)]"}`}
+                          text-[var(--text-secondary)]`}
             >
               {/* 章节名 */}
               <span className="flex-1 text-left text-sm lg:text-[13px] font-semibold truncate">
