@@ -139,7 +139,7 @@ function BasicInfoForm({ profile }: { profile: ProfileRow | null }) {
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((p) => ({ ...p, [k]: e.target.value }));
 
-  // 上传证件照到 Supabase Storage（public bucket: resume），回填公开 URL
+  // 上传证件照：经服务端接口（service_role）上传到 Storage，回填公开 URL
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = ""; // 允许重复选择同一文件
@@ -153,20 +153,22 @@ function BasicInfoForm({ profile }: { profile: ProfileRow | null }) {
       return;
     }
     setUploading(true);
-    const supabase = createClient();
-    const ext = file.name.split(".").pop() || "png";
-    const path = `avatar-${Date.now()}.${ext}`;
-    const { error } = await supabase.storage
-      .from("resume")
-      .upload(path, file, { upsert: true, contentType: file.type });
-    if (error) {
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/admin/upload-avatar", { method: "POST", body: fd });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert("上传失败：" + (data.error || res.status));
+        return;
+      }
+      const { url } = await res.json();
+      setForm((p) => ({ ...p, avatar: url }));
+    } catch (err) {
+      alert("上传失败：" + (err instanceof Error ? err.message : String(err)));
+    } finally {
       setUploading(false);
-      alert("上传失败：" + error.message);
-      return;
     }
-    const { data } = supabase.storage.from("resume").getPublicUrl(path);
-    setForm((p) => ({ ...p, avatar: data.publicUrl }));
-    setUploading(false);
   };
 
   const handleSave = async () => {
