@@ -462,3 +462,10 @@ CREATE POLICY "管理员访问简历授权码" ON resume_access_codes
 -- 简历初始数据含个人隐私信息，不在此脚本中维护。
 -- 现网数据已写入数据库，日常通过后台「/admin/resume」编辑即可。
 -- 如需在新环境初始化，可在后台手动录入，或临时编写本地 seed（注意勿提交个人信息到 Git）。
+
+-- ============================================
+-- 14. 主站头像池（详见 migration-site-avatars.sql）
+-- ============================================
+-- 在 Supabase Dashboard SQL Editor 额外执行 supabase/migration-site-avatars.sql。
+-- 功能：site_avatars 表 + avatars Storage bucket，主页/关于页随机展示。
+-- 与简历证件照（resume_profile.avatar）完全独立：独立 bucket、独立后台入口。

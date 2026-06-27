@@ -20,6 +20,15 @@ interface ProfileRow {
   edu_zh: string | null;
   edu_en: string | null;
 }
+
+/** 主站头像池条目（admin 原始行） */
+interface SiteAvatarRow {
+  id: string;
+  url: string;
+  label: string | null;
+  enabled: boolean;
+  created_at: string;
+}
 interface SkillRow {
   id: string;
   sort: number;
@@ -67,13 +76,14 @@ interface ResumeManagerProps {
   projects: ProjRow[];
   settings: SettingsRow | null;
   codes: CodeRow[];
+  siteAvatars: SiteAvatarRow[];
 }
 
 const inputCls =
   "w-full rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:outline-none";
 const labelCls = "mb-1 block text-xs text-[var(--text-tertiary)]";
 
-type Tab = "basic" | "skills" | "experiences" | "projects" | "access";
+type Tab = "basic" | "skills" | "experiences" | "projects" | "access" | "avatars";
 
 const TABS: { key: Tab; label: string }[] = [
   { key: "basic", label: "基本信息" },
@@ -81,9 +91,10 @@ const TABS: { key: Tab; label: string }[] = [
   { key: "experiences", label: "工作经历" },
   { key: "projects", label: "项目经验" },
   { key: "access", label: "访问控制" },
+  { key: "avatars", label: "主站头像" },
 ];
 
-export function ResumeManager({ profile, skills, experiences, projects, settings, codes }: ResumeManagerProps) {
+export function ResumeManager({ profile, skills, experiences, projects, settings, codes, siteAvatars }: ResumeManagerProps) {
   const [tab, setTab] = useState<Tab>("basic");
 
   return (
@@ -110,6 +121,7 @@ export function ResumeManager({ profile, skills, experiences, projects, settings
       {tab === "experiences" && <ExperiencesSection experiences={experiences} />}
       {tab === "projects" && <ProjectsSection projects={projects} />}
       {tab === "access" && <AccessControlSection settings={settings} codes={codes} />}
+      {tab === "avatars" && <SiteAvatarsSection siteAvatars={siteAvatars} />}
     </div>
   );
 }
@@ -966,4 +978,160 @@ function RowActions({ onEdit, onDelete, sort }: { onEdit: () => void; onDelete: 
 
 function EmptyRow() {
   return <li className="px-4 py-6 text-center text-sm text-[var(--text-tertiary)]">暂无数据，点击上方按钮新增</li>;
+}
+
+// ============================================
+// 主站头像
+// ============================================
+function SiteAvatarsSection({ siteAvatars }: { siteAvatars: SiteAvatarRow[] }) {
+  const router = useRouter();
+  const [uploading, setUploading] = useState(false);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      alert("请选择图片文件");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert("图片不能超过 5MB");
+      return;
+    }
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/admin/upload-site-avatar", { method: "POST", body: fd });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert("上传失败：" + (data.error || res.status));
+        return;
+      }
+      const { url } = await res.json();
+      const supabase = createClient();
+      const { error } = await supabase.from("site_avatars").insert({ url, enabled: true });
+      if (error) {
+        alert("保存失败：" + error.message);
+        return;
+      }
+      router.refresh();
+    } catch (err) {
+      alert("上传失败：" + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const toggleEnabled = async (row: SiteAvatarRow) => {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("site_avatars")
+      .update({ enabled: !row.enabled })
+      .eq("id", row.id);
+    if (error) {
+      alert("操作失败：" + error.message);
+      return;
+    }
+    router.refresh();
+  };
+
+  const remove = async (row: SiteAvatarRow) => {
+    if (!confirm("确定删除该头像吗？Storage 中的文件不会自动清理。")) return;
+    const supabase = createClient();
+    const { error } = await supabase.from("site_avatars").delete().eq("id", row.id);
+    if (error) {
+      alert("删除失败：" + error.message);
+      return;
+    }
+    router.refresh();
+  };
+
+  const enabledCount = siteAvatars.filter((a) => a.enabled).length;
+
+  return (
+    <div className="space-y-5">
+      {/* 说明栏 */}
+      <div className="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-secondary)] p-5">
+        <div className="mb-1 text-sm font-semibold text-[var(--text-primary)]">主站头像池</div>
+        <p className="text-xs text-[var(--text-tertiary)]">
+          上传多张头像后，主页和关于页每次加载时会随机展示其中一张已启用的头像。
+          当前已启用{" "}
+          <span className="font-medium text-[var(--text-primary)]">{enabledCount}</span> 张
+          / 共 <span className="font-medium text-[var(--text-primary)]">{siteAvatars.length}</span> 张。
+          与简历证件照独立存储，互不影响。
+        </p>
+      </div>
+
+      {/* 空状态 */}
+      {siteAvatars.length === 0 && (
+        <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--border-default)] px-8 py-12 text-center">
+          <p className="text-sm text-[var(--text-tertiary)]">暂无头像，点击下方按钮上传第一张</p>
+        </div>
+      )}
+
+      {/* 头像网格 */}
+      {siteAvatars.length > 0 && (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+          {siteAvatars.map((item) => (
+            <div
+              key={item.id}
+              className={`relative overflow-hidden rounded-[var(--radius-lg)] border bg-[var(--bg-secondary)] ${
+                item.enabled
+                  ? "border-[var(--accent-primary)]/30"
+                  : "border-[var(--border-subtle)] opacity-60"
+              }`}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={item.url}
+                alt={item.label || "主站头像"}
+                className="aspect-square w-full object-cover"
+              />
+              {/* 启用状态角标 */}
+              <div className="absolute right-2 top-2">
+                {item.enabled ? (
+                  <span className="rounded-full bg-[var(--success)]/90 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                    启用
+                  </span>
+                ) : (
+                  <span className="rounded-full bg-[var(--bg-tertiary)]/90 px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-tertiary)]">
+                    停用
+                  </span>
+                )}
+              </div>
+              {/* 操作栏 */}
+              <div className="space-y-1.5 p-2">
+                <div className="truncate text-xs text-[var(--text-tertiary)]">{item.label || "—"}</div>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => toggleEnabled(item)}
+                    className="flex-1 rounded-[var(--radius-sm)] bg-[var(--bg-tertiary)] px-2 py-1 text-xs text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+                  >
+                    {item.enabled ? "停用" : "启用"}
+                  </button>
+                  <button
+                    onClick={() => remove(item)}
+                    className="rounded-[var(--radius-sm)] px-2 py-1 text-xs text-[var(--error)] transition-colors hover:bg-[var(--error)]/10"
+                  >
+                    删除
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 上传按钮 */}
+      <label className="inline-flex cursor-pointer items-center gap-2 rounded-[var(--radius-md)] bg-[var(--accent-primary)] px-4 py-2 text-sm font-medium text-[var(--bg-primary)] transition-all duration-[var(--duration-fast)] hover:shadow-[var(--shadow-glow-accent)]">
+        <input type="file" accept="image/*" onChange={handleUpload} disabled={uploading} className="hidden" />
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        {uploading ? "上传中..." : "上传头像"}
+      </label>
+    </div>
+  );
 }

@@ -6,6 +6,7 @@ import { Footer } from "@/components/footer";
 import { ResumeModal } from "@/components/resume-modal";
 import { EmailContact } from "@/components/email-contact";
 import { aboutConfig } from "@/config/about";
+import { getRandomSiteAvatar } from "@/lib/db";
 import { buildAlternates, SITE_NAME } from "@/lib/seo";
 
 interface PageProps {
@@ -42,10 +43,13 @@ export default async function AboutPage({ params }: PageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  return <AboutContent />;
+  // 随机获取一张主站头像（每次请求独立随机）
+  const siteAvatar = await getRandomSiteAvatar();
+
+  return <AboutContent siteAvatar={siteAvatar} />;
 }
 
-function AboutContent() {
+function AboutContent({ siteAvatar }: { siteAvatar: string | null }) {
   const t = useTranslations("about");
 
   return (
@@ -83,11 +87,11 @@ function AboutContent() {
                     boxShadow: "0 0 40px var(--glow-primary)",
                   }}
                 >
-                  {aboutConfig.avatar ? (
+                  {siteAvatar ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={aboutConfig.avatar}
-                      alt={aboutConfig.name}
+                      src={siteAvatar}
+                      alt="头像"
                       className="h-full w-full rounded-[var(--radius-full)] object-cover"
                     />
                   ) : (

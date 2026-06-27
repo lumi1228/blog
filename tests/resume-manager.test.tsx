@@ -32,6 +32,7 @@ const baseProps = {
   projects: [],
   settings: { id: "s1", gate_enabled: true },
   codes: [],
+  siteAvatars: [],
 };
 
 describe("ResumeManager", () => {

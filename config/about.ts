@@ -1,13 +1,15 @@
 /**
  * About 页面配置
  * 后续可迁移到数据库或后台编辑
+ *
+ * 注意：头像（avatar）已迁移至数据库 site_avatars 表，通过后台「主站头像」Tab 管理，
+ * 不再在此配置文件中维护。
  */
 
 export const aboutConfig = {
   name: "lumi",
   title: "前端工程师 · Next.js 全栈实践者 · AI Coding 探索者",
   tagline: "用代码把想法变成现实，用 AI 让开发更高效。",
-  avatar: "/avatar.png",
 
   profile: {
     englishName: "lumi",

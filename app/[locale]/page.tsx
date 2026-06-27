@@ -6,10 +6,9 @@ import { Footer } from "@/components/footer";
 import { ArticleCard } from "@/components/article-card";
 import { ColumnCard } from "@/components/column-card";
 import { Pagination } from "@/components/pagination";
-import { getPosts, getColumns } from "@/lib/db";
+import { getPosts, getColumns, getRandomSiteAvatar } from "@/lib/db";
 import { buildAlternates } from "@/lib/seo";
 import type { Locale } from "@/i18n/config";
-import { aboutConfig } from "@/config/about";
 import Image from "next/image";
 
 const PAGE_SIZE = 10;
@@ -71,6 +70,9 @@ export default async function HomePage({ params, searchParams }: PageProps) {
   const allColumns = await getColumns(locale as Locale);
   const featuredColumns = allColumns.slice(0, FEATURED_COLUMNS_COUNT);
 
+  // 随机获取一张主站头像（每次请求独立随机）
+  const siteAvatar = await getRandomSiteAvatar();
+
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
@@ -82,6 +84,7 @@ export default async function HomePage({ params, searchParams }: PageProps) {
       locale={locale}
       currentPage={currentPage}
       totalPages={totalPages}
+      siteAvatar={siteAvatar}
     />
   );
 }
@@ -94,6 +97,7 @@ function HomeContent({
   locale,
   currentPage,
   totalPages,
+  siteAvatar,
 }: {
   posts: any[];
   total: number;
@@ -102,6 +106,7 @@ function HomeContent({
   locale: string;
   currentPage: number;
   totalPages: number;
+  siteAvatar: string | null;
 }) {
   const t = useTranslations();
 
@@ -234,7 +239,7 @@ function HomeContent({
             </div>
 
             {/* 右侧：头像艺术装置 */}
-            {aboutConfig.avatar && (
+            {siteAvatar && (
               <div className="flex justify-center lg:justify-end">
                 <div className="relative h-[400px] w-[400px] lg:h-[600px] lg:w-[600px]">
                   {/* 背景光晕圈 - 最外层 (移动端亮色模式完全隐藏) */}
@@ -267,8 +272,8 @@ function HomeContent({
                   {/* 主头像 - 保留原色的半透明效果 */}
                   <div className="absolute inset-[28%] rounded-full overflow-hidden">
                     <Image
-                      src={aboutConfig.avatar}
-                      alt={aboutConfig.name}
+                      src={siteAvatar}
+                      alt="头像"
                       fill
                       className="object-cover opacity-[0.35] dark:opacity-[0.42]"
                       style={{

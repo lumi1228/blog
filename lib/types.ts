@@ -169,3 +169,16 @@ export interface ResumeData {
   experiences: ResumeExperience[];
   projects: ResumeProject[];
 }
+
+// ============================================
+// 主站头像池（主页 & 关于页随机展示，与简历证件照完全独立）
+// ============================================
+
+/** 主站头像池条目 */
+export interface SiteAvatar {
+  id: string;
+  url: string;
+  label: string | null;
+  enabled: boolean;
+  createdAt: string;
+}

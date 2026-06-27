@@ -12,6 +12,7 @@ import type {
   SitemapPost,
   SitemapCategoryOrTag,
   ResumeData,
+  SiteAvatar,
 } from "@/lib/types";
 
 /**
@@ -917,4 +918,31 @@ export async function getResume(
   }));
 
   return { profile, skills, experiences, projects };
+}
+
+// ============================================
+// 主站头像查询
+// ============================================
+
+/**
+ * 随机获取一张已启用的主站头像 URL。
+ *
+ * 供主页、关于页服务端渲染使用，每次请求独立随机选取（JS 层随机，无持久缓存）。
+ * getSupabase() 内部调用 cookies()，使所在路由自动进入动态渲染，
+ * 确保每次请求都重新选取，不会被 Next.js 静态化缓存。
+ *
+ * 返回 null 表示 site_avatars 表内无可用头像（未配置 / 全部停用）。
+ */
+export async function getRandomSiteAvatar(): Promise<string | null> {
+  const supabase = await getSupabase();
+
+  const { data, error } = await supabase
+    .from("site_avatars")
+    .select("url")
+    .eq("enabled", true);
+
+  if (error || !data || data.length === 0) return null;
+
+  const idx = Math.floor(Math.random() * data.length);
+  return (data[idx] as Pick<SiteAvatar, "url">).url;
 }
