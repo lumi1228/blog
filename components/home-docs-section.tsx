@@ -81,16 +81,7 @@ export function HomeDocsSection({
             </p>
           </div>
 
-          {(hasMore || count > 0) && (
-            <Link
-              href={`/${locale}/docs`}
-              className="flex-shrink-0 text-sm font-medium text-[var(--text-secondary)]
-                         transition-colors duration-[var(--duration-fast)]
-                         hover:text-[var(--accent-primary)]"
-            >
-              {t("home.docsSection.exploreAll")} →
-            </Link>
-          )}
+
         </div>
       </div>
 
@@ -123,37 +114,45 @@ export function HomeDocsSection({
             </p>
           </div>
         ) : count < 3 ? (
-          /* 1–2 个：居中 + 装饰留白 */
-          <div className="flex h-full min-h-[260px] flex-col items-center justify-center gap-8 py-6">
-            <div className="flex w-full flex-wrap justify-center gap-5">
+          /* 1–2 个：上方卡片 + 下方特色区填充空白 */
+          <div className="flex h-full min-h-[300px] flex-col gap-0 py-4">
+            {/* 卡片行 */}
+            <div className="flex flex-wrap justify-center gap-5">
               {columns.map((column, index) => (
                 <DocsCard
                   key={column.id}
                   column={column}
                   locale={locale}
                   index={index}
-                  className="max-w-[400px] w-full"
+                  className="max-w-[460px] w-full"
                 />
               ))}
             </div>
-            <Link
-              href={`/${locale}/docs`}
-              className="inline-flex items-center gap-1.5 text-sm text-[var(--text-tertiary)]
-                         transition-colors duration-[var(--duration-fast)]
-                         hover:text-[var(--accent-primary)]"
-            >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-                aria-hidden="true"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
-              {t("home.docsSection.startExplore")}
-            </Link>
+
+            {/* 填充区：视觉特色条 */}
+            <div className="flex-1 flex flex-col items-center justify-center gap-5 py-8">
+              {/* 分隔线 + 引言 */}
+              <div className="flex items-center gap-4 w-full max-w-[560px]">
+                <div className="flex-1 h-px bg-gradient-to-r from-transparent to-[var(--accent-primary)]/25" />
+                <span className="text-xs tracking-widest text-[var(--text-tertiary)] uppercase px-2">
+                  {t("home.docsSection.subtitle")}
+                </span>
+                <div className="flex-1 h-px bg-gradient-to-l from-transparent to-[var(--accent-primary)]/25" />
+              </div>
+              {/* 特色标签 */}
+              <div className="flex flex-wrap justify-center gap-3">
+                {["系统化学习路径", "深度技术笔记", "持续迭代更新"].map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-[var(--radius-full)] border border-[var(--border-default)]
+                               bg-[var(--bg-secondary)]/40 px-4 py-1.5 text-xs text-[var(--text-tertiary)]
+                               backdrop-blur-sm"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         ) : (
           /* 3 个：grid 撑满高度 */
@@ -185,7 +184,7 @@ export function HomeDocsSection({
                        hover:bg-[var(--accent-primary)] hover:text-[var(--bg-primary)]
                        hover:border-transparent hover:shadow-[0_0_20px_var(--glow-primary)]"
           >
-            {t("home.docsSection.startExplore")}
+            {t("home.docsSection.exploreAll")}
             <svg
               className="h-3.5 w-3.5"
               fill="none"

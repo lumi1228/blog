@@ -67,17 +67,6 @@ export function HomeBlogSection({ posts, total, locale }: HomeBlogSectionProps) 
               </span>
             )}
           </div>
-
-          {total > 0 && (
-            <Link
-              href={`/${locale}/blog`}
-              className="flex-shrink-0 text-sm font-medium text-[var(--text-secondary)]
-                         transition-colors duration-[var(--duration-fast)]
-                         hover:text-[var(--accent-primary)]"
-            >
-              {t("home.blogSection.viewAll")} →
-            </Link>
-          )}
         </div>
       </div>
 
@@ -136,10 +125,7 @@ export function HomeBlogSection({ posts, total, locale }: HomeBlogSectionProps) 
 
       {/* Zone 3：CTA Footer */}
       <div className="relative mx-auto w-full max-w-[1200px] flex-shrink-0 border-t border-[var(--border-subtle)] px-6 py-5">
-        <div className="flex items-center justify-between gap-4">
-          <span className="text-xs text-[var(--text-tertiary)]">
-            {t("home.blogSection.totalCount", { count: total })}
-          </span>
+        <div className="flex items-center justify-end">
           <Link
             href={`/${locale}/blog`}
             className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)]
