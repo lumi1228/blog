@@ -1,26 +1,51 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { usePathname, useRouter } from "@/i18n/routing";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SearchTrigger } from "@/components/search/SearchTrigger";
 
-export interface NavItem {
-  type: "link";
+// ----------------------------------------
+// 类型定义
+// ----------------------------------------
+
+export interface NavDropdownChild {
   href: string;
   label: string;
-  /** 为 true 时在新标签页打开（如知识库） */
-  external?: boolean;
 }
+
+export type NavItem =
+  | {
+      type: "link";
+      href: string;
+      label: string;
+      external?: boolean;
+    }
+  | {
+      type: "dropdown";
+      label: string;
+      children: NavDropdownChild[];
+    };
 
 interface NavbarClientProps {
   navItems: NavItem[];
   locale: string;
 }
 
+// ----------------------------------------
+// 组件
+// ----------------------------------------
+
 export function NavbarClient({ navItems, locale }: NavbarClientProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // 当前展开的桌面端 dropdown label
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  // 移动端展开的 dropdown label
+  const [openMobileDropdown, setOpenMobileDropdown] = useState<string | null>(null);
+  // 用于延迟关闭桌面 dropdown
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const pathname = usePathname();
   const router = useRouter();
 
@@ -29,12 +54,36 @@ export function NavbarClient({ navItems, locale }: NavbarClientProps) {
     router.replace(pathname, { locale: nextLocale });
   };
 
-  // 判断导航项是否为当前激活页：首页精确匹配，其他路径前缀匹配
-  const isActive = (href: string) =>
+  // ---- 激活判断 ----
+
+  /** 普通链接激活：首页精确，其他前缀 */
+  const isLinkActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
-  const renderDesktopItem = (item: NavItem) => {
-    const active = isActive(item.href);
+  /** dropdown 激活：任一子项路径匹配时为 true */
+  const isDropdownActive = (children: NavDropdownChild[]) =>
+    children.some((child) => pathname.startsWith(child.href));
+
+  // ---- 桌面端 dropdown 交互 ----
+
+  const handleMouseEnter = (label: string) => {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+    setOpenDropdown(label);
+  };
+
+  const handleMouseLeave = () => {
+    closeTimer.current = setTimeout(() => {
+      setOpenDropdown(null);
+    }, 150);
+  };
+
+  // ---- 渲染：桌面端普通链接 ----
+
+  const renderDesktopLink = (item: Extract<NavItem, { type: "link" }>) => {
+    const active = isLinkActive(item.href);
     return (
       <Link
         key={item.href}
@@ -52,8 +101,83 @@ export function NavbarClient({ navItems, locale }: NavbarClientProps) {
     );
   };
 
-  const renderMobileItem = (item: NavItem) => {
-    const active = isActive(item.href);
+  // ---- 渲染：桌面端 dropdown ----
+
+  const renderDesktopDropdown = (item: Extract<NavItem, { type: "dropdown" }>) => {
+    const active = isDropdownActive(item.children);
+    const isOpen = openDropdown === item.label;
+
+    return (
+      <div
+        key={item.label}
+        className="relative"
+        onMouseEnter={() => handleMouseEnter(item.label)}
+        onMouseLeave={handleMouseLeave}
+      >
+        {/* 触发按钮 */}
+        <button
+          className={`flex items-center gap-1 px-3 py-2 text-sm transition-colors duration-[var(--duration-fast)]
+                     ${
+                       active
+                         ? "font-semibold text-[var(--text-primary)]"
+                         : "font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                     }`}
+          aria-haspopup="true"
+          aria-expanded={isOpen}
+        >
+          {item.label}
+          {/* 下拉箭头 */}
+          <svg
+            className={`h-3.5 w-3.5 transition-transform duration-[var(--duration-fast)]
+                       ${isOpen ? "rotate-180" : "rotate-0"}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2.5}
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {/* 下拉面板 */}
+        {isOpen && (
+          <div
+            className="absolute left-0 top-full z-50 mt-1 min-w-[120px] overflow-hidden
+                       rounded-[var(--radius-lg)] border border-[var(--border-subtle)]
+                       bg-[var(--bg-primary)] py-1 shadow-lg
+                       animate-fade-in"
+            role="menu"
+          >
+            {item.children.map((child) => {
+              const childActive = pathname.startsWith(child.href);
+              return (
+                <Link
+                  key={child.href}
+                  href={child.href}
+                  role="menuitem"
+                  className={`block px-4 py-2 text-sm transition-colors duration-[var(--duration-fast)]
+                             ${
+                               childActive
+                                 ? "bg-[var(--accent-muted)] font-medium text-[var(--accent-primary)]"
+                                 : "text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+                             }`}
+                  onClick={() => setOpenDropdown(null)}
+                >
+                  {child.label}
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // ---- 渲染：移动端普通链接 ----
+
+  const renderMobileLink = (item: Extract<NavItem, { type: "link" }>) => {
+    const active = isLinkActive(item.href);
     return (
       <Link
         key={item.href}
@@ -72,6 +196,88 @@ export function NavbarClient({ navItems, locale }: NavbarClientProps) {
       </Link>
     );
   };
+
+  // ---- 渲染：移动端 dropdown ----
+
+  const renderMobileDropdown = (item: Extract<NavItem, { type: "dropdown" }>) => {
+    const active = isDropdownActive(item.children);
+    const isOpen = openMobileDropdown === item.label;
+
+    return (
+      <div key={item.label}>
+        {/* 触发行 */}
+        <button
+          className={`flex w-full items-center justify-between rounded-[var(--radius-md)]
+                     px-3 py-2.5 text-sm font-medium
+                     transition-colors duration-[var(--duration-fast)]
+                     ${
+                       active
+                         ? "bg-[var(--accent-muted)] text-[var(--accent-primary)]"
+                         : "text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+                     }`}
+          onClick={() =>
+            setOpenMobileDropdown(isOpen ? null : item.label)
+          }
+          aria-expanded={isOpen}
+        >
+          <span>{item.label}</span>
+          <svg
+            className={`h-4 w-4 transition-transform duration-[var(--duration-fast)]
+                       ${isOpen ? "rotate-180" : "rotate-0"}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2.5}
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {/* 子项列表（inline 展开） */}
+        {isOpen && (
+          <div className="mt-1 flex flex-col gap-0.5 pl-3">
+            {item.children.map((child) => {
+              const childActive = pathname.startsWith(child.href);
+              return (
+                <Link
+                  key={child.href}
+                  href={child.href}
+                  className={`rounded-[var(--radius-md)] px-3 py-2 text-sm
+                             transition-colors duration-[var(--duration-fast)]
+                             ${
+                               childActive
+                                 ? "font-medium text-[var(--accent-primary)]"
+                                 : "text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
+                             }`}
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setOpenMobileDropdown(null);
+                  }}
+                >
+                  {child.label}
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // ---- 统一渲染入口 ----
+
+  const renderDesktopItem = (item: NavItem) => {
+    if (item.type === "dropdown") return renderDesktopDropdown(item);
+    return renderDesktopLink(item);
+  };
+
+  const renderMobileItem = (item: NavItem) => {
+    if (item.type === "dropdown") return renderMobileDropdown(item);
+    return renderMobileLink(item);
+  };
+
+  // ---- JSX ----
 
   return (
     <header
@@ -111,6 +317,7 @@ export function NavbarClient({ navItems, locale }: NavbarClientProps) {
 
           <ThemeToggle />
 
+          {/* 移动端汉堡按钮 */}
           <button
             className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)]
                        text-[var(--text-secondary)] transition-all duration-[var(--duration-fast)]

@@ -8,14 +8,17 @@ export async function Navbar() {
   const t = await getTranslations("nav");
   const categories = await getCategories(locale as "zh-CN" | "en");
 
-  // 顺序即渲染顺序：首页 → 分类 → 文档 → 关于
+  // 顺序即渲染顺序：首页 → 博客（下拉：各分类） → 知识库 → 关于
   const navItems: NavItem[] = [
     { type: "link", href: "/", label: t("home") },
-    ...categories.map((cat) => ({
-      type: "link" as const,
-      href: `/category/${cat.slug}`,
-      label: cat.name,
-    })),
+    {
+      type: "dropdown",
+      label: t("blog"),
+      children: categories.map((cat) => ({
+        href: `/category/${cat.slug}`,
+        label: cat.name,
+      })),
+    },
     { type: "link", href: "/docs", label: t("docs"), external: true },
     { type: "link", href: "/about", label: t("about") },
   ];
