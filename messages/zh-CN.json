@@ -53,7 +53,9 @@
     "title": "博客",
     "subtitle": "记录技术探索、设计思考与成长感悟",
     "totalPosts": "共 {count} 篇文章",
-    "noPosts": "还没有发布文章，敬请期待 ✨"
+    "noPosts": "还没有发布文章，敬请期待 ✨",
+    "allTab": "全部",
+    "tabsAriaLabel": "博客分类切换"
   },
   "post": {
     "readMore": "阅读全文",

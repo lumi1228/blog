@@ -53,7 +53,9 @@
     "title": "Blog",
     "subtitle": "Tech explorations, design thinking, and growth",
     "totalPosts": "{count} posts total",
-    "noPosts": "No posts yet, stay tuned ✨"
+    "noPosts": "No posts yet, stay tuned ✨",
+    "allTab": "All",
+    "tabsAriaLabel": "Filter posts by category"
   },
   "post": {
     "readMore": "Read More",

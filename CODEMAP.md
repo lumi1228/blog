@@ -64,7 +64,8 @@ npm run test:e2e     # Playwright e2e tests
 │   │   ├── layout.tsx           # Locale layout (navbar + footer)
 │   │   ├── not-found.tsx        # 404 page
 │   │   ├── about/               # About page (intro + skills + collaboration + contact + 查看简历 entry)
-│   │   ├── category/[slug]/     # Category filtered post list
+│   │   ├── blog/                # Unified blog list (全部 tab) — paginated, shares BlogListView
+│   │   ├── category/[slug]/     # Category filtered post list (shares BlogListView, category tab active)
 │   │   ├── tag/[slug]/          # Tag filtered post list
 │   │   ├── posts/[slug]/        # Post detail (Markdown render + TOC + view counter)
 │   │   └── docs/                # Docs knowledge-base sub-site (replaces former /columns)
@@ -108,6 +109,8 @@ npm run test:e2e     # Playwright e2e tests
 │   ├── navbar-client.tsx        # Client navbar (theme toggle, mobile menu, locale switch)
 │   ├── footer.tsx
 │   ├── article-card.tsx         # Post card used on list pages
+│   ├── blog-list-view.tsx       # 博客列表共享视图（头部 + Tab 栏 + ArticleCard 网格 + 分页 + 空状态），/blog 与 /category/[slug] 共用
+│   ├── blog-tabs.tsx            # 博客列表顶部 Tab 栏（全部→/blog，分类→/category/[slug]，真实链接 + aria-current 高亮）
 │   ├── cover-hero.tsx           # 文章详情页封面 Hero 头部（封面作标题背景 + 暗色蒙版保证文字可读）
 │   ├── resume-modal.tsx         # About page: 查看简历 entry + 授权码门禁 + preview modal + PDF export (jsPDF + html2canvas-pro)
 │   ├── column-card.tsx          # Doc-set card on homepage featured section (links to /docs)
@@ -190,10 +193,11 @@ npm run test:e2e     # Playwright e2e tests
 |---|---|
 | Modify navbar | `components/navbar.tsx`, `components/navbar-client.tsx` |
 | Change homepage layout | `app/[locale]/page.tsx`, `components/article-card.tsx` |
+| Blog list (统一列表 + Tab) | `app/[locale]/blog/page.tsx`（全部）、`app/[locale]/category/[slug]/page.tsx`（单分类）共用 `components/blog-list-view.tsx` + `components/blog-tabs.tsx`；均分页（`?page=`，PAGE_SIZE=10），Tab 真实路由跳转。导航「博客」父级 → `/blog`，下拉仅列分类 |
 | Post detail page | `app/[locale]/posts/[slug]/page.tsx`, `components/TableOfContents.tsx`, `components/view-counter.tsx` |
 | Markdown rendering | `components/markdown/`, `lib/markdown/shiki.ts` |
 | Search feature | `components/search/`, `app/api/search-index/` (supports `?scope=docs`) |
-| Categories | `app/[locale]/category/[slug]/page.tsx`, `lib/db.ts → getCategories` |
+| Categories | `app/[locale]/category/[slug]/page.tsx`（复用 `BlogListView`）, `lib/db.ts → getCategories` |
 | Tags | `app/[locale]/tag/[slug]/page.tsx`, `lib/db.ts → getTags` |
 | Docs sub-site (= Columns) | `app/[locale]/docs/`, `components/docs/`, `lib/db.ts → getColumnBySlug`, `getColumnsWithFirstPost` |
 | Docs search scope | `lib/db.ts → getDocsSearchIndex`, `app/api/search-index/route.ts`（`scope=docs` 受 `docs_access` cookie 门禁保护）|

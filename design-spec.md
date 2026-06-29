@@ -491,6 +491,28 @@ className="rounded-[var(--radius-full)]"  // 分类标签
 
 ---
 
+### 7.10 BlogListView + BlogTabs（博客列表视图 + 筛选 Tab 栏）
+**路径**: `components/blog-list-view.tsx`、`components/blog-tabs.tsx`
+
+**用途**：博客列表统一视图，由 `/blog`（全部）与 `/category/[slug]`（单分类）共用，仅传入不同的 `activeSlug` 与分页数据。
+
+**BlogTabs（筛选胶囊）**：
+- 胶囊：`rounded-[var(--radius-full)] px-3.5 py-1.5 text-sm`，横向可滚动（`overflow-x-auto` + 隐藏滚动条），`gap-1.5`
+- 选中态：实心主色 `bg-[var(--accent-primary)]` + **`text-white`**（白字在 Purple 600 上对比度 ≈5.4:1，优于深色字，满足 WCAG AA）+ 柔光 `shadow-[0_0_16px_var(--glow-primary)]`
+- 未选态：`bg-[var(--bg-tertiary)]/50` + `text-[var(--text-secondary)]`，hover 切 `bg-[var(--accent-muted)]` + `text-[var(--accent-primary)]`
+- 真实链接跳转（「全部」→ `/blog`，分类 → `/category/[slug]`），当前项带 `aria-current="page"`
+
+**BlogListView（头部 + 列表）**：
+- **紧凑筛选条**：Tab 栏与「共 N 篇文章」计数**同行**（`flex items-center justify-between`），头部内边距收敛为 `py-4 sm:py-5`，避免占用过多纵向空间
+- **吸附**：筛选条 `sticky top-16 z-40` + `bg-[var(--bg-primary)]/85 backdrop-blur-xl`（吸附在 `h-16` 导航栏下方），滚动时筛选始终可达
+- 标题转 `sr-only <h1>`（视觉隐藏，保 SEO/无障碍）
+- 列表区 `py-8 sm:py-10`、卡片 `grid gap-5 sm:gap-6`（`ArticleCard`），尾部 `Pagination`
+- 空状态：虚线边框卡片居中提示
+
+**使用场景**：`/blog` 与 `/category/[slug]` 博客列表页。
+
+---
+
 ## 8. Markdown 内容样式
 
 ### 8.1 prose 增强类

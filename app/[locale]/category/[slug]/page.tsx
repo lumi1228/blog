@@ -1,21 +1,24 @@
 import type { Metadata } from "next";
-import { useTranslations } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
-import { ArticleCard } from "@/components/article-card";
-import { getPosts, getCategoryBySlug } from "@/lib/db";
+import { BlogListView } from "@/components/blog-list-view";
+import { getPosts, getCategories, getCategoryBySlug } from "@/lib/db";
 import { buildAlternates, SITE_NAME } from "@/lib/seo";
+import type { Locale } from "@/i18n/config";
+
+/** 每页文章数（与 /blog 保持一致） */
+const PAGE_SIZE = 10;
 
 interface PageProps {
   params: Promise<{ locale: string; slug: string }>;
+  searchParams: Promise<{ page?: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale, slug } = await params;
-  const category = await getCategoryBySlug(slug, locale as "zh-CN" | "en");
+  const category = await getCategoryBySlug(slug, locale as Locale);
 
   if (!category) return { title: "Category Not Found" };
 
@@ -42,95 +45,43 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function CategoryPage({ params }: PageProps) {
+export default async function CategoryPage({ params, searchParams }: PageProps) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
 
-  const category = await getCategoryBySlug(slug, locale as "zh-CN" | "en");
+  const category = await getCategoryBySlug(slug, locale as Locale);
 
   if (!category) {
     notFound();
   }
 
-  const { posts } = await getPosts({ locale: locale as "zh-CN" | "en", categorySlug: slug });
+  const { page } = await searchParams;
+  const currentPage = Math.max(1, Number.parseInt(page ?? "1", 10) || 1);
+  const offset = (currentPage - 1) * PAGE_SIZE;
 
-  return <CategoryContent category={category} posts={posts} />;
-}
-
-function CategoryContent({ category, posts }: { category: any; posts: any[] }) {
-  const t = useTranslations();
+  const [categories, { posts, total }] = await Promise.all([
+    getCategories(locale as Locale),
+    getPosts({
+      locale: locale as Locale,
+      categorySlug: slug,
+      limit: PAGE_SIZE,
+      offset,
+    }),
+  ]);
 
   return (
     <>
       <Navbar />
-
-      <main className="flex-1">
-        <section className="relative overflow-hidden border-b border-[var(--border-subtle)]">
-          <div className="absolute inset-0 overflow-hidden">
-            <div
-              className="absolute -right-20 -top-20 h-80 w-80 rounded-full opacity-20 blur-[100px]"
-              style={{ background: "var(--glow-primary)" }}
-            />
-          </div>
-
-          <div className="relative mx-auto max-w-[1200px] px-6 py-12 sm:py-16">
-            <nav className="mb-4 flex items-center gap-2 text-xs text-[var(--text-tertiary)]">
-              <Link
-                href="/"
-                className="transition-colors duration-[var(--duration-fast)] hover:text-[var(--accent-primary)]"
-              >
-                {t("common.home")}
-              </Link>
-              <span>/</span>
-              <span>{t("category.label")}</span>
-            </nav>
-
-            <div className="mb-3 animate-fade-in-up">
-              <span
-                className="inline-flex items-center gap-1.5 rounded-[var(--radius-full)] 
-                           bg-[var(--accent-muted)] px-3 py-1 text-xs font-medium text-[var(--accent-primary)]"
-                style={{ fontFamily: "var(--font-mono)" }}
-              >
-                CATEGORY
-              </span>
-            </div>
-
-            <h1
-              className="mb-3 text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl animate-fade-in-up stagger-2"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              {category.name}
-            </h1>
-
-            {category.description && (
-              <p className="mb-2 max-w-xl text-base text-[var(--text-secondary)] animate-fade-in-up stagger-3">
-                {category.description}
-              </p>
-            )}
-
-            <p className="text-sm text-[var(--text-tertiary)] animate-fade-in-up stagger-4">
-              {t("post.totalInCategory", { count: posts.length })}
-            </p>
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-[1200px] px-6 py-12 sm:py-16">
-          {posts.length === 0 ? (
-            <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--border-default)] bg-[var(--bg-secondary)] px-8 py-16 text-center">
-              <p className="text-sm text-[var(--text-secondary)]">
-                {t("post.noCategoryPosts")}
-              </p>
-            </div>
-          ) : (
-            <div className="grid gap-6">
-              {posts.map((post, index) => (
-                <ArticleCard key={post.id} post={post} index={index} />
-              ))}
-            </div>
-          )}
-        </section>
-      </main>
-
+      <BlogListView
+        locale={locale}
+        categories={categories}
+        activeSlug={slug}
+        posts={posts}
+        total={total}
+        currentPage={currentPage}
+        pageSize={PAGE_SIZE}
+        title={category.name}
+      />
       <Footer />
     </>
   );

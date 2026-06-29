@@ -28,6 +28,8 @@ export type NavItem =
   | {
       type: "dropdown";
       label: string;
+      /** 父级可点击跳转的目标（如博客 → /blog）；提供时点击文字直接导航，hover 展开子项 */
+      href?: string;
       children: NavDropdownChild[];
     };
 
@@ -63,9 +65,11 @@ export function NavbarClient({ navItems, locale }: NavbarClientProps) {
   const isLinkActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
-  /** dropdown 激活：任一子项路径匹配时为 true */
-  const isDropdownActive = (children: NavDropdownChild[]) =>
-    children.some((child) => pathname.startsWith(child.href));
+  /** dropdown 激活：父级 href 匹配或任一子项路径匹配时为 true */
+  const isDropdownActive = (item: Extract<NavItem, { type: "dropdown" }>) => {
+    if (item.href && pathname.startsWith(item.href)) return true;
+    return item.children.some((child) => pathname.startsWith(child.href));
+  };
 
   // ---- 桌面端 dropdown 交互 ----
 
@@ -122,8 +126,29 @@ export function NavbarClient({ navItems, locale }: NavbarClientProps) {
   // ---- 渲染：桌面端 dropdown ----
 
   const renderDesktopDropdown = (item: Extract<NavItem, { type: "dropdown" }>) => {
-    const active = isDropdownActive(item.children);
+    const active = isDropdownActive(item);
     const isOpen = openDropdown === item.label;
+
+    const triggerClassName = `flex items-center gap-1 px-3 py-2 text-sm transition-colors duration-[var(--duration-fast)]
+                     ${
+                       active
+                         ? "font-semibold text-[var(--text-primary)]"
+                         : "font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                     }`;
+
+    const chevron = (
+      <svg
+        className={`h-3.5 w-3.5 transition-transform duration-[var(--duration-fast)]
+                   ${isOpen ? "rotate-180" : "rotate-0"}`}
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2.5}
+        aria-hidden="true"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+      </svg>
+    );
 
     return (
       <div
@@ -132,31 +157,24 @@ export function NavbarClient({ navItems, locale }: NavbarClientProps) {
         onMouseEnter={() => handleMouseEnter(item.label)}
         onMouseLeave={handleMouseLeave}
       >
-        {/* 触发按钮 */}
-        <button
-          className={`flex items-center gap-1 px-3 py-2 text-sm transition-colors duration-[var(--duration-fast)]
-                     ${
-                       active
-                         ? "font-semibold text-[var(--text-primary)]"
-                         : "font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                     }`}
-          aria-haspopup="true"
-          aria-expanded={isOpen}
-        >
-          {item.label}
-          {/* 下拉箭头 */}
-          <svg
-            className={`h-3.5 w-3.5 transition-transform duration-[var(--duration-fast)]
-                       ${isOpen ? "rotate-180" : "rotate-0"}`}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2.5}
-            aria-hidden="true"
+        {/* 触发器：有 href 时点击直接导航（hover 仍展开子项），否则纯按钮 */}
+        {item.href ? (
+          <Link
+            href={item.href}
+            className={triggerClassName}
+            aria-haspopup="true"
+            aria-expanded={isOpen}
+            onClick={() => setOpenDropdown(null)}
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
+            {item.label}
+            {chevron}
+          </Link>
+        ) : (
+          <button className={triggerClassName} aria-haspopup="true" aria-expanded={isOpen}>
+            {item.label}
+            {chevron}
+          </button>
+        )}
 
         {/* 下拉面板 */}
         {isOpen && (
@@ -229,39 +247,77 @@ export function NavbarClient({ navItems, locale }: NavbarClientProps) {
   // ---- 渲染：移动端 dropdown ----
 
   const renderMobileDropdown = (item: Extract<NavItem, { type: "dropdown" }>) => {
-    const active = isDropdownActive(item.children);
+    const active = isDropdownActive(item);
     const isOpen = openMobileDropdown === item.label;
 
-    return (
-      <div key={item.label}>
-        {/* 触发行 */}
-        <button
-          className={`flex w-full items-center justify-between rounded-[var(--radius-md)]
+    const rowClassName = `flex w-full items-center justify-between rounded-[var(--radius-md)]
                      px-3 py-2.5 text-sm font-medium
                      transition-colors duration-[var(--duration-fast)]
                      ${
                        active
                          ? "bg-[var(--accent-muted)] text-[var(--accent-primary)]"
                          : "text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
-                     }`}
-          onClick={() =>
-            setOpenMobileDropdown(isOpen ? null : item.label)
-          }
-          aria-expanded={isOpen}
+                     }`;
+
+    const chevronButton = (
+      <button
+        className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[var(--radius-md)]
+                   text-inherit transition-colors duration-[var(--duration-fast)] hover:bg-[var(--bg-tertiary)]"
+        onClick={() => setOpenMobileDropdown(isOpen ? null : item.label)}
+        aria-label={item.label}
+        aria-expanded={isOpen}
+      >
+        <svg
+          className={`h-4 w-4 transition-transform duration-[var(--duration-fast)]
+                     ${isOpen ? "rotate-180" : "rotate-0"}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2.5}
+          aria-hidden="true"
         >
-          <span>{item.label}</span>
-          <svg
-            className={`h-4 w-4 transition-transform duration-[var(--duration-fast)]
-                       ${isOpen ? "rotate-180" : "rotate-0"}`}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2.5}
-            aria-hidden="true"
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+    );
+
+    return (
+      <div key={item.label}>
+        {/* 触发行：有 href 时文字可点击导航，箭头单独控制展开 */}
+        {item.href ? (
+          <div className={rowClassName}>
+            <Link
+              href={item.href}
+              className="flex-1"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setOpenMobileDropdown(null);
+              }}
+            >
+              {item.label}
+            </Link>
+            {chevronButton}
+          </div>
+        ) : (
+          <button
+            className={rowClassName}
+            onClick={() => setOpenMobileDropdown(isOpen ? null : item.label)}
+            aria-expanded={isOpen}
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
+            <span>{item.label}</span>
+            <svg
+              className={`h-4 w-4 transition-transform duration-[var(--duration-fast)]
+                         ${isOpen ? "rotate-180" : "rotate-0"}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        )}
 
         {/* 子项列表（inline 展开） */}
         {isOpen && (
