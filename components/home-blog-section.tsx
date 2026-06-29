@@ -17,6 +17,17 @@ export function HomeBlogSection({ posts, total, locale }: HomeBlogSectionProps) 
       id="blog"
       className="relative flex flex-col overflow-hidden bg-[var(--bg-primary)] min-h-[calc(100dvh-4rem)]"
     >
+      {/* 顶部分隔光带：明确与上一屏（知识库）的边界 */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-px"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent, var(--accent-primary), transparent)",
+          opacity: 0.35,
+        }}
+      />
+
       {/* 装饰背景（与知识库错位，营造节奏感） */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
         <div
@@ -30,7 +41,7 @@ export function HomeBlogSection({ posts, total, locale }: HomeBlogSectionProps) 
       </div>
 
       {/* Zone 1：Header */}
-      <div className="relative mx-auto w-full max-w-[1200px] flex-shrink-0 border-t border-[var(--border-subtle)] px-6 pt-10 pb-6 sm:pt-12">
+      <div className="relative mx-auto w-full max-w-[1200px] flex-shrink-0 px-6 pt-12 pb-6 sm:pt-16">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-2.5">
             <div

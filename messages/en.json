@@ -40,7 +40,14 @@
       "exploreAll": "View All",
       "startExplore": "Start Exploring",
       "docCount": "{count} collections",
-      "empty": "Nothing here yet, stay tuned"
+      "empty": "Nothing here yet, stay tuned",
+      "highlightsTitle": "What you'll find here",
+      "highlight1Title": "Structured Learning Paths",
+      "highlight1Desc": "Topics arranged from basics to depth, building a complete knowledge system step by step",
+      "highlight2Title": "In-depth Technical Notes",
+      "highlight2Desc": "Distilled from real-world practice, never a shallow surface-level list",
+      "highlight3Title": "Continuously Updated",
+      "highlight3Desc": "Revised as technology evolves, keeping every piece fresh and relevant"
     },
     "blogSection": {
       "title": "Latest Posts",

@@ -236,6 +236,7 @@ interface ColumnFormData {
   slug: string;
   descriptionZh: string;
   descriptionEn: string;
+  coverImage: string;
 }
 
 function ColumnModal({
@@ -248,7 +249,7 @@ function ColumnModal({
   onCancel: () => void;
 }) {
   const [form, setForm] = useState<ColumnFormData>(
-    initial ?? { titleZh: "", titleEn: "", slug: "", descriptionZh: "", descriptionEn: "" }
+    initial ?? { titleZh: "", titleEn: "", slug: "", descriptionZh: "", descriptionEn: "", coverImage: "" }
   );
   const [saving, setSaving] = useState(false);
 
@@ -321,6 +322,12 @@ function ColumnModal({
               className="w-full rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-secondary)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:outline-none"
             />
           </div>
+          <CoverImageField
+            label="封面图"
+            value={form.coverImage}
+            onChange={(url) => setForm((p) => ({ ...p, coverImage: url }))}
+            hint="用于首页知识库模块的封面展示"
+          />
         </div>
         <div className="mt-5 flex gap-2">
           <button
@@ -536,6 +543,7 @@ export function ColumnsLeftPanel({
           slug: data.slug,
           description_zh: data.descriptionZh || null,
           description_en: data.descriptionEn || null,
+          cover_image: data.coverImage || null,
         })
         .eq("id", editingColumn.id)
         .select()
@@ -552,6 +560,7 @@ export function ColumnsLeftPanel({
           slug: data.slug,
           description_zh: data.descriptionZh || null,
           description_en: data.descriptionEn || null,
+          cover_image: data.coverImage || null,
           sort: maxSort + 1,
         })
         .select()
@@ -616,6 +625,7 @@ export function ColumnsLeftPanel({
                   slug: editingColumn.slug,
                   descriptionZh: editingColumn.description_zh ?? "",
                   descriptionEn: editingColumn.description_en ?? "",
+                  coverImage: editingColumn.cover_image ?? "",
                 }
               : undefined
           }

@@ -112,7 +112,7 @@ function HomeContent({
 
       <main className="flex-1">
         {/* ── Module 1：Hero ─────────────────────────────────────────────────── */}
-        <section className="relative overflow-hidden border-b border-[var(--border-subtle)] bg-[var(--bg-primary)] py-16 sm:py-20 lg:py-24">
+        <section className="relative overflow-hidden bg-[var(--bg-primary)] py-16 sm:py-20 lg:py-24">
           {/* 极简紫色光晕背景 + 流星动画 */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
             {/* 主光晕 */}

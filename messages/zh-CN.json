@@ -40,7 +40,14 @@
       "exploreAll": "查看全部知识库",
       "startExplore": "开始探索",
       "docCount": "共 {count} 个知识库",
-      "empty": "暂无内容，敬请期待"
+      "empty": "暂无内容，敬请期待",
+      "highlightsTitle": "在这里你能获得",
+      "highlight1Title": "系统化学习路径",
+      "highlight1Desc": "由浅入深的主题编排，循序渐进搭建完整知识体系",
+      "highlight2Title": "深度技术笔记",
+      "highlight2Desc": "源自实战的深度提炼，拒绝浅尝辄止的表面罗列",
+      "highlight3Title": "持续迭代更新",
+      "highlight3Desc": "跟随技术演进不断修订，让每篇内容保持鲜活"
     },
     "blogSection": {
       "title": "最新博客",
