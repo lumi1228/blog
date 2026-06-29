@@ -8,6 +8,7 @@ interface ArticleCardProps {
 }
 
 export function ArticleCard({ post, index, locale = "zh-CN" }: ArticleCardProps) {
+  const coverSrc = post.coverImage ?? post.coverImageFallback ?? null;
   return (
     <article
       className="group frosted-glass relative rounded-[var(--radius-lg)] p-6 sm:p-7
@@ -75,10 +76,10 @@ export function ArticleCard({ post, index, locale = "zh-CN" }: ArticleCardProps)
         </div>
 
         {/* 封面图 (冰川倒影缩放) */}
-        {post.coverImage && (
+        {coverSrc && (
           <div className="shrink-0 overflow-hidden rounded-[var(--radius-md)] sm:w-52 sm:h-36 border border-[var(--border-subtle)] relative">
             <img
-              src={post.coverImage}
+              src={coverSrc}
               alt={post.title}
               className="h-full w-full object-cover transition-transform duration-[var(--duration-slow)]
                          group-hover:scale-105"

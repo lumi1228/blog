@@ -25,6 +25,7 @@ export interface Chapter {
   sort: number;
   title_zh: string;
   title_en: string | null;
+  cover_image: string | null;
 }
 
 export interface Post {
@@ -142,7 +143,7 @@ export function ColumnsWorkspace({
       const supabase = createClient();
       const { data, error } = await supabase
         .from("column_chapters")
-        .select("id, column_id, sort, title_zh, title_en")
+        .select("id, column_id, sort, title_zh, title_en, cover_image")
         .eq("column_id", columnId)
         .order("sort", { ascending: true });
 

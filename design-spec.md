@@ -1,6 +1,6 @@
 # Design Specification
 
-> **Version**: 2.5.0  
+> **Version**: 2.6.0  
 > **Last Updated**: 2026-06-26  
 > **Design Theme**: Midnight Elegance（极夜优雅·深邃暗紫版）  
 > **Purpose**: 前端样式规范文档，确保 AI 和开发者输出一致的视觉设计和样式代码
@@ -467,6 +467,30 @@ className="rounded-[var(--radius-full)]"  // 分类标签
 
 ---
 
+### 7.9 CoverHero（文章封面 Hero 头部）
+**路径**: `components/cover-hero.tsx`
+
+**用途**：文章详情页（`/posts/[slug]` 与 `/docs/[set]/[slug]`）将封面作为标题区背景，标题/元信息/分类/标签叠加其上，营造图文融合的沉浸式头部。仅在文章存在封面（自有 `coverImage` 或回退的分类/章节封面）时启用；无封面时回退为常规主题感知标题。
+
+**可读性保障（核心约束：任意封面颜色 / 任意明暗主题下文字都清晰）**：
+- **横向主蒙版**：`bg-gradient-to-r from-black/85 via-black/55 to-transparent`（左侧深 → 右侧透明），文字落在左侧暗区，右侧露出封面主体；
+- **纵向辅助蒙版**：`bg-gradient-to-t from-black/45 via-transparent to-transparent`，兜底底部元信息行；
+- 头部内容**底部左对齐**（`justify-end`）并限制 `max-w-[42rem]`，停留在左侧暗区、不延伸到右侧亮部；
+- 头部文字使用**固定浅色**（`text-white` / `text-white/85`），**不随主题切换**，并叠加文字阴影 `[text-shadow:0_2px_12px_rgba(0,0,0,0.55)]`（标题）/ `[text-shadow:0_1px_6px_rgba(0,0,0,0.65)]`（元信息）；
+- 叠加在封面上的徽章/标签使用**白色磨砂**（`bg-white/10~15` + `border-white/20~25` + `backdrop-blur`），而非主题强调色，确保在任意底图上可辨识。
+
+**结构特征**：
+- 容器：`rounded-[var(--radius-lg)]` + `border-[var(--border-subtle)]` + `overflow-hidden`，进场 `animate-fade-in-up`；
+- 高度：`min-h-[clamp(180px,24vw,300px)]`（响应式自适应，克制不过高）；
+- 内边距：`p-5 sm:p-6 lg:p-8`；
+- 背景图 `object-cover` 绝对定位铺满，`alt=""` `aria-hidden`（标题已是等价文本，避免冗余）。
+
+**使用场景**：文章详情页头部（主站 + 知识库）。
+
+> **复用原则**：组件只负责「封面 + 蒙版 + 定位容器」的可读性外壳，头部具体内容（标题/元信息/分类/标签）由各页面以 `children` 传入并使用上述浅色样式，保证两页视觉一致。
+
+---
+
 ## 8. Markdown 内容样式
 
 ### 8.1 prose 增强类
@@ -658,6 +682,19 @@ className="rounded-[var(--radius-sm)] border border-[var(--border-subtle)]
 ---
 
 ## 附录：设计更新日志
+
+### v2.6.0 (2026-06-26)
+**文章详情页封面 Hero 化（图文融合头部）**
+
+**核心变更**：
+1. **新增公共组件 `CoverHero`**（`components/cover-hero.tsx`，详见第 7.9 节）：将封面作为标题区背景，标题/元信息/分类/标签叠加其上。
+2. **应用范围**：主站文章页（`/posts/[slug]`）与知识库文章页（`/docs/[set]/[slug]`）。原「标题下方独立封面 banner」改为「封面作为标题背景」的沉浸式 Hero。
+3. **可读性恒定**（核心诉求）：底部加重的暗色渐变蒙版 + 固定浅色文字 + 文字阴影 + 白色磨砂徽章/标签，确保**任意封面颜色、任意明暗主题**下头部文字对比度都达标。
+4. **优雅降级**：文章无封面（且无分类/章节回退封面）时，回退为原有主题感知的常规标题，不显示 Hero。
+
+**效果**：标题与封面融为一体，视觉更聚焦、更专业；可读性不受底图与主题影响。
+
+---
 
 ### v2.5.0 (2026-06-26)
 **主站文章详情页与知识库详情页统一样式**

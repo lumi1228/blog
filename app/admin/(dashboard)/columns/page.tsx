@@ -33,6 +33,7 @@ export default async function AdminColumnsPage() {
     sort: number;
     title_zh: string;
     title_en: string | null;
+    cover_image: string | null;
   }[] = [];
   let initialPosts: {
     id: string;
@@ -50,7 +51,7 @@ export default async function AdminColumnsPage() {
   if (firstColumn) {
     const { data: chapters } = await supabase
       .from("column_chapters")
-      .select("id, column_id, sort, title_zh, title_en")
+      .select("id, column_id, sort, title_zh, title_en, cover_image")
       .eq("column_id", firstColumn.id)
       .order("sort", { ascending: true });
 

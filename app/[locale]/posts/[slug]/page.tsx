@@ -6,6 +6,7 @@ import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { MarkdownRenderer } from "@/components/markdown/MarkdownRenderer";
 import { TableOfContents } from "@/components/TableOfContents";
+import { CoverHero } from "@/components/cover-hero";
 import { getPostBySlug, getAdjacentPosts } from "@/lib/db";
 import { ViewCounter } from "@/components/view-counter";
 import { extractHeadings } from "@/lib/markdown/extractHeadings";
@@ -139,6 +140,7 @@ interface PostContentProps {
 
 function PostContent({ post, prev, next, headings, jsonLd, translations }: PostContentProps) {
   const t = translations;
+  const coverSrc = post.coverImage ?? post.coverImageFallback ?? null;
 
   return (
     <>
@@ -180,59 +182,114 @@ function PostContent({ post, prev, next, headings, jsonLd, translations }: PostC
                 </Link>
               </nav>
 
-              {/* 文章头部 */}
-              <header className="mb-10 animate-fade-in-up">
-                <div className="mb-4">
-                  <Link
-                    href={`/category/${post.category.slug}`}
-                    className="inline-flex items-center gap-1.5 rounded-[var(--radius-full)] 
-                               bg-[var(--accent-muted)] px-3 py-1 text-xs font-medium text-[var(--accent-primary)]
-                               transition-colors duration-[var(--duration-fast)]
-                               hover:bg-[var(--accent-primary)] hover:text-[var(--bg-primary)]"
-                  >
-                    {post.category.name}
-                  </Link>
-                </div>
-
-                <h1
-                  className="mb-3 text-[1.75rem] font-bold leading-tight tracking-tight text-[var(--text-primary)] 
-                             sm:text-[2rem] lg:text-[2.125rem]"
-                  style={{ fontFamily: "var(--font-display)" }}
-                >
-                  {post.title}
-                </h1>
-
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-[var(--text-tertiary)]">
-                  <time dateTime={post.publishedAt}>
-                    {formatDate(post.publishedAt)}
-                  </time>
-                  <span>·</span>
-                  <span>{t.readingTime(post.readingTime)}</span>
-                  {post.viewCount !== undefined && (
-                    <>
-                      <span>·</span>
-                      <span>{t.views(post.viewCount)}</span>
-                    </>
-                  )}
-                </div>
-
-                {post.tags.length > 0 && (
-                  <div className="mt-4 flex flex-wrap gap-1.5">
-                    {post.tags.map((tag) => (
+              {/* 文章头部：有封面时图文融合 Hero，无封面时常规标题 */}
+              {coverSrc ? (
+                <header className="mb-10">
+                  <CoverHero src={coverSrc}>
+                    <div className="mb-4">
                       <Link
-                        key={tag.slug}
-                        href={`/tag/${tag.slug}`}
-                        className="rounded-[var(--radius-sm)] border border-[var(--border-subtle)] 
-                                   px-2 py-0.5 text-xs text-[var(--text-tertiary)]
-                                   transition-colors duration-[var(--duration-fast)]
-                                   hover:border-[var(--accent-secondary)] hover:text-[var(--accent-secondary)]"
+                        href={`/category/${post.category.slug}`}
+                        className="inline-flex items-center gap-1.5 rounded-[var(--radius-full)]
+                                   border border-white/25 bg-white/15 px-3 py-1 text-xs font-medium text-white
+                                   backdrop-blur-md transition-colors duration-[var(--duration-fast)]
+                                   hover:bg-white/25"
                       >
-                        #{tag.name}
+                        {post.category.name}
                       </Link>
-                    ))}
+                    </div>
+
+                    <h1
+                      className="mb-3 text-[1.75rem] font-bold leading-tight tracking-tight text-white
+                                 sm:text-[2rem] lg:text-[2.125rem] [text-shadow:0_2px_12px_rgba(0,0,0,0.55)]"
+                      style={{ fontFamily: "var(--font-display)" }}
+                    >
+                      {post.title}
+                    </h1>
+
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-white/85 [text-shadow:0_1px_6px_rgba(0,0,0,0.65)]">
+                      <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
+                      <span>·</span>
+                      <span>{t.readingTime(post.readingTime)}</span>
+                      {post.viewCount !== undefined && (
+                        <>
+                          <span>·</span>
+                          <span>{t.views(post.viewCount)}</span>
+                        </>
+                      )}
+                    </div>
+
+                    {post.tags.length > 0 && (
+                      <div className="mt-4 flex flex-wrap gap-1.5">
+                        {post.tags.map((tag) => (
+                          <Link
+                            key={tag.slug}
+                            href={`/tag/${tag.slug}`}
+                            className="rounded-[var(--radius-sm)] border border-white/20 bg-white/10
+                                       px-2 py-0.5 text-xs text-white/90 backdrop-blur-sm
+                                       transition-colors duration-[var(--duration-fast)]
+                                       hover:border-white/45 hover:bg-white/20"
+                          >
+                            #{tag.name}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </CoverHero>
+                </header>
+              ) : (
+                <header className="mb-10 animate-fade-in-up">
+                  <div className="mb-4">
+                    <Link
+                      href={`/category/${post.category.slug}`}
+                      className="inline-flex items-center gap-1.5 rounded-[var(--radius-full)] 
+                                 bg-[var(--accent-muted)] px-3 py-1 text-xs font-medium text-[var(--accent-primary)]
+                                 transition-colors duration-[var(--duration-fast)]
+                                 hover:bg-[var(--accent-primary)] hover:text-[var(--bg-primary)]"
+                    >
+                      {post.category.name}
+                    </Link>
                   </div>
-                )}
-              </header>
+
+                  <h1
+                    className="mb-3 text-[1.75rem] font-bold leading-tight tracking-tight text-[var(--text-primary)] 
+                               sm:text-[2rem] lg:text-[2.125rem]"
+                    style={{ fontFamily: "var(--font-display)" }}
+                  >
+                    {post.title}
+                  </h1>
+
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-[var(--text-tertiary)]">
+                    <time dateTime={post.publishedAt}>
+                      {formatDate(post.publishedAt)}
+                    </time>
+                    <span>·</span>
+                    <span>{t.readingTime(post.readingTime)}</span>
+                    {post.viewCount !== undefined && (
+                      <>
+                        <span>·</span>
+                        <span>{t.views(post.viewCount)}</span>
+                      </>
+                    )}
+                  </div>
+
+                  {post.tags.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-1.5">
+                      {post.tags.map((tag) => (
+                        <Link
+                          key={tag.slug}
+                          href={`/tag/${tag.slug}`}
+                          className="rounded-[var(--radius-sm)] border border-[var(--border-subtle)] 
+                                     px-2 py-0.5 text-xs text-[var(--text-tertiary)]
+                                     transition-colors duration-[var(--duration-fast)]
+                                     hover:border-[var(--accent-secondary)] hover:text-[var(--accent-secondary)]"
+                        >
+                          #{tag.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </header>
+              )}
 
               <ViewCounter postId={post.id} />
 

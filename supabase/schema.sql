@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS categories (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   slug TEXT UNIQUE NOT NULL,
   sort INTEGER DEFAULT 0,
+  cover_image TEXT,                 -- 分类默认封面（前台文章无自有封面时回退）
   created_at TIMESTAMPTZ DEFAULT NOW(),
   -- 多语言字段
   name_zh TEXT NOT NULL,
@@ -111,6 +112,7 @@ CREATE TABLE IF NOT EXISTS column_chapters (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   column_id UUID REFERENCES columns(id) ON DELETE CASCADE,
   sort INTEGER DEFAULT 0,
+  cover_image TEXT,                 -- 章节默认封面（前台文档文章无自有封面时回退，优先级高于分类）
   -- 多语言字段
   title_zh TEXT NOT NULL,
   title_en TEXT

@@ -153,92 +153,113 @@ export function HomeBlogSection({ posts, total, locale }: HomeBlogSectionProps) 
   );
 }
 
-// ─── Featured 大卡 ────────────────────────────────────────────────────────────
+// ─── Featured 大卡（封面前置·沉浸式） ──────────────────────────────────────────
 
 function FeaturedPostCard({ post, locale }: { post: Post; locale: string }) {
+  const coverSrc = post.coverImage ?? post.coverImageFallback ?? null;
+  const onCover = !!coverSrc;
+
   return (
     <Link
       href={`/posts/${post.slug}`}
-      className="group frosted-glass relative flex flex-1 flex-col overflow-hidden
-                 rounded-[var(--radius-lg)] animate-fade-in-up h-full
+      className="group relative flex h-full min-h-[320px] flex-1 flex-col justify-end overflow-hidden
+                 rounded-[var(--radius-lg)] border border-[var(--border-subtle)] animate-fade-in-up
                  transition-all duration-[var(--duration-normal)]
                  hover:border-[var(--accent-primary)]/40
                  hover:shadow-[var(--shadow-glow-accent)]"
     >
-      <div className="flex flex-1 flex-col sm:flex-row">
-        {/* 左侧：文字内容 */}
-        <div className="flex flex-1 flex-col p-6 sm:p-7 lg:p-8">
-          {/* 分类 + 元信息 */}
-          <div className="mb-4 flex flex-wrap items-center gap-2 text-xs">
-            <span
-              className="rounded-[var(--radius-full)] bg-[var(--accent-muted)] px-3 py-0.5
-                         font-semibold text-[var(--accent-primary)]
-                         border border-[var(--accent-primary)]/10"
-            >
-              {post.category.name}
-            </span>
-            <span className="text-[var(--text-tertiary)]">·</span>
-            <time className="text-[var(--text-tertiary)]" dateTime={post.publishedAt}>
-              {formatDate(post.publishedAt, locale)}
-            </time>
-            <span className="text-[var(--text-tertiary)]">·</span>
-            <span className="font-mono text-[var(--text-tertiary)]">
-              {post.readingTime} min
-            </span>
-          </div>
+      {/* 背景：封面铺满 + 暗色蒙版（保证浅色文字在任意封面上清晰）；无封面回退磨砂 */}
+      {onCover ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={coverSrc!}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 h-full w-full object-cover
+                       transition-transform duration-[var(--duration-slow)] group-hover:scale-[1.04]"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/10"
+          />
+          <div aria-hidden="true" className="absolute inset-0 bg-black/10" />
+        </>
+      ) : (
+        <div aria-hidden="true" className="absolute inset-0 frosted-glass" />
+      )}
 
-          {/* 标题 */}
-          <h3
-            className="mb-3 text-xl font-bold leading-snug text-[var(--text-primary)]
-                       transition-colors duration-[var(--duration-fast)]
-                       group-hover:text-[var(--accent-primary)]
-                       sm:text-2xl lg:text-3xl"
-            style={{ fontFamily: "var(--font-display)" }}
+      {/* 叠加内容 */}
+      <div className="relative z-10 p-6 sm:p-7 lg:p-8">
+        {/* 分类 + 元信息 */}
+        <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
+          <span
+            className={
+              onCover
+                ? "rounded-[var(--radius-full)] border border-white/25 bg-white/15 px-3 py-0.5 font-semibold text-white backdrop-blur-md"
+                : "rounded-[var(--radius-full)] border border-[var(--accent-primary)]/10 bg-[var(--accent-muted)] px-3 py-0.5 font-semibold text-[var(--accent-primary)]"
+            }
           >
-            {post.title}
-          </h3>
-
-          {/* 摘要 */}
-          <p className="flex-1 text-sm leading-relaxed text-[var(--text-secondary)] line-clamp-3 sm:line-clamp-4">
-            {post.excerpt}
-          </p>
-
-          {/* 标签 */}
-          {post.tags.length > 0 && (
-            <div className="mt-5 flex flex-wrap gap-1.5">
-              {post.tags.slice(0, 4).map((tag) => (
-                <span
-                  key={tag.slug}
-                  className="rounded-[var(--radius-sm)] border border-[var(--border-subtle)]
-                             bg-[var(--bg-primary)]/30 px-2.5 py-0.5 text-xs text-[var(--text-tertiary)]"
-                >
-                  #{tag.name}
-                </span>
-              ))}
-            </div>
-          )}
+            {post.category.name}
+          </span>
+          <span className={onCover ? "text-white/60" : "text-[var(--text-tertiary)]"}>·</span>
+          <time
+            className={onCover ? "text-white/75" : "text-[var(--text-tertiary)]"}
+            dateTime={post.publishedAt}
+          >
+            {formatDate(post.publishedAt, locale)}
+          </time>
+          <span className={onCover ? "text-white/60" : "text-[var(--text-tertiary)]"}>·</span>
+          <span className={`font-mono ${onCover ? "text-white/75" : "text-[var(--text-tertiary)]"}`}>
+            {post.readingTime} min
+          </span>
         </div>
 
-        {/* 右侧：封面图（sm+ 显示） */}
-        {post.coverImage && (
-          <div
-            className="relative h-[200px] flex-shrink-0 overflow-hidden
-                        sm:h-auto sm:w-[220px] lg:w-[280px]"
-          >
-            <img
-              src={post.coverImage}
-              alt={post.title}
-              className="h-full w-full object-cover transition-transform
-                         duration-[var(--duration-slow)] group-hover:scale-[1.04]"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent sm:bg-gradient-to-l" />
+        {/* 标题 */}
+        <h3
+          className={
+            onCover
+              ? "mb-3 text-xl font-bold leading-snug text-white sm:text-2xl lg:text-3xl [text-shadow:0_2px_12px_rgba(0,0,0,0.55)]"
+              : "mb-3 text-xl font-bold leading-snug text-[var(--text-primary)] transition-colors duration-[var(--duration-fast)] group-hover:text-[var(--accent-primary)] sm:text-2xl lg:text-3xl"
+          }
+          style={{ fontFamily: "var(--font-display)" }}
+        >
+          {post.title}
+        </h3>
+
+        {/* 摘要 */}
+        <p
+          className={
+            onCover
+              ? "text-sm leading-relaxed text-white/85 line-clamp-2 [text-shadow:0_1px_6px_rgba(0,0,0,0.6)] sm:line-clamp-3"
+              : "text-sm leading-relaxed text-[var(--text-secondary)] line-clamp-3 sm:line-clamp-4"
+          }
+        >
+          {post.excerpt}
+        </p>
+
+        {/* 标签 */}
+        {post.tags.length > 0 && (
+          <div className="mt-5 flex flex-wrap gap-1.5">
+            {post.tags.slice(0, 4).map((tag) => (
+              <span
+                key={tag.slug}
+                className={
+                  onCover
+                    ? "rounded-[var(--radius-sm)] border border-white/20 bg-white/10 px-2.5 py-0.5 text-xs text-white/90 backdrop-blur-sm"
+                    : "rounded-[var(--radius-sm)] border border-[var(--border-subtle)] bg-[var(--bg-primary)]/30 px-2.5 py-0.5 text-xs text-[var(--text-tertiary)]"
+                }
+              >
+                #{tag.name}
+              </span>
+            ))}
           </div>
         )}
       </div>
 
       {/* 底部流光线 */}
       <div
-        className="absolute bottom-0 left-6 right-6 h-[2px] origin-left scale-x-0
+        className="absolute bottom-0 left-6 right-6 z-10 h-[2px] origin-left scale-x-0
                    transition-transform duration-[var(--duration-normal)] group-hover:scale-x-100"
         style={{ background: "linear-gradient(to right, var(--accent-primary), transparent)" }}
       />
@@ -246,7 +267,7 @@ function FeaturedPostCard({ post, locale }: { post: Post; locale: string }) {
   );
 }
 
-// ─── 紧凑卡片 ─────────────────────────────────────────────────────────────────
+// ─── 紧凑卡片（封面左置·横向） ────────────────────────────────────────────────
 
 function CompactPostCard({
   post,
@@ -257,52 +278,58 @@ function CompactPostCard({
   locale: string;
   index: number;
 }) {
+  const coverSrc = post.coverImage ?? post.coverImageFallback ?? null;
+
   return (
     <Link
       href={`/posts/${post.slug}`}
-      className="group frosted-glass relative flex flex-1 flex-col p-4 sm:p-5
-                 rounded-[var(--radius-lg)] animate-fade-in-up
+      className="group frosted-glass relative flex flex-1 items-stretch overflow-hidden
+                 rounded-[var(--radius-lg)] animate-fade-in-up min-h-[88px]
                  transition-all duration-[var(--duration-normal)]
                  hover:border-[var(--accent-primary)]/40
                  hover:shadow-[var(--shadow-glow-accent)]"
       style={{ animationDelay: `${(index + 1) * 80}ms` }}
     >
-      <div className="flex items-start gap-3">
-        {/* 文字内容 */}
-        <div className="flex-1 min-w-0">
-          <div className="mb-1.5 flex items-center gap-2 text-xs">
-            <span
-              className="rounded-[var(--radius-full)] bg-[var(--accent-muted)] px-2.5 py-0.5
-                         font-semibold text-[var(--accent-primary)]
-                         border border-[var(--accent-primary)]/10 truncate max-w-[100px]"
-            >
-              {post.category.name}
-            </span>
-            <span className="text-[var(--text-tertiary)] flex-shrink-0">
-              {formatDate(post.publishedAt, locale)}
-            </span>
-          </div>
-          <h3
-            className="text-sm font-semibold leading-snug text-[var(--text-primary)] line-clamp-2
-                       transition-colors duration-[var(--duration-fast)]
-                       group-hover:text-[var(--accent-primary)]"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            {post.title}
-          </h3>
+      {/* 封面（左置竖条，铺满卡片高度） */}
+      {coverSrc && (
+        <div className="relative w-[36%] max-w-[150px] flex-shrink-0 overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={coverSrc}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 h-full w-full object-cover
+                       transition-transform duration-[var(--duration-normal)] group-hover:scale-105"
+          />
+          {/* 与卡片背景过渡的轻微渐隐，使衔接更自然 */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-gradient-to-r from-transparent to-[var(--bg-primary)]/15"
+          />
         </div>
+      )}
 
-        {/* 缩略图 */}
-        {post.coverImage && (
-          <div className="flex-shrink-0 h-14 w-14 overflow-hidden rounded-[var(--radius-md)] border border-[var(--border-subtle)]">
-            <img
-              src={post.coverImage}
-              alt={post.title}
-              className="h-full w-full object-cover transition-transform
-                         duration-[var(--duration-normal)] group-hover:scale-105"
-            />
-          </div>
-        )}
+      {/* 文字内容 */}
+      <div className="flex min-w-0 flex-1 flex-col justify-center gap-1.5 p-4 sm:px-5">
+        <div className="flex items-center gap-2 text-xs">
+          <span
+            className="max-w-[110px] truncate rounded-[var(--radius-full)] border border-[var(--accent-primary)]/10
+                       bg-[var(--accent-muted)] px-2.5 py-0.5 font-semibold text-[var(--accent-primary)]"
+          >
+            {post.category.name}
+          </span>
+          <span className="flex-shrink-0 text-[var(--text-tertiary)]">
+            {formatDate(post.publishedAt, locale)}
+          </span>
+        </div>
+        <h3
+          className="text-sm font-semibold leading-snug text-[var(--text-primary)] line-clamp-2
+                     transition-colors duration-[var(--duration-fast)]
+                     group-hover:text-[var(--accent-primary)] sm:text-[0.95rem]"
+          style={{ fontFamily: "var(--font-display)" }}
+        >
+          {post.title}
+        </h3>
       </div>
 
       {/* 底部流光线 */}

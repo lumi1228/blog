@@ -89,6 +89,7 @@ npm run test:e2e     # Playwright e2e tests
 │   │   ├── category-manager.tsx
 │   │   ├── tag-manager.tsx
 │   │   ├── chapter-manager.tsx
+│   │   ├── cover-image-field.tsx # 可复用封面录入控件（上传到 blog-images/covers + URL 兜底 + 预览）
 │   │   ├── columns-workspace.tsx # Column drag-sort workspace
 │   │   ├── columns-left-panel.tsx
 │   │   ├── columns-right-panel.tsx
@@ -107,6 +108,7 @@ npm run test:e2e     # Playwright e2e tests
 │   ├── navbar-client.tsx        # Client navbar (theme toggle, mobile menu, locale switch)
 │   ├── footer.tsx
 │   ├── article-card.tsx         # Post card used on list pages
+│   ├── cover-hero.tsx           # 文章详情页封面 Hero 头部（封面作标题背景 + 暗色蒙版保证文字可读）
 │   ├── resume-modal.tsx         # About page: 查看简历 entry + 授权码门禁 + preview modal + PDF export (jsPDF + html2canvas-pro)
 │   ├── column-card.tsx          # Doc-set card on homepage featured section (links to /docs)
 │   ├── pagination.tsx
@@ -198,6 +200,7 @@ npm run test:e2e     # Playwright e2e tests
 | Admin post editor | `components/admin/post-editor.tsx`, `app/admin/(dashboard)/` |
 | Admin categories/tags | `components/admin/category-manager.tsx`, `components/admin/tag-manager.tsx` |
 | Admin columns | `components/admin/columns-workspace.tsx` |
+| 文章封面体系 | 分类封面：`category-manager.tsx`；章节封面：`columns-left-panel.tsx → ChapterModal`；文章封面：`post-editor.tsx`；统一控件 `components/admin/cover-image-field.tsx`。前台展示优先级 `coverImage ?? coverImageFallback`：列表卡片 `article-card.tsx`；详情页头部以 `components/cover-hero.tsx`（封面作标题背景 + 暗色蒙版 + 浅色文字，保证任意封面/主题文字可读）。回退在 `lib/db.ts`（`getPosts`/`getPostBySlug`/`getColumnBySlug`）解析，章节封面优先于分类封面；**OG/SEO 图仅用 `coverImage`，不含回退**。DB：`categories.cover_image`、`column_chapters.cover_image`（见 `supabase/migration-cover-images.sql`）|
 | About page | `app/[locale]/about/page.tsx`, `config/about.ts`, `components/resume-modal.tsx` |
 | Resume (about modal + PDF) | `components/resume-modal.tsx`, `lib/db.ts → getResume(locale, client?)`; 授权码门禁，打开时探测门禁状态，数据不随页面下发 |
 | Resume unlock API | `app/api/resume/unlock/route.ts`（POST，读 `resume_settings.gate_enabled`：关→直接返回；开→校验 `resume_access_codes` 后用 `createAdminClient` 返回简历）|
@@ -216,11 +219,11 @@ npm run test:e2e     # Playwright e2e tests
 ## Key Data Types (`lib/types.ts`)
 
 ```ts
-Post          // id, slug, title, excerpt, content?, coverImage, category, tags[], publishedAt, readingTime, viewCount?, columnId?, chapterId?
-Category      // id, name, slug, description?, sort?, articleCount?
+Post          // id, slug, title, excerpt, content?, coverImage, coverImageFallback?, category, tags[], publishedAt, readingTime, viewCount?, columnId?, chapterId?
+Category      // id, name, slug, description?, sort?, articleCount?, coverImage? (分类默认封面)
 Tag           // id, name, slug
 Column        // id, slug, sort, title, description?, coverImage?
-ColumnChapter // id, columnId, sort, title
+ColumnChapter // id, columnId, sort, title, coverImage? (章节默认封面)
 ColumnDetail  // extends Column + chapters: (ColumnChapter & { posts: Post[] })[]
 ColumnWithFirstPost // extends Column + firstPostSlug: string | null (docs tabs / entry redirect)
 SearchIndexEntry   // slug, title, excerpt, tags[], publishedAt, url? (docs entries carry /docs/[set]/[slug])

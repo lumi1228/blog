@@ -20,6 +20,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { createClient } from "@/utils/supabase/client";
+import { CoverImageField } from "@/components/admin/cover-image-field";
 import type { Column, Chapter } from "@/components/admin/columns-workspace";
 
 // ─── 可拖拽专栏行 ──────────────────────────────────────────────────────────
@@ -356,27 +357,32 @@ function ChapterModal({
   onSave: (ch: Chapter) => void;
   onCancel: () => void;
 }) {
-  const [form, setForm] = useState({ titleZh: initial?.title_zh ?? "", titleEn: initial?.title_en ?? "" });
+  const [form, setForm] = useState({
+    titleZh: initial?.title_zh ?? "",
+    titleEn: initial?.title_en ?? "",
+    coverImage: initial?.cover_image ?? "",
+  });
   const [saving, setSaving] = useState(false);
 
   const handleSubmit = async () => {
     if (!form.titleZh.trim()) { alert("请填写章节名称"); return; }
+    if (!form.coverImage.trim()) { alert("请上传或填写章节封面（作为该章节下文章的默认封面）"); return; }
     setSaving(true);
     const supabase = createClient();
     if (initial) {
       const { data, error } = await supabase
         .from("column_chapters")
-        .update({ title_zh: form.titleZh, title_en: form.titleEn || null })
+        .update({ title_zh: form.titleZh, title_en: form.titleEn || null, cover_image: form.coverImage || null })
         .eq("id", initial.id)
-        .select("id, column_id, sort, title_zh, title_en")
+        .select("id, column_id, sort, title_zh, title_en, cover_image")
         .single();
       if (error) { alert("更新失败：" + error.message); setSaving(false); return; }
       onSave(data as Chapter);
     } else {
       const { data, error } = await supabase
         .from("column_chapters")
-        .insert({ column_id: columnId, title_zh: form.titleZh, title_en: form.titleEn || null, sort: maxSort + 1 })
-        .select("id, column_id, sort, title_zh, title_en")
+        .insert({ column_id: columnId, title_zh: form.titleZh, title_en: form.titleEn || null, cover_image: form.coverImage || null, sort: maxSort + 1 })
+        .select("id, column_id, sort, title_zh, title_en, cover_image")
         .single();
       if (error) { alert("创建失败：" + error.message); setSaving(false); return; }
       onSave(data as Chapter);
@@ -389,7 +395,7 @@ function ChapterModal({
       {/* 遮罩 */}
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onCancel} />
       {/* 弹框 */}
-      <div className="relative w-full max-w-sm rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-primary)] p-6 shadow-[var(--shadow-lg)]">
+      <div className="relative w-full max-w-md rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-primary)] p-6 shadow-[var(--shadow-lg)]">
         <h3 className="mb-4 text-base font-semibold text-[var(--text-primary)]">
           {initial ? "编辑章节" : "新建章节"}
         </h3>
@@ -413,6 +419,13 @@ function ChapterModal({
               className="w-full rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-secondary)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:outline-none"
             />
           </div>
+          <CoverImageField
+            label="章节封面"
+            required
+            value={form.coverImage}
+            onChange={(url) => setForm((p) => ({ ...p, coverImage: url }))}
+            hint="作为该章节下文章的默认封面，文章未单独设置封面时使用"
+          />
         </div>
         <div className="mt-5 flex gap-2">
           <button

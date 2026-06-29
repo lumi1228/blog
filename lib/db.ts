@@ -51,8 +51,8 @@ export async function getPosts(options?: {
   // 按分类筛选时使用 inner join，否则筛选条件无法过滤父表（posts）行，
   // 会导致返回所有已发布文章（即“该分类下无文章却展示了数据”的根因）
   const categoryJoin = categorySlug
-    ? "category:categories!inner(id, slug, name_zh, name_en)"
-    : "category:categories(id, slug, name_zh, name_en)";
+    ? "category:categories!inner(id, slug, name_zh, name_en, cover_image)"
+    : "category:categories(id, slug, name_zh, name_en, cover_image)";
 
   let query = supabase
     .from("posts")
@@ -101,6 +101,7 @@ export async function getPosts(options?: {
     title: isZh ? row.title_zh : (row.title_en || row.title_zh),
     excerpt: isZh ? row.excerpt_zh : (row.excerpt_en || row.excerpt_zh),
     coverImage: row.cover_image,
+    coverImageFallback: row.category?.cover_image ?? null,
     publishedAt: row.published_at || row.created_at,
     updatedAt: row.updated_at ?? undefined,
     readingTime: row.reading_time,
@@ -145,7 +146,8 @@ export async function getPostBySlug(
       id, slug, cover_image, status, published_at, created_at, updated_at, reading_time, view_count,
       title_zh, title_en, excerpt_zh, excerpt_en, content_zh, content_en, available_locales,
       column_id, chapter_id, column_order, show_in_list,
-      category:categories(id, slug, name_zh, name_en),
+      category:categories(id, slug, name_zh, name_en, cover_image),
+      chapter:column_chapters(id, cover_image),
       post_tags(tags(id, slug, name_zh, name_en))
     `
     )
@@ -158,6 +160,7 @@ export async function getPostBySlug(
   }
 
   const cat = data.category as any;
+  const chapter = data.chapter as { cover_image?: string | null } | null;
   return {
     id: data.id,
     slug: data.slug,
@@ -165,6 +168,8 @@ export async function getPostBySlug(
     excerpt: isZh ? data.excerpt_zh : (data.excerpt_en || data.excerpt_zh),
     content: isZh ? data.content_zh : (data.content_en || data.content_zh),
     coverImage: data.cover_image,
+    // 展示回退：章节封面优先于分类封面（章节仅文档文章拥有，天然区分博客/文档语境）
+    coverImageFallback: chapter?.cover_image ?? cat?.cover_image ?? null,
     publishedAt: data.published_at || data.created_at,
     updatedAt: data.updated_at ?? undefined,
     readingTime: data.reading_time,
@@ -257,7 +262,7 @@ export async function getCategories(locale: Locale = "zh-CN"): Promise<Category[
 
   const { data, error } = await supabase
     .from("categories")
-    .select("id, slug, sort, name_zh, name_en, description_zh, description_en")
+    .select("id, slug, sort, name_zh, name_en, description_zh, description_en, cover_image")
     .order("sort", { ascending: true });
 
   if (error || !data) return [];
@@ -268,6 +273,7 @@ export async function getCategories(locale: Locale = "zh-CN"): Promise<Category[
     name: isZh ? row.name_zh : (row.name_en || row.name_zh),
     description: isZh ? row.description_zh : (row.description_en || row.description_zh),
     sort: row.sort,
+    coverImage: row.cover_image ?? null,
   }));
 }
 
@@ -283,7 +289,7 @@ export async function getCategoryBySlug(
 
   const { data, error } = await supabase
     .from("categories")
-    .select("id, slug, sort, name_zh, name_en, description_zh, description_en")
+    .select("id, slug, sort, name_zh, name_en, description_zh, description_en, cover_image")
     .eq("slug", slug)
     .single();
 
@@ -295,6 +301,7 @@ export async function getCategoryBySlug(
     name: isZh ? data.name_zh : (data.name_en || data.name_zh),
     description: isZh ? data.description_zh : (data.description_en || data.description_zh),
     sort: data.sort,
+    coverImage: data.cover_image ?? null,
   };
 }
 
@@ -635,7 +642,7 @@ export async function getColumnBySlug(
   // 获取章节列表
   const { data: chapters, error: chaptersError } = await supabase
     .from("column_chapters")
-    .select("id, column_id, sort, title_zh, title_en")
+    .select("id, column_id, sort, title_zh, title_en, cover_image")
     .eq("column_id", columnData.id)
     .order("sort", { ascending: true });
 
@@ -652,7 +659,7 @@ export async function getColumnBySlug(
       id, slug, cover_image, status, published_at, created_at, updated_at, reading_time, view_count,
       title_zh, title_en, excerpt_zh, excerpt_en, available_locales,
       column_id, chapter_id, column_order, show_in_list,
-      category:categories(id, slug, name_zh, name_en),
+      category:categories(id, slug, name_zh, name_en, cover_image),
       post_tags(tags(id, slug, name_zh, name_en))
     `
     )
@@ -670,6 +677,7 @@ export async function getColumnBySlug(
     title: isZh ? row.title_zh : (row.title_en || row.title_zh),
     excerpt: isZh ? row.excerpt_zh : (row.excerpt_en || row.excerpt_zh),
     coverImage: row.cover_image,
+    coverImageFallback: row.category?.cover_image ?? null,
     publishedAt: row.published_at || row.created_at,
     updatedAt: row.updated_at ?? undefined,
     readingTime: row.reading_time,
@@ -706,13 +714,24 @@ export async function getColumnBySlug(
     }
   }
 
-  const chapterList = (chapters || []).map((ch: any) => ({
-    id: ch.id,
-    columnId: ch.column_id,
-    sort: ch.sort,
-    title: isZh ? ch.title_zh : (ch.title_en || ch.title_zh),
-    posts: chapterPostsMap.get(ch.id) || [],
-  }));
+  const chapterList = (chapters || []).map((ch: any) => {
+    const chapterCover = ch.cover_image ?? null;
+    const chapterPosts = chapterPostsMap.get(ch.id) || [];
+    // 章节封面优先于分类封面，写入章节内文章的展示回退值
+    if (chapterCover) {
+      for (const p of chapterPosts) {
+        p.coverImageFallback = chapterCover;
+      }
+    }
+    return {
+      id: ch.id,
+      columnId: ch.column_id,
+      sort: ch.sort,
+      title: isZh ? ch.title_zh : (ch.title_en || ch.title_zh),
+      coverImage: chapterCover,
+      posts: chapterPosts,
+    };
+  });
 
   // 如果有未归类文章，添加一个虚拟章节
   if (uncategorized.length > 0) {
@@ -721,6 +740,7 @@ export async function getColumnBySlug(
       columnId: columnData.id,
       sort: 9999,
       title: isZh ? "未分类" : "Uncategorized",
+      coverImage: null,
       posts: uncategorized,
     });
   }

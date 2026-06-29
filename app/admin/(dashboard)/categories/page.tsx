@@ -8,7 +8,7 @@ export default async function AdminCategoriesPage() {
 
   const { data: categories } = await supabase
     .from("categories")
-    .select("id, slug, sort, name_zh, name_en, description_zh, description_en")
+    .select("id, slug, sort, name_zh, name_en, description_zh, description_en, cover_image")
     .order("sort", { ascending: true });
 
   // 获取每个分类的文章数

@@ -10,6 +10,8 @@ export interface Category {
   description?: string;
   sort?: number;
   articleCount?: number;
+  /** 分类默认封面（前台文章无自有封面时回退使用） */
+  coverImage?: string | null;
 }
 
 export interface Tag {
@@ -30,6 +32,12 @@ export interface Post {
   publishedAt: string;
   readingTime: number;
   viewCount?: number;
+  /**
+   * 默认封面（分类或章节封面），仅供前台展示回退使用。
+   * 展示优先级：coverImage（文章自有） > coverImageFallback（分类/章节默认）。
+   * 注意：OG/SEO 图仍只用 coverImage，不使用此回退值。
+   */
+  coverImageFallback?: string | null;
   /** 已有译文的语言列表，用于 SEO hreflang 与 sitemap */
   availableLocales?: ("zh-CN" | "en")[];
   /** 文章最后更新时间，用于 sitemap lastModified */
@@ -57,6 +65,8 @@ export interface ColumnChapter {
   columnId: string;
   sort: number;
   title: string;
+  /** 章节默认封面（前台文档文章无自有封面时回退使用，优先级高于分类） */
+  coverImage?: string | null;
 }
 
 /** 专栏详情（含章节与文章列表） */

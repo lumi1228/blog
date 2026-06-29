@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { MarkdownPreview } from "./markdown-preview";
+import { CoverImageField } from "@/components/admin/cover-image-field";
 import { generatePostSlug } from "@/lib/markdown/slugify";
 
 interface Category {
@@ -670,16 +671,12 @@ export function PostEditor({ categories, tags, columns, chapters, initialData, o
         </div>
 
         {/* 封面图 */}
-        <div>
-          <label className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">
-            封面图 URL
-          </label>
-          <input
-            type="url"
+        <div className="sm:col-span-2">
+          <CoverImageField
+            label="封面图"
             value={form.coverImage}
-            onChange={(e) => setForm((prev) => ({ ...prev, coverImage: e.target.value }))}
-            placeholder="https://..."
-            className="w-full rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent-primary)] focus:outline-none"
+            onChange={(url) => setForm((prev) => ({ ...prev, coverImage: url }))}
+            hint="选填。留空时前台展示将回退到所属分类 / 章节的默认封面"
           />
         </div>
 

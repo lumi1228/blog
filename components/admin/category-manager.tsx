@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
+import { CoverImageField } from "@/components/admin/cover-image-field";
 
 interface Category {
   id: string;
@@ -12,6 +13,7 @@ interface Category {
   name_en: string | null;
   description_zh: string | null;
   description_en: string | null;
+  cover_image: string | null;
   articleCount: number;
 }
 
@@ -29,12 +31,13 @@ export function CategoryManager({ categories }: CategoryManagerProps) {
     slug: "",
     descriptionZh: "",
     descriptionEn: "",
+    coverImage: "",
     sort: 0,
   });
   const [saving, setSaving] = useState(false);
 
   const resetForm = () => {
-    setForm({ nameZh: "", nameEn: "", slug: "", descriptionZh: "", descriptionEn: "", sort: 0 });
+    setForm({ nameZh: "", nameEn: "", slug: "", descriptionZh: "", descriptionEn: "", coverImage: "", sort: 0 });
     setEditing(null);
     setShowForm(false);
   };
@@ -46,6 +49,7 @@ export function CategoryManager({ categories }: CategoryManagerProps) {
       slug: cat.slug,
       descriptionZh: cat.description_zh || "",
       descriptionEn: cat.description_en || "",
+      coverImage: cat.cover_image || "",
       sort: cat.sort,
     });
     setEditing(cat);
@@ -55,6 +59,10 @@ export function CategoryManager({ categories }: CategoryManagerProps) {
   const handleSave = async () => {
     if (!form.nameZh.trim() || !form.slug.trim()) {
       alert("请填写分类名称和 Slug");
+      return;
+    }
+    if (!form.coverImage.trim()) {
+      alert("请上传或填写分类封面（作为该分类下文章的默认封面）");
       return;
     }
 
@@ -67,6 +75,7 @@ export function CategoryManager({ categories }: CategoryManagerProps) {
       slug: form.slug,
       description_zh: form.descriptionZh || null,
       description_en: form.descriptionEn || null,
+      cover_image: form.coverImage || null,
       sort: form.sort,
     };
 
@@ -175,6 +184,15 @@ export function CategoryManager({ categories }: CategoryManagerProps) {
                 className="w-full rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:outline-none"
               />
             </div>
+            <div className="sm:col-span-2">
+              <CoverImageField
+                label="分类封面"
+                required
+                value={form.coverImage}
+                onChange={(url) => setForm((p) => ({ ...p, coverImage: url }))}
+                hint="作为该分类下文章的默认封面，文章未单独设置封面时使用"
+              />
+            </div>
           </div>
           <div className="mt-4 flex gap-2">
             <button
@@ -210,8 +228,24 @@ export function CategoryManager({ categories }: CategoryManagerProps) {
             {categories.map((cat) => (
               <tr key={cat.id} className="border-t border-[var(--border-subtle)]">
                 <td className="px-4 py-3">
-                  <div className="font-medium text-[var(--text-primary)]">{cat.name_zh}</div>
-                  {cat.name_en && <div className="text-xs text-[var(--text-tertiary)]">{cat.name_en}</div>}
+                  <div className="flex items-center gap-3">
+                    {cat.cover_image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={cat.cover_image}
+                        alt={cat.name_zh}
+                        className="h-9 w-14 shrink-0 rounded-[var(--radius-sm)] border border-[var(--border-subtle)] object-cover"
+                      />
+                    ) : (
+                      <span className="flex h-9 w-14 shrink-0 items-center justify-center rounded-[var(--radius-sm)] border border-dashed border-[var(--border-subtle)] text-[10px] text-[var(--text-tertiary)]">
+                        无封面
+                      </span>
+                    )}
+                    <div className="min-w-0">
+                      <div className="font-medium text-[var(--text-primary)]">{cat.name_zh}</div>
+                      {cat.name_en && <div className="text-xs text-[var(--text-tertiary)]">{cat.name_en}</div>}
+                    </div>
+                  </div>
                 </td>
                 <td className="px-4 py-3 text-[var(--text-tertiary)]" style={{ fontFamily: "var(--font-mono)" }}>
                   {cat.slug}

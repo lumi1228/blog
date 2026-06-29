@@ -5,6 +5,7 @@ import Link from "next/link";
 import { MarkdownRenderer } from "@/components/markdown/MarkdownRenderer";
 import { DocsSidebar } from "@/components/docs/docs-sidebar";
 import { TableOfContents } from "@/components/TableOfContents";
+import { CoverHero } from "@/components/cover-hero";
 import { getPostBySlug, getColumnBySlug, getColumnAdjacentPosts } from "@/lib/db";
 import { ViewCounter } from "@/components/view-counter";
 import { extractHeadings } from "@/lib/markdown/extractHeadings";
@@ -164,6 +165,7 @@ function DocsPostContent({
   translations,
 }: DocsPostContentProps) {
   const t = translations;
+  const coverSrc = post.coverImage ?? post.coverImageFallback ?? null;
 
   return (
     <div className="flex flex-1">
@@ -207,45 +209,88 @@ function DocsPostContent({
               </span>
             </nav>
 
-            {/* 文章头部 */}
-            <header className="mb-10 animate-fade-in-up">
-              <h1
-                className="mb-3 text-[1.75rem] font-bold leading-tight tracking-tight text-[var(--text-primary)]
-                           sm:text-[2rem] lg:text-[2.125rem]"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                {post.title}
-              </h1>
+            {/* 文章头部：有封面时图文融合 Hero，无封面时常规标题 */}
+            {coverSrc ? (
+              <header className="mb-10">
+                <CoverHero src={coverSrc}>
+                  <h1
+                    className="mb-3 text-[1.75rem] font-bold leading-tight tracking-tight text-white
+                               sm:text-[2rem] lg:text-[2.125rem] [text-shadow:0_2px_12px_rgba(0,0,0,0.55)]"
+                    style={{ fontFamily: "var(--font-display)" }}
+                  >
+                    {post.title}
+                  </h1>
 
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-[var(--text-tertiary)]">
-                <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
-                <span>·</span>
-                <span>{t.readingTime(post.readingTime)}</span>
-                {post.viewCount !== undefined && (
-                  <>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-white/85 [text-shadow:0_1px_6px_rgba(0,0,0,0.65)]">
+                    <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
                     <span>·</span>
-                    <span>{t.views(post.viewCount)}</span>
-                  </>
-                )}
-              </div>
+                    <span>{t.readingTime(post.readingTime)}</span>
+                    {post.viewCount !== undefined && (
+                      <>
+                        <span>·</span>
+                        <span>{t.views(post.viewCount)}</span>
+                      </>
+                    )}
+                  </div>
 
-              {post.tags.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-1.5">
-                  {post.tags.map((tag) => (
-                    <Link
-                      key={tag.slug}
-                      href={`/tag/${tag.slug}`}
-                      className="rounded-[var(--radius-sm)] border border-[var(--border-subtle)]
-                                 px-2 py-0.5 text-xs text-[var(--text-tertiary)]
-                                 transition-colors duration-[var(--duration-fast)]
-                                 hover:border-[var(--accent-secondary)] hover:text-[var(--accent-secondary)]"
-                    >
-                      #{tag.name}
-                    </Link>
-                  ))}
+                  {post.tags.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-1.5">
+                      {post.tags.map((tag) => (
+                        <Link
+                          key={tag.slug}
+                          href={`/tag/${tag.slug}`}
+                          className="rounded-[var(--radius-sm)] border border-white/20 bg-white/10
+                                     px-2 py-0.5 text-xs text-white/90 backdrop-blur-sm
+                                     transition-colors duration-[var(--duration-fast)]
+                                     hover:border-white/45 hover:bg-white/20"
+                        >
+                          #{tag.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </CoverHero>
+              </header>
+            ) : (
+              <header className="mb-10 animate-fade-in-up">
+                <h1
+                  className="mb-3 text-[1.75rem] font-bold leading-tight tracking-tight text-[var(--text-primary)]
+                             sm:text-[2rem] lg:text-[2.125rem]"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  {post.title}
+                </h1>
+
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-[var(--text-tertiary)]">
+                  <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
+                  <span>·</span>
+                  <span>{t.readingTime(post.readingTime)}</span>
+                  {post.viewCount !== undefined && (
+                    <>
+                      <span>·</span>
+                      <span>{t.views(post.viewCount)}</span>
+                    </>
+                  )}
                 </div>
-              )}
-            </header>
+
+                {post.tags.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {post.tags.map((tag) => (
+                      <Link
+                        key={tag.slug}
+                        href={`/tag/${tag.slug}`}
+                        className="rounded-[var(--radius-sm)] border border-[var(--border-subtle)]
+                                   px-2 py-0.5 text-xs text-[var(--text-tertiary)]
+                                   transition-colors duration-[var(--duration-fast)]
+                                   hover:border-[var(--accent-secondary)] hover:text-[var(--accent-secondary)]"
+                      >
+                        #{tag.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </header>
+            )}
 
             <ViewCounter postId={post.id} />
 
