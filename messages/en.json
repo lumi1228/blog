@@ -7,6 +7,16 @@
     "search": "Search",
     "docs": "Knowledge Base"
   },
+  "docsGate": {
+    "title": "Knowledge Base Locked",
+    "desc": "Enter the access code to continue. You won't be asked again for 7 days.",
+    "placeholder": "Enter access code",
+    "submit": "Enter Knowledge Base",
+    "verifying": "Verifying...",
+    "wrong": "Invalid or expired access code",
+    "tooMany": "Too many attempts, please try again later",
+    "backHome": "Back to Home"
+  },
   "home": {
     "badge": "Female Developer · Frontend Engineer",
     "title1": "Where Code Meets",

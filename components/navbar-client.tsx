@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { usePathname, useRouter } from "@/i18n/routing";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SearchTrigger } from "@/components/search/SearchTrigger";
+import { DocsGateLink } from "@/components/docs/docs-gate-link";
 
 // ----------------------------------------
 // 类型定义
@@ -21,6 +22,8 @@ export type NavItem =
       href: string;
       label: string;
       external?: boolean;
+      /** 知识库门禁入口：点击就地弹框校验，已解锁直接进入 */
+      gated?: boolean;
     }
   | {
       type: "dropdown";
@@ -84,17 +87,32 @@ export function NavbarClient({ navItems, locale }: NavbarClientProps) {
 
   const renderDesktopLink = (item: Extract<NavItem, { type: "link" }>) => {
     const active = isLinkActive(item.href);
+    const className = `relative px-3 py-2 text-sm transition-colors duration-[var(--duration-fast)]
+                   ${
+                     active
+                       ? "font-semibold text-[var(--text-primary)]"
+                       : "font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                   }`;
+
+    // 知识库门禁入口：点击就地弹框校验，不跳独立解锁页
+    if (item.gated) {
+      return (
+        <DocsGateLink
+          key={item.href}
+          href={`/${locale}${item.href}`}
+          className={className}
+        >
+          {item.label}
+        </DocsGateLink>
+      );
+    }
+
     return (
       <Link
         key={item.href}
         href={item.href}
         {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-        className={`relative px-3 py-2 text-sm transition-colors duration-[var(--duration-fast)]
-                   ${
-                     active
-                       ? "font-semibold text-[var(--text-primary)]"
-                       : "font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                   }`}
+        className={className}
       >
         {item.label}
       </Link>
@@ -178,18 +196,29 @@ export function NavbarClient({ navItems, locale }: NavbarClientProps) {
 
   const renderMobileLink = (item: Extract<NavItem, { type: "link" }>) => {
     const active = isLinkActive(item.href);
-    return (
-      <Link
-        key={item.href}
-        href={item.href}
-        {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-        className={`rounded-[var(--radius-md)] px-3 py-2.5 text-sm font-medium
+    const className = `rounded-[var(--radius-md)] px-3 py-2.5 text-sm font-medium
                    transition-colors duration-[var(--duration-fast)]
                    ${
                      active
                        ? "bg-[var(--accent-muted)] text-[var(--accent-primary)]"
                        : "text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
-                   }`}
+                   }`;
+
+    // 知识库门禁入口：点击就地弹框校验（不关闭移动菜单，避免弹框随菜单卸载）
+    if (item.gated) {
+      return (
+        <DocsGateLink key={item.href} href={`/${locale}${item.href}`} className={className}>
+          {item.label}
+        </DocsGateLink>
+      );
+    }
+
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+        className={className}
         onClick={() => setMobileMenuOpen(false)}
       >
         {item.label}

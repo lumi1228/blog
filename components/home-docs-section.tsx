@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import type { Column } from "@/lib/types";
+import { DocsGateLink } from "@/components/docs/docs-gate-link";
 
 interface HomeDocsSectionProps {
   columns: Column[];
@@ -175,7 +175,7 @@ export function HomeDocsSection({
           <span className="text-xs text-[var(--text-tertiary)]">
             {t("home.docsSection.docCount", { count: totalCount })}
           </span>
-          <Link
+          <DocsGateLink
             href={`/${locale}/docs`}
             className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)]
                        bg-[var(--accent-muted)] px-4 py-2 text-xs font-semibold
@@ -195,7 +195,7 @@ export function HomeDocsSection({
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
-          </Link>
+          </DocsGateLink>
         </div>
       </div>
     </section>
@@ -218,7 +218,7 @@ function DocsCard({
   const t = useTranslations();
 
   return (
-    <Link
+    <DocsGateLink
       href={`/${locale}/docs/${column.slug}`}
       className={`group frosted-glass relative flex flex-col overflow-hidden
                  rounded-[var(--radius-lg)] animate-fade-in-up isolate
@@ -318,6 +318,6 @@ function DocsCard({
                    transition-transform duration-[var(--duration-normal)] group-hover:scale-x-100"
         style={{ background: "linear-gradient(to right, var(--accent-primary), transparent)" }}
       />
-    </Link>
+    </DocsGateLink>
   );
 }

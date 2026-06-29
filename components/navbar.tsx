@@ -22,7 +22,7 @@ export async function Navbar() {
         })),
       ],
     },
-    { type: "link", href: "/docs", label: t("docs"), external: true },
+    { type: "link", href: "/docs", label: t("docs"), gated: true },
     { type: "link", href: "/about", label: t("about") },
   ];
 

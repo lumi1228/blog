@@ -12,6 +12,16 @@ vi.mock("@/i18n/routing", () => ({
   routing: { locales: ["zh-CN", "en"] },
 }));
 
+// 门禁 cookie + 校验：默认放行，可通过 gateValid 切换为未授权
+let gateValid = true;
+vi.mock("next/headers", () => ({
+  cookies: async () => ({ get: () => ({ value: "token" }) }),
+}));
+vi.mock("@/lib/docs-gate", () => ({
+  DOCS_GATE_COOKIE: "docs_access",
+  verifyToken: async () => gateValid,
+}));
+
 import { GET } from "./route";
 
 function makeRequest(url: string) {
@@ -20,6 +30,7 @@ function makeRequest(url: string) {
 
 describe("GET /api/search-index", () => {
   beforeEach(() => {
+    gateValid = true;
     getSearchIndex.mockReset().mockResolvedValue([
       { slug: "a", title: "A", excerpt: "", tags: [], publishedAt: "2024" },
     ]);
@@ -59,5 +70,14 @@ describe("GET /api/search-index", () => {
   it("非法 locale 返回 400", async () => {
     const res = await GET(makeRequest("http://x/api/search-index?locale=fr"));
     expect(res.status).toBe(400);
+  });
+
+  it("scope=docs 无有效门禁凭证返回 401", async () => {
+    gateValid = false;
+    const res = await GET(
+      makeRequest("http://x/api/search-index?locale=zh-CN&scope=docs")
+    );
+    expect(res.status).toBe(401);
+    expect(getDocsSearchIndex).not.toHaveBeenCalled();
   });
 });

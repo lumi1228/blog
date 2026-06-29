@@ -49,6 +49,8 @@ npm run test:e2e     # Playwright e2e tests
 | `NEXT_PUBLIC_SUPABASE_URL` | client+server | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | client+server | Supabase anon/publishable key |
 | `SUPABASE_SERVICE_ROLE_KEY` | **server only** | service_role key; used by `createAdminClient` (resume unlock API). Never expose to client. |
+| `DOCS_GATE_SECRET` | **server only** | HMAC key for signing the knowledge-base (`/docs`) access cookie. Falls back to `SUPABASE_SERVICE_ROLE_KEY` if unset. |
+| `DOCS_GATE_ENABLED` | **server only** | `"false"` disables the `/docs` access gate (fully public). Any other value / unset = gate enabled. |
 
 ---
 
@@ -192,13 +194,14 @@ npm run test:e2e     # Playwright e2e tests
 | Categories | `app/[locale]/category/[slug]/page.tsx`, `lib/db.ts → getCategories` |
 | Tags | `app/[locale]/tag/[slug]/page.tsx`, `lib/db.ts → getTags` |
 | Docs sub-site (= Columns) | `app/[locale]/docs/`, `components/docs/`, `lib/db.ts → getColumnBySlug`, `getColumnsWithFirstPost` |
-| Docs search scope | `lib/db.ts → getDocsSearchIndex`, `app/api/search-index/route.ts` |
+| Docs search scope | `lib/db.ts → getDocsSearchIndex`, `app/api/search-index/route.ts`（`scope=docs` 受 `docs_access` cookie 门禁保护）|
 | Admin post editor | `components/admin/post-editor.tsx`, `app/admin/(dashboard)/` |
 | Admin categories/tags | `components/admin/category-manager.tsx`, `components/admin/tag-manager.tsx` |
 | Admin columns | `components/admin/columns-workspace.tsx` |
 | About page | `app/[locale]/about/page.tsx`, `config/about.ts`, `components/resume-modal.tsx` |
 | Resume (about modal + PDF) | `components/resume-modal.tsx`, `lib/db.ts → getResume(locale, client?)`; 授权码门禁，打开时探测门禁状态，数据不随页面下发 |
 | Resume unlock API | `app/api/resume/unlock/route.ts`（POST，读 `resume_settings.gate_enabled`：关→直接返回；开→校验 `resume_access_codes` 后用 `createAdminClient` 返回简历）|
+| Knowledge-base gate (`/docs` 门禁) | `proxy.ts`（中间件拦截 `/docs`、`/en/docs`，验签 `docs_access` cookie，无效→重定向 `/[locale]/unlock-docs?next=…`）、`lib/docs-gate.ts`（HMAC 签发/校验凭证）、`app/api/docs/unlock/route.ts`（复用 `resume_access_codes` 校验，成功下发 7 天签名 cookie）、`app/[locale]/unlock-docs/page.tsx` + `components/docs/docs-gate-form.tsx`（解锁页/表单，支持 `?code=` 魔法链接 + `?next=` 跳回）。授权码校验共享逻辑在 `lib/access-code.ts`。「入口处校验一次，进入后凭 cookie 不再校验」。 |
 | Admin resume | `app/admin/(dashboard)/resume/page.tsx`, `components/admin/resume-manager.tsx`（5 个 Tab：基本信息/技能/经历/项目/访问控制）；证件照上传到 Storage bucket `resume`（public）；门禁开关与授权码存 `resume_settings`/`resume_access_codes` |
 | SEO / metadata | `lib/seo.ts`, `app/sitemap.ts`, `app/robots.ts` |
 | URL redirects | `next.config.ts → redirects()` (`/columns/*` → `/docs/*`, 301, both locales) |
