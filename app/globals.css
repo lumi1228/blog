@@ -191,6 +191,10 @@
 /* ============================================
    全局基础样式与冰晶磨砂质感
    ============================================ */
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);

@@ -203,7 +203,7 @@ function HomeContent({
                 {/* CTA 按钮组 */}
                 <div className="flex flex-wrap items-start gap-4 animate-fade-in-up stagger-4">
                   <a
-                    href="#knowledge"
+                    href="#blog"
                     className="inline-flex items-center gap-2 rounded-[var(--radius-md)]
                                bg-[var(--accent-primary)] px-7 py-3.5 text-sm font-semibold
                                text-[var(--bg-primary)] transition-all duration-[var(--duration-normal)]

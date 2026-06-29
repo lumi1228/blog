@@ -15,7 +15,7 @@ export function HomeBlogSection({ posts, total, locale }: HomeBlogSectionProps) 
   return (
     <section
       id="blog"
-      className="relative flex flex-col overflow-hidden bg-[var(--bg-primary)] min-h-[calc(100dvh-4rem)]"
+      className="relative flex flex-col overflow-hidden bg-[var(--bg-primary)] min-h-[calc(100dvh-4rem)] scroll-mt-16"
     >
       {/* 顶部分隔光带：明确与上一屏（知识库）的边界 */}
       <div
