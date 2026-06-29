@@ -2,6 +2,7 @@
   "nav": {
     "home": "首页",
     "blog": "博客",
+    "allBlog": "全部博客",
     "about": "关于我",
     "search": "搜索",
     "docs": "知识库"
@@ -22,6 +23,26 @@
     "exploreColumn": "进入知识库",
     "latestPosts": "最新博客",
     "totalPosts": "共 {count} 篇",
+    "noPosts": "还没有发布文章，敬请期待 ✨",
+    "docsSection": {
+      "title": "知识库",
+      "subtitle": "系统化整理，沉淀深度笔记",
+      "exploreAll": "查看全部知识库",
+      "startExplore": "开始探索",
+      "docCount": "共 {count} 个知识库",
+      "empty": "暂无内容，敬请期待"
+    },
+    "blogSection": {
+      "title": "最新博客",
+      "viewAll": "查看全部博客",
+      "totalCount": "共 {count} 篇",
+      "empty": "还没有发布文章，敬请期待"
+    }
+  },
+  "blog": {
+    "title": "博客",
+    "subtitle": "记录技术探索、设计思考与成长感悟",
+    "totalPosts": "共 {count} 篇文章",
     "noPosts": "还没有发布文章，敬请期待 ✨"
   },
   "post": {

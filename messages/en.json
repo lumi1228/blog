@@ -2,6 +2,7 @@
   "nav": {
     "home": "Home",
     "blog": "Blog",
+    "allBlog": "All Posts",
     "about": "About Me",
     "search": "Search",
     "docs": "Knowledge Base"
@@ -22,6 +23,26 @@
     "exploreColumn": "Explore",
     "latestPosts": "Latest Posts",
     "totalPosts": "{count} posts",
+    "noPosts": "No posts yet, stay tuned ✨",
+    "docsSection": {
+      "title": "Knowledge Base",
+      "subtitle": "Structured notes, organized by depth",
+      "exploreAll": "View All",
+      "startExplore": "Start Exploring",
+      "docCount": "{count} collections",
+      "empty": "Nothing here yet, stay tuned"
+    },
+    "blogSection": {
+      "title": "Latest Posts",
+      "viewAll": "View All Posts",
+      "totalCount": "{count} posts",
+      "empty": "No posts yet, stay tuned"
+    }
+  },
+  "blog": {
+    "title": "Blog",
+    "subtitle": "Tech explorations, design thinking, and growth",
+    "totalPosts": "{count} posts total",
     "noPosts": "No posts yet, stay tuned ✨"
   },
   "post": {

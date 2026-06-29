@@ -18,8 +18,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
   const entries: MetadataRoute.Sitemap = [];
 
-  // 静态页面：/、/about、/docs
-  for (const path of ["/", "/about", "/docs"]) {
+  // 静态页面：/、/about、/docs、/blog
+  for (const path of ["/", "/about", "/docs", "/blog"]) {
     const enPath = path === "/" ? "/en" : `/en${path}`;
     entries.push({
       url: `${SITE_URL}${path}`,
