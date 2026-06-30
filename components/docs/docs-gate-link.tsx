@@ -11,6 +11,10 @@ interface DocsGateLinkProps {
   href: string;
   className?: string;
   style?: React.CSSProperties;
+  /** 链接打开方式，传 "_blank" 时在新标签页打开（含门禁校验通过后的跳转） */
+  target?: React.HTMLAttributeAnchorTarget;
+  /** 自定义 rel，未传且 target="_blank" 时默认补 "noopener noreferrer" */
+  rel?: string;
   children: React.ReactNode;
 }
 
@@ -26,13 +30,19 @@ export function DocsGateLink({
   href,
   className,
   style,
+  target,
+  rel,
   children,
 }: DocsGateLinkProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
+  const isNewTab = target === "_blank";
+  // 新标签页打开时补全 rel，避免反向标签劫持
+  const resolvedRel = rel ?? (isNewTab ? "noopener noreferrer" : undefined);
+
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    // 已解锁直接放行默认导航
+    // 已解锁直接放行默认导航（target 由原生 <a> 处理）
     if (isDocsUnlockedClient()) return;
     // 未解锁：拦截并弹框
     e.preventDefault();
@@ -41,7 +51,14 @@ export function DocsGateLink({
 
   return (
     <>
-      <Link href={href} className={className} style={style} onClick={handleClick}>
+      <Link
+        href={href}
+        className={className}
+        style={style}
+        target={target}
+        rel={resolvedRel}
+        onClick={handleClick}
+      >
         {children}
       </Link>
       {open && (
@@ -49,7 +66,12 @@ export function DocsGateLink({
           onClose={() => setOpen(false)}
           onSuccess={() => {
             setOpen(false);
-            router.push(href);
+            // 主站入口要求新标签页打开知识库；其余沿用当前页跳转
+            if (isNewTab) {
+              window.open(href, "_blank", "noopener,noreferrer");
+            } else {
+              router.push(href);
+            }
           }}
         />
       )}

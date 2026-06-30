@@ -182,6 +182,7 @@ export function HomeDocsSection({
           </span>
           <DocsGateLink
             href={`/${locale}/docs`}
+            target="_blank"
             className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)]
                        bg-[var(--accent-muted)] px-4 py-2 text-xs font-semibold
                        text-[var(--accent-primary)] border border-[var(--accent-primary)]/20
@@ -315,6 +316,7 @@ function DocsCard({
   return (
     <DocsGateLink
       href={`/${locale}/docs/${column.slug}`}
+      target="_blank"
       className={`group frosted-glass relative flex flex-col overflow-hidden
                  rounded-[var(--radius-lg)] animate-fade-in-up isolate
                  transition-all duration-[var(--duration-normal)]

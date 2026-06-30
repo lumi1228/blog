@@ -105,6 +105,7 @@ export function NavbarClient({ navItems, locale }: NavbarClientProps) {
           key={item.href}
           href={`/${locale}${item.href}`}
           className={className}
+          target="_blank"
         >
           {item.label}
         </DocsGateLink>
@@ -225,7 +226,7 @@ export function NavbarClient({ navItems, locale }: NavbarClientProps) {
     // 知识库门禁入口：点击就地弹框校验（不关闭移动菜单，避免弹框随菜单卸载）
     if (item.gated) {
       return (
-        <DocsGateLink key={item.href} href={`/${locale}${item.href}`} className={className}>
+        <DocsGateLink key={item.href} href={`/${locale}${item.href}`} className={className} target="_blank">
           {item.label}
         </DocsGateLink>
       );
