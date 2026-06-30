@@ -42,7 +42,7 @@ export function HomeBlogSection({ posts, total, locale }: HomeBlogSectionProps) 
 
       {/* Zone 1：Header */}
       <div className="relative mx-auto w-full max-w-[1200px] flex-shrink-0 px-6 pt-12 pb-6 sm:pt-16">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
           <div className="flex items-center gap-2.5">
             <div
               className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-md)]
@@ -78,11 +78,34 @@ export function HomeBlogSection({ posts, total, locale }: HomeBlogSectionProps) 
               </span>
             )}
           </div>
+
+          {/* 右上角主操作：查看全部博客 */}
+          <Link
+            href={`/${locale}/blog`}
+            className="group inline-flex items-center gap-1.5 rounded-[var(--radius-md)]
+                       border border-[var(--accent-primary)]/20 bg-[var(--accent-muted)]
+                       px-4 py-2 text-sm font-semibold text-[var(--accent-primary)]
+                       transition-all duration-[var(--duration-fast)]
+                       hover:bg-[var(--accent-primary)] hover:text-[var(--bg-primary)]
+                       hover:border-transparent hover:shadow-[0_0_20px_var(--glow-primary)]"
+          >
+            {t("home.blogSection.viewAll")}
+            <svg
+              className="h-4 w-4 transition-transform duration-[var(--duration-fast)] group-hover:translate-x-0.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </Link>
         </div>
       </div>
 
       {/* Zone 2：Content（flex-1） */}
-      <div className="relative mx-auto w-full max-w-[1200px] flex-1 px-6 pb-5 flex flex-col">
+      <div className="relative mx-auto w-full max-w-[1200px] flex-1 px-6 pb-12 flex flex-col">
         {posts.length === 0 ? (
           /* 空状态 */
           <div className="flex h-full min-h-[260px] flex-col items-center justify-center gap-4 py-12">
@@ -132,33 +155,6 @@ export function HomeBlogSection({ posts, total, locale }: HomeBlogSectionProps) 
             )}
           </div>
         )}
-      </div>
-
-      {/* Zone 3：CTA Footer */}
-      <div className="relative mx-auto w-full max-w-[1200px] flex-shrink-0 border-t border-[var(--border-subtle)] px-6 py-5">
-        <div className="flex items-center justify-end">
-          <Link
-            href={`/${locale}/blog`}
-            className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)]
-                       bg-[var(--accent-muted)] px-4 py-2 text-xs font-semibold
-                       text-[var(--accent-primary)] border border-[var(--accent-primary)]/20
-                       transition-all duration-[var(--duration-fast)]
-                       hover:bg-[var(--accent-primary)] hover:text-[var(--bg-primary)]
-                       hover:border-transparent hover:shadow-[0_0_20px_var(--glow-primary)]"
-          >
-            {t("home.blogSection.viewAll")}
-            <svg
-              className="h-3.5 w-3.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-              aria-hidden="true"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          </Link>
-        </div>
       </div>
     </section>
   );

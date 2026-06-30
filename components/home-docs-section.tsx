@@ -11,7 +11,6 @@ interface HomeDocsSectionProps {
 
 export function HomeDocsSection({
   columns,
-  hasMore,
   totalCount,
   locale,
 }: HomeDocsSectionProps) {
@@ -39,24 +38,21 @@ export function HomeDocsSection({
         }}
       />
 
-      {/* 装饰背景（强化层） */}
+      {/* 装饰背景 */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
-        {/* 主光晕 */}
         <div
           className="absolute -left-40 top-1/4 h-[560px] w-[560px] rounded-full opacity-[0.10] blur-[130px]"
           style={{ background: "var(--accent-primary)" }}
         />
-        {/* 次光晕 */}
         <div
           className="absolute right-[-10%] bottom-[5%] h-[460px] w-[460px] rounded-full opacity-[0.08] blur-[120px]"
           style={{ background: "var(--accent-secondary)" }}
         />
-        {/* 顶部柔光，强化与上一屏的色彩落差 */}
         <div
           className="absolute left-1/2 top-0 h-[300px] w-[800px] -translate-x-1/2 rounded-full opacity-[0.06] blur-[100px]"
           style={{ background: "var(--accent-primary)" }}
         />
-        {/* 点阵纹理（提高可见度） */}
+        {/* 点阵纹理 */}
         <div
           className="absolute inset-0 opacity-[0.035]"
           style={{
@@ -65,20 +61,11 @@ export function HomeDocsSection({
             backgroundSize: "32px 32px",
           }}
         />
-        {/* 细网格线，营造"知识结构"的几何氛围 */}
-        <div
-          className="absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage:
-              "linear-gradient(var(--accent-primary) 1px, transparent 1px), linear-gradient(90deg, var(--accent-primary) 1px, transparent 1px)",
-            backgroundSize: "120px 120px",
-          }}
-        />
       </div>
 
-      {/* Zone 1：Header */}
-      <div className="relative mx-auto w-full max-w-[1200px] flex-shrink-0 px-6 pt-12 pb-6 sm:pt-16">
-        <div className="flex flex-wrap items-end justify-between gap-5">
+      {/* Header：左侧标题 + 右上角「查看全部」 */}
+      <div className="relative mx-auto w-full max-w-[1200px] flex-shrink-0 px-6 pt-12 pb-2 sm:pt-16">
+        <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
           <div>
             {/* eyebrow 徽章 */}
             <div className="mb-4 inline-flex items-center gap-2 rounded-[var(--radius-full)] border border-[var(--accent-primary)]/20 bg-[var(--accent-muted)] px-3.5 py-1 text-xs font-semibold tracking-wider text-[var(--accent-primary)]">
@@ -106,26 +93,53 @@ export function HomeDocsSection({
             </h2>
           </div>
 
-          {/* 统计徽章 */}
-          <div className="flex items-center gap-2 rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-secondary)]/60 px-4 py-2 backdrop-blur-sm">
-            <span
-              className="text-2xl font-bold leading-none text-[var(--accent-primary)]"
-              style={{ fontFamily: "var(--font-display)" }}
+          {/* 右上角：知识库数量 + 查看全部 */}
+          <div className="flex items-center gap-3">
+            {/* 数量指示 */}
+            <span className="inline-flex items-baseline gap-1.5 rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-secondary)]/60 px-3 py-2 backdrop-blur-sm">
+              <span
+                className="text-lg font-bold leading-none text-[var(--accent-primary)]"
+                style={{ fontFamily: "var(--font-display)" }}
+              >
+                {totalCount}
+              </span>
+              <span className="text-xs text-[var(--text-tertiary)]">
+                {t("home.docsSection.title")}
+              </span>
+            </span>
+
+            {/* 主操作：查看全部知识库 */}
+            <DocsGateLink
+              href={`/${locale}/docs`}
+              target="_blank"
+              className="group inline-flex items-center gap-1.5 rounded-[var(--radius-md)]
+                         border border-[var(--accent-primary)]/20 bg-[var(--accent-muted)]
+                         px-4 py-2 text-sm font-semibold text-[var(--accent-primary)]
+                         transition-all duration-[var(--duration-fast)]
+                         hover:bg-[var(--accent-primary)] hover:text-[var(--bg-primary)]
+                         hover:border-transparent hover:shadow-[0_0_20px_var(--glow-primary)]"
             >
-              {totalCount}
-            </span>
-            <span className="text-xs leading-tight text-[var(--text-tertiary)]">
-              {t("home.docsSection.title")}
-            </span>
+              {t("home.docsSection.exploreAll")}
+              <svg
+                className="h-4 w-4 transition-transform duration-[var(--duration-fast)] group-hover:translate-x-0.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </DocsGateLink>
           </div>
         </div>
       </div>
 
-      {/* Zone 2：Cards + Highlights（flex-1，撑满剩余高度） */}
-      <div className="relative mx-auto flex w-full max-w-[1200px] flex-1 flex-col gap-8 px-6 pb-6">
+      {/* Body：卡片区，在剩余高度内垂直居中 */}
+      <div className="relative mx-auto flex w-full max-w-[1200px] flex-1 flex-col justify-center px-6 pb-12 pt-6">
         {count === 0 ? (
           /* 空状态 */
-          <div className="flex h-full min-h-[260px] flex-col items-center justify-center gap-4 py-12">
+          <div className="flex min-h-[260px] flex-col items-center justify-center gap-4 py-12">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--accent-muted)] border border-[var(--accent-primary)]/20">
               <svg
                 className="h-7 w-7 text-[var(--accent-primary)]"
@@ -147,154 +161,27 @@ export function HomeDocsSection({
             </p>
           </div>
         ) : (
-          <>
-            {/* 卡片区 */}
-            <div
-              className={
-                count === 1
-                  ? "grid grid-cols-1 gap-5"
-                  : count === 2
-                    ? "grid grid-cols-1 gap-5 sm:grid-cols-2"
-                    : "grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
-              }
-            >
-              {columns.map((column, index) => (
-                <DocsCard
-                  key={column.id}
-                  column={column}
-                  locale={locale}
-                  index={index}
-                />
-              ))}
-            </div>
-
-            {/* 特色亮点带（常驻，填充并丰富中屏内容） */}
-            <DocsHighlights />
-          </>
+          <div
+            className={
+              count === 1
+                ? "grid grid-cols-1 gap-6"
+                : count === 2
+                  ? "grid grid-cols-1 gap-6 sm:grid-cols-2"
+                  : "grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+            }
+          >
+            {columns.map((column, index) => (
+              <DocsCard
+                key={column.id}
+                column={column}
+                locale={locale}
+                index={index}
+              />
+            ))}
+          </div>
         )}
       </div>
-
-      {/* Zone 3：Stats Footer */}
-      <div className="relative mx-auto w-full max-w-[1200px] flex-shrink-0 border-t border-[var(--border-default)] px-6 py-5">
-        <div className="flex items-center justify-between gap-4">
-          <span className="text-xs text-[var(--text-tertiary)]">
-            {t("home.docsSection.docCount", { count: totalCount })}
-          </span>
-          <DocsGateLink
-            href={`/${locale}/docs`}
-            target="_blank"
-            className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)]
-                       bg-[var(--accent-muted)] px-4 py-2 text-xs font-semibold
-                       text-[var(--accent-primary)] border border-[var(--accent-primary)]/20
-                       transition-all duration-[var(--duration-fast)]
-                       hover:bg-[var(--accent-primary)] hover:text-[var(--bg-primary)]
-                       hover:border-transparent hover:shadow-[0_0_20px_var(--glow-primary)]"
-          >
-            {t("home.docsSection.exploreAll")}
-            <svg
-              className="h-3.5 w-3.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-              aria-hidden="true"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          </DocsGateLink>
-        </div>
-      </div>
     </section>
-  );
-}
-
-// ─── 特色亮点带 ───────────────────────────────────────────────────────────────
-
-function DocsHighlights() {
-  const t = useTranslations();
-
-  const items = [
-    {
-      title: t("home.docsSection.highlight1Title"),
-      desc: t("home.docsSection.highlight1Desc"),
-      path: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
-    },
-    {
-      title: t("home.docsSection.highlight2Title"),
-      desc: t("home.docsSection.highlight2Desc"),
-      path: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
-    },
-    {
-      title: t("home.docsSection.highlight3Title"),
-      desc: t("home.docsSection.highlight3Desc"),
-      path: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15",
-    },
-  ];
-
-  return (
-    <div className="flex flex-1 flex-col justify-center">
-      {/* 分隔标题 */}
-      <div className="mb-5 flex items-center gap-4">
-        <span className="text-xs font-semibold uppercase tracking-widest text-[var(--text-tertiary)]">
-          {t("home.docsSection.highlightsTitle")}
-        </span>
-        <div className="h-px flex-1 bg-gradient-to-r from-[var(--accent-primary)]/25 to-transparent" />
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {items.map((item, index) => (
-          <div
-            key={item.title}
-            className="group frosted-glass relative overflow-hidden rounded-[var(--radius-lg)] p-5
-                       animate-fade-in-up transition-all duration-[var(--duration-normal)]
-                       hover:border-[var(--accent-primary)]/30"
-            style={{ animationDelay: `${index * 90}ms` }}
-          >
-            {/* 序号水印 */}
-            <span
-              className="pointer-events-none absolute -right-2 -top-3 text-6xl font-bold text-[var(--accent-primary)]/[0.06] select-none"
-              style={{ fontFamily: "var(--font-display)" }}
-              aria-hidden="true"
-            >
-              0{index + 1}
-            </span>
-
-            <div className="relative mb-3 flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] bg-[var(--accent-muted)] border border-[var(--accent-primary)]/20 transition-colors duration-[var(--duration-fast)] group-hover:bg-[var(--accent-primary)]/15">
-              <svg
-                className="h-5 w-5 text-[var(--accent-primary)]"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.8}
-                aria-hidden="true"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d={item.path} />
-              </svg>
-            </div>
-
-            <h3
-              className="relative mb-1.5 text-sm font-bold text-[var(--text-primary)]"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              {item.title}
-            </h3>
-            <p className="relative text-xs leading-relaxed text-[var(--text-tertiary)]">
-              {item.desc}
-            </p>
-
-            {/* 底部流光线 */}
-            <div
-              className="absolute bottom-0 left-5 right-5 h-[2px] origin-left scale-x-0
-                         transition-transform duration-[var(--duration-normal)] group-hover:scale-x-100"
-              style={{
-                background:
-                  "linear-gradient(to right, var(--accent-primary), transparent)",
-              }}
-            />
-          </div>
-        ))}
-      </div>
-    </div>
   );
 }
 
@@ -334,7 +221,7 @@ function DocsCard({
       {/* 封面图 */}
       {column.coverImage && (
         <div
-          className="relative h-[160px] flex-shrink-0 overflow-hidden
+          className="relative h-[176px] flex-shrink-0 overflow-hidden
                       border-b border-[var(--border-subtle)] bg-[var(--bg-tertiary)]"
         >
           <img
