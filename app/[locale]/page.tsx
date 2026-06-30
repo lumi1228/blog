@@ -113,6 +113,25 @@ function HomeContent({
       <main className="flex-1">
         {/* ── Module 1：Hero ─────────────────────────────────────────────────── */}
         <section className="relative overflow-hidden bg-[var(--bg-primary)] py-16 sm:py-20 lg:py-24">
+          {/* 首屏背景图 + 主题自适应遮罩（保证左侧文字在明暗模式下均可读） */}
+          <div
+            className="absolute inset-0 overflow-hidden pointer-events-none select-none"
+            aria-hidden="true"
+          >
+            <Image
+              src="/hero.jpg"
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover object-center opacity-100 dark:opacity-100"
+            />
+            {/* 移动端：文字在顶部，用从上到下压暗 */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/25 to-transparent lg:hidden" />
+            {/* 桌面端：文字在左侧，用从左到右压暗（无边界自然过渡） */}
+            <div className="absolute inset-0 hidden bg-gradient-to-r from-black/65 via-black/25 to-transparent lg:block" />
+          </div>
+
           {/* 极简紫色光晕背景 + 流星动画 */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
             {/* 主光晕 */}
@@ -172,8 +191,8 @@ function HomeContent({
                 <div className="mb-6 animate-fade-in-up stagger-1 flex justify-start">
                   <span
                     className="inline-flex items-center gap-1.5 rounded-full
-                               bg-[var(--accent-muted)] px-3.5 py-1 text-xs font-semibold tracking-wider text-[var(--accent-primary)]
-                               border border-[var(--accent-primary)]/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]"
+                               bg-white/10 px-3.5 py-1 text-xs font-semibold tracking-wider text-white
+                               border border-white/20 backdrop-blur-md shadow-[0_2px_12px_rgba(0,0,0,0.35)]"
                   >
                     <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent-primary)] animate-ping" />
                     {t("home.badge")}
@@ -182,19 +201,20 @@ function HomeContent({
 
                 {/* 博客标题 */}
                 <h1
-                  className="mb-6 text-4xl font-extrabold leading-tight tracking-tight text-[var(--text-primary)]
-                             sm:text-5xl lg:text-6xl animate-fade-in-up stagger-2"
+                  className="mb-6 text-4xl font-extrabold leading-tight tracking-tight text-white
+                             sm:text-5xl lg:text-6xl animate-fade-in-up stagger-2
+                             [text-shadow:0_2px_16px_rgba(0,0,0,0.55)]"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
                   {t("home.title1")}
                   <br />
-                  <span className="bg-gradient-to-r from-[var(--accent-primary)] via-[var(--accent-secondary)] to-[var(--accent-tertiary)] bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-[var(--accent-primary)] via-[var(--accent-secondary)] to-[var(--accent-tertiary)] bg-clip-text text-transparent [filter:drop-shadow(0_2px_10px_rgba(0,0,0,0.45))]">
                     {t("home.title2")}
                   </span>
                 </h1>
 
                 {/* 描述 */}
-                <p className="mb-10 max-w-xl text-base leading-relaxed text-[var(--text-secondary)] sm:text-lg animate-fade-in-up stagger-3">
+                <p className="mb-10 max-w-xl text-base leading-relaxed text-white/85 sm:text-lg animate-fade-in-up stagger-3 [text-shadow:0_1px_8px_rgba(0,0,0,0.5)]">
                   {t("home.description1")}
                   <br />
                   {t("home.description2")}
@@ -217,9 +237,10 @@ function HomeContent({
                   <a
                     href={`/${locale}/about`}
                     className="frosted-glass inline-flex items-center gap-2 rounded-[var(--radius-md)]
-                               px-7 py-3.5 text-sm font-semibold text-[var(--text-primary)]
+                               px-7 py-3.5 text-sm font-semibold text-white
+                               border-white/20
                                transition-all duration-[var(--duration-fast)]
-                               hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)] hover:scale-[1.03]"
+                               hover:border-white/50 hover:scale-[1.03]"
                   >
                     {t("home.aboutMe")}
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -259,7 +280,7 @@ function HomeContent({
                         src={siteAvatar}
                         alt="头像"
                         fill
-                        className="object-cover opacity-[0.35] dark:opacity-[0.42]"
+                        className="object-cover opacity-[0.9] dark:opacity-[0.9]"
                         style={{ filter: "saturate(1.1) contrast(1.05) brightness(1.05)" }}
                         priority
                       />
