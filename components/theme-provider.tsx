@@ -34,6 +34,21 @@ function getDefaultThemeForPath(pathname: string): "dark" | "light" {
   return "dark";
 }
 
+/** 后台管理区主题持久化存储键（仅后台持久化，公开站点不持久化） */
+const ADMIN_THEME_KEY = "admin-theme";
+
+/** 是否为后台管理路径（无 locale 前缀） */
+function isAdminPath(pathname: string): boolean {
+  return pathname === "/admin" || pathname.startsWith("/admin/");
+}
+
+/** 读取后台持久化主题；无有效值时回退到该路径的默认主题 */
+function getAdminTheme(fallback: "dark" | "light"): "dark" | "light" {
+  if (typeof window === "undefined") return fallback;
+  const saved = window.localStorage.getItem(ADMIN_THEME_KEY);
+  return saved === "light" || saved === "dark" ? saved : fallback;
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const defaultTheme = getDefaultThemeForPath(pathname);
@@ -65,37 +80,51 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       : "dark";
   }, []);
 
-  // 设置主题（仅在当前会话生效，不持久化）
+  // 设置主题
+  // - 公开站点：仅在当前会话生效，不持久化（刷新/跳转后恢复区域默认主题）
+  // - 后台管理（/admin）：持久化到 localStorage，刷新后保留用户选择
   const setTheme = useCallback(
     (newTheme: Theme) => {
       setThemeState(newTheme);
-      // 不再保存到 localStorage，刷新/跳转后恢复所属区域的默认主题
 
-      if (newTheme === "system") {
-        applyTheme(getSystemTheme());
-      } else {
-        applyTheme(newTheme);
+      const resolved = newTheme === "system" ? getSystemTheme() : newTheme;
+      applyTheme(resolved);
+
+      if (isAdminPath(pathname)) {
+        try {
+          window.localStorage.setItem(ADMIN_THEME_KEY, resolved);
+        } catch {
+          // 忽略隐私模式等写入失败
+        }
       }
     },
-    [applyTheme, getSystemTheme]
+    [applyTheme, getSystemTheme, pathname]
   );
 
-  // 初始化：应用当前路由对应的默认主题
+  // 初始化：应用当前路由对应的默认主题（后台优先读取持久化选择）
   useEffect(() => {
-    applyTheme(defaultTheme);
+    const initial = isAdminPath(pathname)
+      ? getAdminTheme(defaultTheme)
+      : defaultTheme;
+    setThemeState(initial);
+    applyTheme(initial);
     // 仅在挂载时执行一次
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // 路由切换：当进入的区域默认主题发生变化（如首页→知识库）时，
   // 重置为该区域的默认主题；同一区域内导航则保留用户手动切换的选择。
+  // 进入后台时优先采用持久化的主题选择。
   useEffect(() => {
     if (prevDefaultRef.current !== defaultTheme) {
       prevDefaultRef.current = defaultTheme;
-      setThemeState(defaultTheme);
-      applyTheme(defaultTheme);
+      const next = isAdminPath(pathname)
+        ? getAdminTheme(defaultTheme)
+        : defaultTheme;
+      setThemeState(next);
+      applyTheme(next);
     }
-  }, [defaultTheme, applyTheme]);
+  }, [defaultTheme, applyTheme, pathname]);
 
   // 监听系统主题变化
   useEffect(() => {

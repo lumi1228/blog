@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const navItems = [
   {
@@ -116,6 +117,12 @@ export function AdminSidebar({ userEmail }: AdminSidebarProps) {
 
       {/* 底部用户信息 */}
       <div className="border-t border-[var(--border-subtle)] p-3">
+        {/* 主题切换 */}
+        <div className="mb-2 flex items-center justify-between gap-2 px-3 py-1">
+          <span className="text-xs text-[var(--text-tertiary)]">主题</span>
+          <ThemeToggle />
+        </div>
+
         <div className="mb-2 truncate px-3 text-xs text-[var(--text-tertiary)]">
           {userEmail}
         </div>

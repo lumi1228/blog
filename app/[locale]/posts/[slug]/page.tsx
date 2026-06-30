@@ -104,7 +104,7 @@ export default async function PostDetailPage({ params }: PageProps) {
   const t = await getTranslations();
 
   const translations = {
-    home: t("common.home"),
+    blog: t("nav.blog"),
     readingTime: (time: number) => t("post.readingTime", { time }),
     views: (count: number) => t("post.views", { count }),
     prevPost: t("post.prevPost"),
@@ -130,7 +130,7 @@ interface PostContentProps {
   headings: Heading[];
   jsonLd: Record<string, unknown>;
   translations: {
-    home: string;
+    blog: string;
     readingTime: (time: number) => string;
     views: (count: number) => string;
     prevPost: string;
@@ -165,13 +165,13 @@ function PostContent({ post, prev, next, headings, jsonLd, translations }: PostC
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
               />
 
-              {/* 面包屑 */}
+              {/* 面包屑：博客 / 文章分类 / 文章名字 */}
               <nav className="mb-6 flex items-center gap-2 text-xs text-[var(--text-tertiary)]">
                 <Link
-                  href="/"
+                  href="/blog"
                   className="transition-colors duration-[var(--duration-fast)] hover:text-[var(--accent-primary)]"
                 >
-                  {t.home}
+                  {t.blog}
                 </Link>
                 <span>/</span>
                 <Link
@@ -180,6 +180,10 @@ function PostContent({ post, prev, next, headings, jsonLd, translations }: PostC
                 >
                   {post.category.name}
                 </Link>
+                <span>/</span>
+                <span className="text-[var(--text-secondary)] line-clamp-1">
+                  {post.title}
+                </span>
               </nav>
 
               {/* 文章头部：有封面时图文融合 Hero，无封面时常规标题 */}

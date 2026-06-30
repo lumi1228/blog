@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -37,6 +38,11 @@ export default function AdminLoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
+      {/* 主题切换（右上角） */}
+      <div className="absolute right-4 top-4 z-10">
+        <ThemeToggle />
+      </div>
+
       {/* 背景装饰 */}
       <div className="absolute inset-0 overflow-hidden">
         <div

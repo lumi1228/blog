@@ -117,6 +117,7 @@ export default async function DocsPostDetailPage({ params }: PageProps) {
 
   const translations = {
     drawerLabel: t("docs.label"),
+    docsHome: t("docs.label"),
     readingTime: (time: number) => t("post.readingTime", { time }),
     views: (count: number) => t("post.views", { count }),
     prevPost: t("post.prevPost"),
@@ -147,6 +148,7 @@ interface DocsPostContentProps {
   jsonLd: Record<string, unknown>;
   translations: {
     drawerLabel: string;
+    docsHome: string;
     readingTime: (time: number) => string;
     views: (count: number) => string;
     prevPost: string;
@@ -189,8 +191,15 @@ function DocsPostContent({
               dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
 
-            {/* 面包屑：专栏 / 章节 / 文章（无章节则专栏 / 文章） */}
+            {/* 面包屑：知识库 / 知识库分类 / 章节 / 文章（无章节则知识库 / 分类 / 文章） */}
             <nav className="mb-6 flex items-center gap-2 text-xs text-[var(--text-tertiary)]">
+              <Link
+                href="/docs"
+                className="transition-colors duration-[var(--duration-fast)] hover:text-[var(--accent-primary)]"
+              >
+                {t.docsHome}
+              </Link>
+              <span>/</span>
               <Link
                 href={`/docs/${setData.slug}`}
                 className="transition-colors duration-[var(--duration-fast)] hover:text-[var(--accent-primary)]"

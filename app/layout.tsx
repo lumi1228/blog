@@ -53,17 +53,25 @@ export default async function RootLayout({
     >
       <head>
         {/* 主题初始化脚本，避免闪烁 - 按路由决定默认主题：
-            知识库 /docs 默认浅色，其余主站页面默认深色 */}
+            知识库 /docs 默认浅色，其余主站页面默认深色；
+            后台 /admin 优先采用持久化的用户选择（localStorage: admin-theme） */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
                 try {
                   var path = location.pathname.replace(/^\\/en(?=\\/|$)/, '') || '/';
-                  var isLight =
-                    path === '/docs' ||
-                    path.indexOf('/docs/') === 0;
-                  if (isLight) {
+                  var isAdmin = path === '/admin' || path.indexOf('/admin/') === 0;
+                  var useLight;
+                  if (isAdmin) {
+                    var saved = localStorage.getItem('admin-theme');
+                    useLight = saved === 'light';
+                  } else {
+                    useLight =
+                      path === '/docs' ||
+                      path.indexOf('/docs/') === 0;
+                  }
+                  if (useLight) {
                     document.documentElement.classList.add('light');
                   } else {
                     document.documentElement.classList.remove('light');

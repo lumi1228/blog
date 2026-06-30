@@ -216,7 +216,7 @@ npm run test:e2e     # Playwright e2e tests
 | Supabase schema | `supabase/*.sql` |
 | DB queries | `lib/db.ts` (all queries in one file) |
 | View counter | `components/view-counter.tsx`, `lib/view-counter/`, `lib/db.ts → incrementViewCount` |
-| Theme (dark/light) | `components/theme-provider.tsx`, `components/theme-toggle.tsx` |
+| Theme (dark/light) | `components/theme-provider.tsx`, `components/theme-toggle.tsx`；按区域决定默认主题（`/docs` 浅色、其余深色），公开站点会话内切换不持久化；**后台 `/admin*` 例外：主题选择持久化到 localStorage（key `admin-theme`），刷新后保留**，首屏防闪烁脚本见 `app/layout.tsx`，切换入口在 `components/admin/sidebar.tsx` 与 `app/admin/login/page.tsx` |
 
 ---
 
