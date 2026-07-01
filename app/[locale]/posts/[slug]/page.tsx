@@ -147,18 +147,16 @@ function PostContent({ post, prev, next, headings, jsonLd, translations }: PostC
       <Navbar />
 
       <main className="article-theme flex-1">
-        {/* 外层容器：居中 + 水平 padding */}
-        <div className="mx-auto max-w-[1400px] px-6 py-12 sm:py-16">
-          {/* 三栏布局：左留白(固定) + 文章主体(中间) + 右侧 TOC(固定)。
-              主站无左侧目录，用与 TOC 等宽的留白栏对称，使主体在视口中真正居中。
+        {/* 外层容器：居中 + 水平 padding。
+            容器宽度收紧到 80rem(1280px)，正好容纳「正文 60rem + 间距 + TOC 17rem」，
+            右侧不再残留死白，整体居中后左右留白均衡。 */}
+        <div className="mx-auto max-w-[80rem] px-6 py-12 sm:py-16">
+          {/* 两栏布局：文章主体(左，填满 TOC 之外的空间) + 右侧 TOC(固定)。
               xl 以下回退为单列：主体 mx-auto 居中，TOC 转为右下浮层。 */}
-          <div className="xl:flex xl:items-start xl:justify-center xl:gap-10">
+          <div className="xl:flex xl:items-start xl:gap-12">
 
-            {/* 左侧留白栏：与右侧 TOC 等宽，平衡居中（仅 xl+） */}
-            <div className="hidden xl:block xl:w-[15rem] xl:shrink-0" aria-hidden="true" />
-
-            {/* ── 文章主体（中间，最大阅读宽度，水平居中） ── */}
-            <article className="mx-auto w-full min-w-0 max-w-[56rem] xl:mx-0">
+            {/* ── 文章主体（xl+ 填满剩余空间，约 60rem，比原 56rem 略宽但不过满） ── */}
+            <article className="mx-auto w-full min-w-0 max-w-[64rem] xl:mx-0 xl:max-w-none xl:flex-1">
               {/* JSON-LD 结构化数据 */}
               <script
                 type="application/ld+json"
