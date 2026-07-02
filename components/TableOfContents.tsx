@@ -150,7 +150,9 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
       {/* ── PC 端侧边栏（xl+，固定宽度） ── */}
       <aside
         aria-label="文章目录"
-        className="hidden xl:block sticky top-24 w-[17rem] shrink-0 self-start"
+        className="hidden xl:block sticky top-24 w-[17rem] shrink-0 self-start
+                   max-h-[calc(100vh-7rem)] overflow-y-auto overscroll-contain
+                   [scrollbar-width:thin]"
       >
         <nav>{tocList}</nav>
       </aside>
