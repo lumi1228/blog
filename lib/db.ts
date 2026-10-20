@@ -867,6 +867,7 @@ function splitLines(text: string | null | undefined): string[] {
  *
  * @param supabase 可选的 Supabase 客户端；不传则使用受 RLS 限制的 cookie 客户端。
  *                 简历表已收紧 RLS，前台解锁接口需传入 service_role 客户端（createAdminClient）。
+ * --- @ty.aicoding@ ---
  */
 export async function getResume(
   locale: Locale = "zh-CN",
@@ -900,6 +901,7 @@ export async function getResume(
       .select(
         "id, name_zh, name_en, summary_zh, summary_en, contributions_zh, contributions_en"
       )
+      .eq("is_visible", true)
       .order("sort", { ascending: true }),
   ]);
 

@@ -366,6 +366,7 @@ CREATE TABLE IF NOT EXISTS resume_experiences (
 CREATE TABLE IF NOT EXISTS resume_projects (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   sort INTEGER DEFAULT 0,
+  is_visible BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   name_zh TEXT NOT NULL,
   name_en TEXT,
@@ -374,6 +375,7 @@ CREATE TABLE IF NOT EXISTS resume_projects (
   contributions_zh TEXT,             -- 核心贡献，按换行符分隔，每行一条
   contributions_en TEXT
 );
+-- --- @ty.aicoding@ ---
 
 -- 索引
 CREATE INDEX IF NOT EXISTS idx_resume_skills_sort ON resume_skills(sort);

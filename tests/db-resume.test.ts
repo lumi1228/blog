@@ -10,12 +10,25 @@ vi.mock("next/headers", () => ({
 // 数据按表名提供；构造可链式调用且最终可 await 的 builder
 let tableData: Record<string, any>;
 
+/**
+ * 构造支持筛选和排序调用的 Supabase 查询 mock。
+ * --- @ty.aicoding@ ---
+ */
 function makeBuilder(table: string) {
   const result = { data: tableData[table] ?? null, error: null };
   const builder: any = {
     select: () => builder,
     order: () => Promise.resolve(result),
-    eq: () => builder,
+    /**
+     * 应用等值筛选，模拟 Supabase 查询链。
+     * --- @ty.aicoding@ ---
+     */
+    eq: (column: string, value: unknown) => {
+      if (Array.isArray(result.data)) {
+        result.data = result.data.filter((row: Record<string, unknown>) => row[column] === value);
+      }
+      return builder;
+    },
     limit: () => builder,
     maybeSingle: () =>
       Promise.resolve({
@@ -70,6 +83,7 @@ beforeEach(() => {
     resume_projects: [
       {
         id: "p1",
+        is_visible: true,
         name_zh: "项目甲",
         name_en: "Project A",
         summary_zh: "简介",
@@ -77,18 +91,32 @@ beforeEach(() => {
         contributions_zh: "贡献1\n\n贡献2",
         contributions_en: null,
       },
+      {
+        id: "p2",
+        is_visible: false,
+        name_zh: "隐藏项目",
+        name_en: "Hidden Project",
+        summary_zh: "不应返回",
+        summary_en: null,
+        contributions_zh: "隐藏贡献",
+        contributions_en: null,
+      },
     ],
   };
 });
 
 describe("getResume", () => {
-  it("中文 locale 解析 _zh 字段", async () => {
+  /**
+   * --- @ty.aicoding@ ---
+   */
+  it("中文 locale 解析 _zh 字段并过滤隐藏项目", async () => {
     const r = await getResume("zh-CN");
     expect(r.profile?.name).toBe("张三");
     expect(r.profile?.certificate).toBe("软件设计师中级证书");
     expect(r.skills[0].content).toBe("技能一");
     expect(r.experiences[0].company).toBe("某公司");
     expect(r.projects[0].name).toBe("项目甲");
+    expect(r.projects).toHaveLength(1);
   });
 
   it("英文 locale 解析 _en，缺失时回退 _zh", async () => {

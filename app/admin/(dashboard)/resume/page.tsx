@@ -2,6 +2,10 @@ import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 import { ResumeManager } from "@/components/admin/resume-manager";
 
+/**
+ * 加载简历管理页所需的全部后台数据。
+ * --- @ty.aicoding@ ---
+ */
 export default async function AdminResumePage() {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
@@ -27,7 +31,7 @@ export default async function AdminResumePage() {
     supabase
       .from("resume_projects")
       .select(
-        "id, sort, name_zh, name_en, summary_zh, summary_en, contributions_zh, contributions_en"
+        "id, sort, is_visible, name_zh, name_en, summary_zh, summary_en, contributions_zh, contributions_en"
       )
       .order("sort", { ascending: true }),
     supabase

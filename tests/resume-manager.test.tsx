@@ -57,13 +57,19 @@ describe("ResumeManager", () => {
     expect(screen.getByText("工作要点（中文，每行一条）")).toBeInTheDocument();
   });
 
-  it("项目经验 Tab 渲染已有项目", () => {
+  /**
+   * --- @ty.aicoding@ ---
+   */
+  it("项目经验 Tab 渲染已有项目及展示开关状态", () => {
     const projects = [
-      { id: "p1", sort: 0, name_zh: "某中台系统", name_en: null, summary_zh: "中台", summary_en: null, contributions_zh: "a\nb", contributions_en: null },
+      { id: "p1", sort: 0, is_visible: true, name_zh: "某中台系统", name_en: null, summary_zh: "中台", summary_en: null, contributions_zh: "a\nb", contributions_en: null },
+      { id: "p2", sort: 1, is_visible: false, name_zh: "内部项目", name_en: null, summary_zh: null, summary_en: null, contributions_zh: null, contributions_en: null },
     ];
     render(<ResumeManager {...baseProps} projects={projects} />);
     fireEvent.click(screen.getByText("项目经验"));
     expect(screen.getByText("某中台系统")).toBeInTheDocument();
+    expect(screen.getByRole("switch", { name: /某中台系统/ })).toHaveAttribute("aria-checked", "true");
+    expect(screen.getByRole("switch", { name: /内部项目/ })).toHaveAttribute("aria-checked", "false");
   });
 
   it("访问控制 Tab：门禁开启但无码时显示警告", () => {

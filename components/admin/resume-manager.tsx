@@ -46,9 +46,14 @@ interface ExpRow {
   highlights_zh: string | null;
   highlights_en: string | null;
 }
+/**
+ * 项目经验后台数据行，包含前台展示状态。
+ * --- @ty.aicoding@ ---
+ */
 interface ProjRow {
   id: string;
   sort: number;
+  is_visible: boolean;
   name_zh: string;
   name_en: string | null;
   summary_zh: string | null;
@@ -550,6 +555,10 @@ function ExperiencesSection({ experiences }: { experiences: ExpRow[] }) {
 // ============================================
 // 项目经验
 // ============================================
+/**
+ * 管理项目经验的新增、编辑、删除与展示状态。
+ * --- @ty.aicoding@ ---
+ */
 function ProjectsSection({ projects }: { projects: ProjRow[] }) {
   const router = useRouter();
   const [editing, setEditing] = useState<ProjRow | "new" | null>(null);
@@ -662,17 +671,80 @@ function ProjectsSection({ projects }: { projects: ProjRow[] }) {
     >
       <ul className="divide-y divide-[var(--border-subtle)] rounded-[var(--radius-lg)] border border-[var(--border-subtle)]">
         {projects.map((proj) => (
-          <li key={proj.id} className="flex items-start justify-between gap-4 px-4 py-3">
+          <li key={proj.id} className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
             <div className="min-w-0">
               <div className="text-sm font-medium text-[var(--text-primary)]">{proj.name_zh}</div>
               {proj.summary_zh && <div className="mt-0.5 truncate text-xs text-[var(--text-tertiary)]">{proj.summary_zh}</div>}
             </div>
-            <RowActions onEdit={() => openEdit(proj)} onDelete={() => remove(proj)} sort={proj.sort} />
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
+              <ProjectVisibilitySwitch key={`${proj.id}-${proj.is_visible}`} project={proj} />
+              <RowActions onEdit={() => openEdit(proj)} onDelete={() => remove(proj)} sort={proj.sort} />
+            </div>
           </li>
         ))}
         {projects.length === 0 && <EmptyRow />}
       </ul>
     </SectionShell>
+  );
+}
+
+/**
+ * 切换单个项目是否出现在公开简历中。
+ * --- @ty.aicoding@ ---
+ */
+function ProjectVisibilitySwitch({ project }: { project: ProjRow }) {
+  const router = useRouter();
+  const [visible, setVisible] = useState(project.is_visible);
+  const [saving, setSaving] = useState(false);
+
+  /**
+   * 持久化项目展示状态并刷新服务端数据。
+   * --- @ty.aicoding@ ---
+   */
+  const toggleVisibility = async () => {
+    const next = !visible;
+    setSaving(true);
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("resume_projects")
+      .update({ is_visible: next })
+      .eq("id", project.id);
+    setSaving(false);
+
+    if (error) {
+      alert("操作失败：" + error.message);
+      return;
+    }
+
+    setVisible(next);
+    router.refresh();
+  };
+
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={visible}
+      aria-label={`${project.name_zh}：${visible ? "当前展示，点击隐藏" : "当前隐藏，点击展示"}`}
+      title={visible ? "点击后不在公开简历中展示" : "点击后在公开简历中展示"}
+      onClick={toggleVisibility}
+      disabled={saving}
+      className="inline-flex items-center gap-2 rounded-[var(--radius-sm)] px-2 py-1 text-xs text-[var(--text-secondary)] transition-colors duration-[var(--duration-fast)] hover:bg-[var(--accent-muted)] disabled:cursor-wait disabled:opacity-50"
+    >
+      <span>{visible ? "展示" : "隐藏"}</span>
+      <span
+        aria-hidden="true"
+        className={`relative h-5 w-9 rounded-full transition-colors duration-[var(--duration-fast)] ${
+          visible ? "bg-[var(--accent-primary)]" : "bg-[var(--bg-tertiary)]"
+        }`}
+      >
+        <span
+          className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform duration-[var(--duration-fast)] ${
+            visible ? "translate-x-[18px]" : "translate-x-0.5"
+          }`}
+        />
+      </span>
+    </button>
   );
 }
 
