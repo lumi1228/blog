@@ -895,6 +895,7 @@ export async function getResume(
       .select(
         "id, period, company_zh, company_en, role_zh, role_en, highlights_zh, highlights_en"
       )
+      .eq("is_visible", true)
       .order("sort", { ascending: true }),
     sb
       .from("resume_projects")

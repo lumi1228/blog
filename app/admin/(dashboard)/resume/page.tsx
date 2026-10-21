@@ -25,7 +25,7 @@ export default async function AdminResumePage() {
     supabase
       .from("resume_experiences")
       .select(
-        "id, sort, period, company_zh, company_en, role_zh, role_en, highlights_zh, highlights_en"
+        "id, sort, is_visible, period, company_zh, company_en, role_zh, role_en, highlights_zh, highlights_en"
       )
       .order("sort", { ascending: true }),
     supabase

@@ -209,7 +209,7 @@ npm run test:e2e     # Playwright e2e tests
 | Resume (about modal + PDF) | `components/resume-modal.tsx`, `lib/db.ts → getResume(locale, client?)`; 授权码门禁，打开时探测门禁状态，数据不随页面下发 |
 | Resume unlock API | `app/api/resume/unlock/route.ts`（POST，读 `resume_settings.gate_enabled`：关→直接返回；开→校验 `resume_access_codes` 后用 `createAdminClient` 返回简历）|
 | Knowledge-base gate (`/docs` 门禁) | `proxy.ts`（中间件拦截 `/docs`、`/en/docs`，验签 `docs_access` cookie，无效→重定向 `/[locale]/unlock-docs?next=…`）、`lib/docs-gate.ts`（HMAC 签发/校验凭证）、`app/api/docs/unlock/route.ts`（复用 `resume_access_codes` 校验，成功下发 7 天签名 cookie）、`app/[locale]/unlock-docs/page.tsx` + `components/docs/docs-gate-form.tsx`（解锁页/表单，支持 `?code=` 魔法链接 + `?next=` 跳回）。授权码校验共享逻辑在 `lib/access-code.ts`。「入口处校验一次，进入后凭 cookie 不再校验」。 |
-| Admin resume | `app/admin/(dashboard)/resume/page.tsx`, `components/admin/resume-manager.tsx`（6 个 Tab：基本信息/技能/经历/项目/访问控制/主站头像）；项目经验通过 `resume_projects.is_visible` 开关控制是否进入公开简历，新旧数据默认展示；项目技术栈使用 `tech_stack_zh/en` 录入，并由 `resume_settings.show_project_tech_stack` 全局控制前台/PDF 展示，字段为空时不占位；证件照上传到 Storage bucket `resume`（public）；门禁开关与授权码存 `resume_settings`/`resume_access_codes` |
+| Admin resume | `app/admin/(dashboard)/resume/page.tsx`, `components/admin/resume-manager.tsx`（6 个 Tab：基本信息/技能/经历/项目/访问控制/主站头像）；工作经历与项目经验分别通过各自表的 `is_visible` 开关控制是否进入公开简历，新旧数据默认展示；项目技术栈使用 `tech_stack_zh/en` 录入，并由 `resume_settings.show_project_tech_stack` 全局控制前台/PDF 展示，字段为空时不占位；证件照上传到 Storage bucket `resume`（public）；门禁开关与授权码存 `resume_settings`/`resume_access_codes` |
 | SEO / metadata | `lib/seo.ts`, `app/sitemap.ts`, `app/robots.ts` |
 | URL redirects | `next.config.ts → redirects()` (`/columns/*` → `/docs/*`, 301, both locales) |
 | i18n UI strings | `messages/zh-CN.json`, `messages/en.json` |
@@ -234,7 +234,7 @@ SearchIndexEntry   // slug, title, excerpt, tags[], publishedAt, url? (docs entr
 SearchIndexResponse // locale, generatedAt, entries[]
 ResumeProfile      // name, avatar, phone, email, blogUrl, certificate, jobIntention, edu (locale-resolved)
 ResumeSkill        // id, content
-ResumeExperience   // id, period, company, role, highlights[] (split from newline-separated text)
+ResumeExperience   // id, period, company, role, highlights[] (仅包含 is_visible=true；要点按换行拆分)
 ResumeProject      // id, name, summary, techStack?, contributions[] (仅包含 is_visible=true；技术栈受全局开关和非空内容控制)
 ResumeData         // profile + skills[] + experiences[] + projects[] (returned by getResume)
 ```

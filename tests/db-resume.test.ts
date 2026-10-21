@@ -74,6 +74,7 @@ beforeEach(() => {
     resume_experiences: [
       {
         id: "e1",
+        is_visible: true,
         period: "2021.09-至今",
         company_zh: "某公司",
         company_en: "Some Co",
@@ -81,6 +82,17 @@ beforeEach(() => {
         role_en: "Engineer",
         highlights_zh: "  要点A\n要点B  \n\n要点C ",
         highlights_en: null,
+      },
+      {
+        id: "e2",
+        is_visible: false,
+        period: "2019.01-2021.08",
+        company_zh: "隐藏公司",
+        company_en: "Hidden Co",
+        role_zh: "开发工程师",
+        role_en: "Developer",
+        highlights_zh: "不应返回",
+        highlights_en: "Should not be returned",
       },
     ],
     resume_settings: {
@@ -119,12 +131,13 @@ describe("getResume", () => {
   /**
    * --- @ty.aicoding@ ---
    */
-  it("中文 locale 解析 _zh 字段并过滤隐藏项目", async () => {
+  it("中文 locale 解析 _zh 字段并过滤隐藏经历与项目", async () => {
     const r = await getResume("zh-CN");
     expect(r.profile?.name).toBe("张三");
     expect(r.profile?.certificate).toBe("软件设计师中级证书");
     expect(r.skills[0].content).toBe("技能一");
     expect(r.experiences[0].company).toBe("某公司");
+    expect(r.experiences).toHaveLength(1);
     expect(r.projects[0].name).toBe("项目甲");
     expect(r.projects[0].techStack).toBe("Vue 2、Vuex、Element UI");
     expect(r.projects).toHaveLength(1);

@@ -60,6 +60,20 @@ describe("ResumeManager", () => {
   /**
    * --- @ty.aicoding@ ---
    */
+  it("工作经历 Tab 渲染每条经历的展示开关状态", () => {
+    const experiences = [
+      { id: "e1", sort: 0, is_visible: true, period: "2022-至今", company_zh: "某公司", company_en: null, role_zh: "前端工程师", role_en: null, highlights_zh: "负责平台建设", highlights_en: null },
+      { id: "e2", sort: 1, is_visible: false, period: "2020-2022", company_zh: "历史公司", company_en: null, role_zh: "开发工程师", role_en: null, highlights_zh: null, highlights_en: null },
+    ];
+    render(<ResumeManager {...baseProps} experiences={experiences} />);
+    fireEvent.click(screen.getByText("工作经历"));
+    expect(screen.getByRole("switch", { name: /某公司/ })).toHaveAttribute("aria-checked", "true");
+    expect(screen.getByRole("switch", { name: /历史公司/ })).toHaveAttribute("aria-checked", "false");
+  });
+
+  /**
+   * --- @ty.aicoding@ ---
+   */
   it("项目经验 Tab 渲染已有项目及展示开关状态", () => {
     const projects = [
       { id: "p1", sort: 0, is_visible: true, name_zh: "某中台系统", name_en: null, summary_zh: "中台", summary_en: null, tech_stack_zh: "React、TypeScript", tech_stack_en: null, contributions_zh: "a\nb", contributions_en: null },

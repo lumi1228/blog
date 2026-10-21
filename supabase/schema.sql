@@ -352,6 +352,7 @@ CREATE TABLE IF NOT EXISTS resume_skills (
 CREATE TABLE IF NOT EXISTS resume_experiences (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   sort INTEGER DEFAULT 0,
+  is_visible BOOLEAN NOT NULL DEFAULT TRUE,
   period TEXT,                       -- 如「2021.09-至今」
   created_at TIMESTAMPTZ DEFAULT NOW(),
   company_zh TEXT NOT NULL,
