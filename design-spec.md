@@ -1,7 +1,7 @@
 # Design Specification
 
 > **Version**: 2.6.0  
-> **Last Updated**: 2026-06-26  
+> **Last Updated**: 2026-10-21
 > **Design Theme**: Midnight Elegance（极夜优雅·深邃暗紫版）  
 > **Purpose**: 前端样式规范文档，确保 AI 和开发者输出一致的视觉设计和样式代码
 
@@ -510,6 +510,16 @@ className="rounded-[var(--radius-full)]"  // 分类标签
 - 空状态：虚线边框卡片居中提示
 
 **使用场景**：`/blog` 与 `/category/[slug]` 博客列表页。
+
+---
+
+### 7.11 DocsCatalog + DocsSidebar（知识库目录与章节导航）
+**路径**: `components/docs/docs-catalog.tsx`、`components/docs/docs-sidebar.tsx`
+
+- 在 `.article-theme` 内使用语义颜色 token，目录容器 `max-w-5xl`，内边距 `px-6 sm:px-8 py-10 sm:py-12`。
+- 知识库目录按章节分组：细边框圆角容器、`bg-secondary` 章节标题行、紧凑文章标题列表；章节目录展示标题、摘要、日期和阅读时长，空章节保留提示。
+- 侧栏在知识库目录、章节、文章间共享；章节名是真实目录链接，独立箭头只控制展开。当前项使用 `aria-current="page"` 和 `accent-muted` 背景，折叠列表隐藏后不可聚焦，不以固定高度裁剪长标题。
+- `lg` 以下侧栏沿用底部抽屉；目录页不展示文章 TOC。顶部知识库 Tab 和面包屑使用本地化链接，均可逐级回到目录。
 
 ---
 

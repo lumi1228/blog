@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { cache } from "react";
 import { createClient } from "@/utils/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
@@ -7,7 +8,10 @@ import type {
   Tag,
   Column,
   ColumnDetail,
-  ColumnWithFirstPost,
+  DocsOverview,
+  DocsDirectory,
+  DocsDirectoryChapter,
+  DocsChapterPost,
   SearchIndexEntry,
   SitemapPost,
   SitemapCategoryOrTag,
@@ -131,8 +135,10 @@ export async function getPosts(options?: {
 
 /**
  * 根据 slug 获取文章详情（含正文）
+ * 同一请求内供 metadata 与正文复用，避免重复读取。
+ * --- @ty.aicoding@ ---
  */
-export async function getPostBySlug(
+export const getPostBySlug = cache(async function getPostBySlug(
   slug: string,
   locale: Locale = "zh-CN"
 ): Promise<Post | null> {
@@ -188,7 +194,7 @@ export async function getPostBySlug(
       slug: pt.tags?.slug ?? "",
     })),
   };
-}
+});
 
 /**
  * 获取相邻文章（上一篇/下一篇）
@@ -473,14 +479,17 @@ export async function getAllCategoriesForSitemap(): Promise<SitemapCategoryOrTag
 /**
  * 获取文档站所有路径（用于 sitemap）。
  * 返回每个文档集（专栏）及其下文章的相对路径与可用语言。
+ * --- @ty.aicoding@ ---
  */
 export async function getAllDocsForSitemap(): Promise<{
   setSlug: string;
+  chapterIds: string[];
   postSlugs: { slug: string; availableLocales: ("zh-CN" | "en")[]; updatedAt?: string }[];
 }[]> {
   const columns = await getColumns("zh-CN");
   const result: {
     setSlug: string;
+    chapterIds: string[];
     postSlugs: { slug: string; availableLocales: ("zh-CN" | "en")[]; updatedAt?: string }[];
   }[] = [];
 
@@ -504,7 +513,7 @@ export async function getAllDocsForSitemap(): Promise<{
       }
     }
 
-    result.push({ setSlug: column.slug, postSlugs });
+    result.push({ setSlug: column.slug, chapterIds: detail.chapters.map((chapter) => chapter.id), postSlugs });
   }
 
   return result;
@@ -532,8 +541,9 @@ export async function getAllTagsForSitemap(): Promise<SitemapCategoryOrTag[]> {
 
 /**
  * 获取所有专栏列表
+ * --- @ty.aicoding@ ---
  */
-export async function getColumns(locale: Locale = "zh-CN"): Promise<Column[]> {
+export const getColumns = cache(async function getColumns(locale: Locale = "zh-CN"): Promise<Column[]> {
   const supabase = await getSupabase();
   const isZh = locale === "zh-CN";
 
@@ -552,77 +562,148 @@ export async function getColumns(locale: Locale = "zh-CN"): Promise<Column[]> {
     description: isZh ? row.description_zh : (row.description_en || row.description_zh),
     coverImage: row.cover_image ?? null,
   }));
+});
+
+/**
+ * 分批读取轻量目录，避免 Supabase 默认行数上限截断章节或文章。
+ * 调用方必须提供稳定排序。
+ * --- @ty.aicoding@ ---
+ */
+async function getDocsRows<T>(query: {
+  range(from: number, to: number): PromiseLike<{ data: T[] | null; error: { message: string } | null }>;
+}): Promise<T[]> {
+  const rows: T[] = [];
+  const pageSize = 500;
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await query.range(offset, offset + pageSize - 1);
+    if (error) throw new Error(`获取知识库目录数据失败: ${error.message}`);
+    rows.push(...(data ?? []));
+    if (!data || data.length < pageSize) return rows;
+  }
 }
 
 /**
- * 获取所有专栏列表，并附带每个专栏的「首篇文章」slug。
- *
- * 首篇定义与详情页/侧边栏展示顺序一致：
- * 按章节 sort 升序，章节内按 column_order 升序，未归类文章（无 chapter_id）排在最后。
- * 用于文档站顶栏 Tab 直达首篇，以及 /docs 入口重定向。
- *
- * firstPostSlug 为 null 表示该文档集暂无已发布文章。
+ * 知识库总览：在数据库聚合章节数和已发布文章数，不加载所有文章。
+ * 未分类文章作为一个虚拟章节计数，与单库目录保持一致。
+ * --- @ty.aicoding@ ---
  */
-export async function getColumnsWithFirstPost(
-  locale: Locale = "zh-CN"
-): Promise<ColumnWithFirstPost[]> {
+export const getDocsOverview = cache(async function getDocsOverview(
+  locale: Locale = "zh-CN",
+): Promise<DocsOverview[]> {
   const supabase = await getSupabase();
   const isZh = locale === "zh-CN";
-
-  const { data: cols, error } = await supabase
+  const data = await getDocsRows(supabase
     .from("columns")
-    .select("id, slug, sort, title_zh, title_en, description_zh, description_en, cover_image")
-    .order("sort", { ascending: true });
+    .select(`id, slug, sort, title_zh, title_en, description_zh, description_en, cover_image,
+      chapters:column_chapters(count), articles:posts(count), ungrouped:posts(count)`)
+    .eq("articles.status", "published")
+    .eq("ungrouped.status", "published")
+    .is("ungrouped.chapter_id", null)
+    .order("sort", { ascending: true }).order("id", { ascending: true }));
 
-  if (error || !cols || cols.length === 0) return [];
-
-  const columnIds = cols.map((c: any) => c.id);
-
-  // 章节 sort 映射（chapter_id -> sort），用于确定首篇所在章节顺序
-  const { data: chapters } = await supabase
-    .from("column_chapters")
-    .select("id, sort")
-    .in("column_id", columnIds);
-
-  const chapterSort = new Map<string, number>();
-  (chapters || []).forEach((ch: any) => chapterSort.set(ch.id, ch.sort));
-
-  // 各专栏已发布文章（仅取定位首篇所需字段）
-  const { data: posts } = await supabase
-    .from("posts")
-    .select("slug, column_id, chapter_id, column_order")
-    .in("column_id", columnIds)
-    .eq("status", "published");
-
-  // 为每个专栏挑选最优候选（章节 sort 最小，其次 column_order 最小）
-  const best = new Map<
-    string,
-    { chSort: number; order: number; slug: string }
-  >();
-
-  (posts || []).forEach((p: any) => {
-    const chSort = p.chapter_id ? chapterSort.get(p.chapter_id) ?? 9999 : 9999;
-    const order = p.column_order ?? Number.MAX_SAFE_INTEGER;
-    const cur = best.get(p.column_id);
-    if (
-      !cur ||
-      chSort < cur.chSort ||
-      (chSort === cur.chSort && order < cur.order)
-    ) {
-      best.set(p.column_id, { chSort, order, slug: p.slug });
-    }
-  });
-
-  return cols.map((row: any) => ({
+  return (data ?? []).map((row) => ({
     id: row.id,
     slug: row.slug,
     sort: row.sort,
     title: isZh ? row.title_zh : (row.title_en || row.title_zh),
     description: isZh ? row.description_zh : (row.description_en || row.description_zh),
     coverImage: row.cover_image ?? null,
-    firstPostSlug: best.get(row.id)?.slug ?? null,
+    chapterCount: (row.chapters[0]?.count ?? 0) + ((row.ungrouped[0]?.count ?? 0) > 0 ? 1 : 0),
+    articleCount: row.articles[0]?.count ?? 0,
   }));
-}
+});
+
+/**
+ * 单个知识库的轻量目录；布局、目录页和文章页在同一请求内复用。
+ * --- @ty.aicoding@ ---
+ */
+export const getDocsDirectory = cache(async function getDocsDirectory(
+  columnSlug: string,
+  locale: Locale = "zh-CN",
+): Promise<DocsDirectory | null> {
+  const supabase = await getSupabase();
+  const isZh = locale === "zh-CN";
+  const { data: column, error } = await supabase
+    .from("columns")
+    .select("id, slug, sort, title_zh, title_en, description_zh, description_en, cover_image")
+    .eq("slug", columnSlug)
+    .maybeSingle();
+
+  if (error) throw new Error(`获取知识库失败: ${error.message}`);
+  if (!column) return null;
+
+  const [chapterRows, postRows] = await Promise.all([
+    getDocsRows(supabase.from("column_chapters")
+      .select("id, column_id, sort, title_zh, title_en, cover_image")
+      .eq("column_id", column.id)
+      .order("sort", { ascending: true }).order("id", { ascending: true })),
+    getDocsRows(supabase.from("posts")
+      .select("id, slug, title_zh, title_en, chapter_id")
+      .eq("column_id", column.id).eq("status", "published")
+      .order("column_order", { ascending: true, nullsFirst: false }).order("id", { ascending: true })),
+  ]);
+
+  const postsByChapter = new Map<string, DocsDirectoryChapter["posts"]>();
+  for (const post of postRows) {
+    const key = post.chapter_id ?? "__uncategorized__";
+    const posts = postsByChapter.get(key) ?? [];
+    posts.push({ id: post.id, slug: post.slug, title: isZh ? post.title_zh : (post.title_en || post.title_zh) });
+    postsByChapter.set(key, posts);
+  }
+  const chapters: DocsDirectoryChapter[] = chapterRows.map((chapter) => ({
+    id: chapter.id,
+    columnId: chapter.column_id,
+    sort: chapter.sort,
+    title: isZh ? chapter.title_zh : (chapter.title_en || chapter.title_zh),
+    coverImage: chapter.cover_image,
+    posts: postsByChapter.get(chapter.id) ?? [],
+  }));
+  const ungrouped = postsByChapter.get("__uncategorized__");
+  if (ungrouped?.length) {
+    chapters.push({
+      id: "__uncategorized__", columnId: column.id, sort: Number.MAX_SAFE_INTEGER,
+      title: isZh ? "未分类" : "Uncategorized", coverImage: null, posts: ungrouped,
+    });
+  }
+  return {
+    id: column.id, slug: column.slug, sort: column.sort,
+    title: isZh ? column.title_zh : (column.title_en || column.title_zh),
+    description: isZh ? column.description_zh : (column.description_en || column.description_zh),
+    coverImage: column.cover_image, chapters,
+  };
+});
+
+/**
+ * 校验章节归属后，仅获取该章节已发布文章的摘要，不查询正文。
+ * --- @ty.aicoding@ ---
+ */
+export const getDocsChapter = cache(async function getDocsChapter(
+  columnSlug: string,
+  chapterId: string,
+  locale: Locale = "zh-CN",
+): Promise<{ directory: DocsDirectory; chapter: DocsDirectoryChapter; posts: DocsChapterPost[] } | null> {
+  const directory = await getDocsDirectory(columnSlug, locale);
+  const chapter = directory?.chapters.find((item) => item.id === chapterId);
+  if (!directory || !chapter) return null;
+  const supabase = await getSupabase();
+  let query = supabase.from("posts")
+    .select("id, slug, title_zh, title_en, excerpt_zh, excerpt_en, published_at, created_at, reading_time")
+    .eq("column_id", directory.id).eq("status", "published")
+    .order("column_order", { ascending: true, nullsFirst: false }).order("id", { ascending: true });
+  query = chapterId === "__uncategorized__" ? query.is("chapter_id", null) : query.eq("chapter_id", chapterId);
+  const data = await getDocsRows(query);
+  const isZh = locale === "zh-CN";
+  return {
+    directory, chapter,
+    posts: (data ?? []).map((post) => ({
+      id: post.id, slug: post.slug,
+      title: isZh ? post.title_zh : (post.title_en || post.title_zh),
+      excerpt: isZh ? post.excerpt_zh : (post.excerpt_en || post.excerpt_zh),
+      publishedAt: post.published_at || post.created_at, readingTime: post.reading_time,
+    })),
+  };
+});
+
 export async function getColumnBySlug(
   columnSlug: string,
   locale: Locale = "zh-CN"

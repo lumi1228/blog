@@ -1,5 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { getColumnsWithFirstPost } from "@/lib/db";
+import { getColumns } from "@/lib/db";
 import { Footer } from "@/components/footer";
 import { DocsTopbar, type DocsTab } from "@/components/docs/docs-topbar";
 import type { Locale } from "@/i18n/config";
@@ -13,18 +13,18 @@ interface DocsLayoutProps {
  * 文档子站独立外壳布局。
  * 区别于主站 Navbar：提供文档专属顶部栏（文档集 Tab + 搜索 + 主题/语言切换）。
  * 该布局在 /docs 下的所有页面间持久存在，切换文档集时顶栏不重渲染。
+ * --- @ty.aicoding@ ---
  */
 export default async function DocsLayout({ children, params }: DocsLayoutProps) {
   const { locale } = await params;
   setRequestLocale(locale);
 
   const t = await getTranslations("docs");
-  const columns = await getColumnsWithFirstPost(locale as Locale);
+  const columns = await getColumns(locale as Locale);
 
   const tabs: DocsTab[] = columns.map((col) => ({
     slug: col.slug,
     title: col.title,
-    firstPostSlug: col.firstPostSlug,
   }));
 
   return (

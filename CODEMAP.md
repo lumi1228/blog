@@ -69,9 +69,13 @@ npm run test:e2e     # Playwright e2e tests
 │   │   ├── tag/[slug]/          # Tag filtered post list
 │   │   ├── posts/[slug]/        # Post detail (Markdown render + TOC + view counter)
 │   │   └── docs/                # Docs knowledge-base sub-site (replaces former /columns)
-│   │       ├── layout.tsx       # Docs shell: DocsTopbar (set tabs → first post) + Footer
-│   │       ├── page.tsx         # Docs entry: redirects to first set's first post (empty state if none)
-│   │       └── [set]/           # A doc set (= Column); [set] redirects to its first post, [set]/[slug] = detail
+│   │       ├── layout.tsx       # Docs shell: DocsTopbar (set tabs → directory) + Footer
+│   │       ├── page.tsx         # All knowledge bases: overview cards with chapter/article counts
+│   │       └── [set]/           # A doc set (= Column)
+│   │           ├── layout.tsx   # Shared chapter sidebar for directory / chapter / article
+│   │           ├── page.tsx     # All chapters and grouped article-title directory
+│   │           ├── chapters/[chapter]/page.tsx # Chapter directory using existing chapter ID
+│   │           └── [slug]/page.tsx # Article detail (existing URLs preserved)
 │   ├── admin/                   # Admin dashboard (no locale prefix)
 │   │   ├── login/               # Admin login
 │   │   └── (dashboard)/         # Protected admin pages (posts, categories, tags, columns, resume)
@@ -101,8 +105,9 @@ npm run test:e2e     # Playwright e2e tests
 │   │   ├── resume-manager.tsx   # Resume admin CRUD (6 tabs: basic info / skills / experiences / projects / access / avatars)
 │   │   └── toggle-status-button.tsx
 │   ├── docs/                    # Docs sub-site components (public)
-│   │   ├── docs-topbar.tsx      # Docs shell top bar (set tabs → first post, scoped search, theme/locale)
-│   │   └── docs-sidebar.tsx     # Persistent left chapter tree on doc detail pages
+│   │   ├── docs-topbar.tsx      # Docs shell top bar (set tabs → directory, scoped search, theme/locale)
+│   │   ├── docs-catalog.tsx     # Shared server view: grouped titles / chapter article summaries
+│   │   └── docs-sidebar.tsx     # Persistent chapter tree; chapter name navigates, arrow expands only
 │   ├── markdown/                # Markdown render components
 │   ├── search/                  # Search UI (SearchModal, SearchInput; supports scope=docs)
 │   ├── navbar.tsx               # Server Component navbar wrapper
@@ -169,7 +174,8 @@ npm run test:e2e     # Playwright e2e tests
 - All public pages use `app/[locale]/` prefix — locale is always the first dynamic segment
 - Admin routes use `app/admin/` (no locale prefix, protected by middleware)
 - Locale values: `"zh-CN"` (default) | `"en"`
-- Docs sub-site lives at `/docs` with its own shell layout; the `Column` DB entity is surfaced as a "doc set". Entry routes (`/docs`, `/docs/[set]`) redirect straight to the first article (TRAE-style direct-to-content); only `/docs/[set]/[slug]` renders the 3-column layout. Legacy `/columns/*` URLs 301-redirect to `/docs/*` via `next.config.ts`.
+- Docs sub-site uses `/docs` (all-library overview), `/docs/[set]` (grouped directory), `/docs/[set]/chapters/[chapter]` (chapter summaries), and `/docs/[set]/[slug]` (article). The `Column` DB entity is surfaced as a knowledge base. The set layout shares a sidebar across directory/chapter/article pages; only article pages show a right-hand heading TOC. Existing chapter UUIDs are route IDs; `__uncategorized__` represents published articles without a chapter. Legacy `/columns/*` URLs 301-redirect to `/docs/*` via `next.config.ts`.
+- Docs queries are separated by depth: `getDocsOverview` aggregates counts, `getColumns` supplies header tabs, `getDocsDirectory` loads only navigation fields, and `getDocsChapter` loads only the chosen chapter's summaries. React `cache` deduplicates shared directory/post reads within a server request. Directory/chapter pages never fetch Markdown bodies; drafts are excluded. Sitemap includes chapter directories.
 
 ### Components
 - Admin components live in `components/admin/` — never import them in public pages
@@ -199,7 +205,7 @@ npm run test:e2e     # Playwright e2e tests
 | Search feature | `components/search/`, `app/api/search-index/` (supports `?scope=docs`) |
 | Categories | `app/[locale]/category/[slug]/page.tsx`（复用 `BlogListView`）, `lib/db.ts → getCategories` |
 | Tags | `app/[locale]/tag/[slug]/page.tsx`, `lib/db.ts → getTags` |
-| Docs sub-site (= Columns) | `app/[locale]/docs/`, `components/docs/`, `lib/db.ts → getColumnBySlug`, `getColumnsWithFirstPost` |
+| Docs sub-site (= Columns) | `app/[locale]/docs/`, `components/docs/`, `lib/db.ts → getDocsOverview`, `getDocsDirectory`, `getDocsChapter`, `getColumns` |
 | Docs search scope | `lib/db.ts → getDocsSearchIndex`, `app/api/search-index/route.ts`（`scope=docs` 受 `docs_access` cookie 门禁保护）|
 | Admin post editor | `components/admin/post-editor.tsx`, `app/admin/(dashboard)/` |
 | Admin categories/tags | `components/admin/category-manager.tsx`, `components/admin/tag-manager.tsx` |
@@ -231,7 +237,11 @@ Tag           // id, name, slug
 Column        // id, slug, sort, title, description?, coverImage?
 ColumnChapter // id, columnId, sort, title, coverImage? (章节默认封面)
 ColumnDetail  // extends Column + chapters: (ColumnChapter & { posts: Post[] })[]
-ColumnWithFirstPost // extends Column + firstPostSlug: string | null (docs tabs / entry redirect)
+DocsOverview  // extends Column + chapterCount, articleCount (database aggregates)
+DocsDirectory // extends Column + chapters: DocsDirectoryChapter[] (minimal published article navigation)
+DocsDirectoryChapter // extends ColumnChapter + posts: DocsDirectoryPost[]
+DocsDirectoryPost // id, slug, title (no Markdown body)
+DocsChapterPost // extends DocsDirectoryPost + excerpt, publishedAt, readingTime
 SearchIndexEntry   // slug, title, excerpt, tags[], publishedAt, url? (docs entries carry /docs/[set]/[slug])
 SearchIndexResponse // locale, generatedAt, entries[]
 ResumeProfile      // name, avatar, phone, email, blogUrl, certificate, jobIntention, edu (locale-resolved)

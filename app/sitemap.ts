@@ -7,6 +7,9 @@ import {
 } from "@/lib/db";
 import { SITE_URL } from "@/lib/seo";
 
+/**
+ * --- @ty.aicoding@ ---
+ */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [posts, categories, tags, docs] = await Promise.all([
     getAllPostsForSitemap(),
@@ -98,6 +101,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         },
       },
     });
+
+    // 章节目录：/docs/:set/chapters/:chapter
+    for (const chapterId of set.chapterIds) {
+      const chapterPath = `${setPath}/chapters/${chapterId}`;
+      entries.push({
+        url: `${SITE_URL}${chapterPath}`,
+        lastModified: now,
+        alternates: { languages: {
+          "zh-CN": `${SITE_URL}${chapterPath}`,
+          en: `${SITE_URL}/en${chapterPath}`,
+        } },
+      });
+    }
 
     // 文档文章页：/docs/:set/:slug（按 availableLocales 输出语言）
     for (const post of set.postSlugs) {

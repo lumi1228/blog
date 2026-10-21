@@ -174,6 +174,18 @@
     "backToDocs": "返回知识库",
     "noArticles": "该知识库暂无内容",
     "articleCount": "{count} 篇",
-    "totalArticles": "{count} 篇内容"
+    "totalArticles": "{count} 篇内容",
+    "chapterCount": "{count} 个章节",
+    "viewDirectory": "查看目录",
+    "setDirectory": "知识库目录",
+    "chapterDirectory": "章节目录",
+    "emptyChapter": "本章节暂无已发布文章",
+    "breadcrumbs": "面包屑导航",
+    "overview": "概览",
+    "expandChapter": "展开 {title}",
+    "collapseChapter": "收起 {title}",
+    "expandSidebar": "展开目录",
+    "collapseSidebar": "收起目录",
+    "close": "关闭"
   }
 }

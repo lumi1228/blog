@@ -1,18 +1,19 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
-import { usePathname, useRouter } from "@/i18n/routing";
+import { Link, usePathname, useRouter } from "@/i18n/routing";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SearchTrigger } from "@/components/search/SearchTrigger";
 
+/**
+ * 知识库切换入口。
+ * --- @ty.aicoding@ ---
+ */
 export interface DocsTab {
   /** 文档集 slug */
   slug: string;
   /** 文档集标题 */
   title: string;
-  /** 文档集首篇文章 slug；存在则 Tab 直达首篇，避免二次跳转 */
-  firstPostSlug?: string | null;
 }
 
 interface DocsTopbarProps {
@@ -31,6 +32,7 @@ interface DocsTopbarProps {
  *
  * 使用 next-intl 的 usePathname（返回不含 locale 前缀的路径），
  * 以判断当前激活的文档集。
+ * --- @ty.aicoding@ ---
  */
 export function DocsTopbar({ tabs, locale, docsLabel }: DocsTopbarProps) {
   const pathname = usePathname();
@@ -54,13 +56,12 @@ export function DocsTopbar({ tabs, locale, docsLabel }: DocsTopbarProps) {
                  bg-[var(--bg-primary)]/85 backdrop-blur-xl"
     >
       {/* 单行 header：logo + 文档标识 + 文档集 Tab（桌面）+ 右侧操作区 */}
-      <div className="mx-auto flex h-14 max-w-[1400px] items-center px-6">
-        <div className="flex shrink-0 items-center gap-2.5">
+      <div className="mx-auto flex h-14 max-w-[1400px] items-center px-4 sm:px-6">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-2.5">
           {/* 返回主站 logo */}
           <Link
             href="/"
-            locale={locale}
-            className="font-display text-xl font-semibold tracking-tight text-[var(--text-primary)]
+            className="shrink-0 font-display text-xl font-semibold tracking-tight text-[var(--text-primary)]
                        transition-colors duration-[var(--duration-fast)] hover:text-[var(--accent-primary)]"
             style={{ fontFamily: "var(--font-display)" }}
           >
@@ -76,8 +77,8 @@ export function DocsTopbar({ tabs, locale, docsLabel }: DocsTopbarProps) {
           {/* 知识库标识：精致徽章，带图标，自然融入而非孤立文字 */}
           <Link
             href="/docs"
-            className="group inline-flex items-center gap-1.5 rounded-[var(--radius-md)]
-                       bg-[var(--accent-muted)] px-2.5 py-1
+            className="group inline-flex min-w-0 items-center gap-1.5 rounded-[var(--radius-md)]
+                       bg-[var(--accent-muted)] px-2 py-1 sm:px-2.5
                        text-sm font-medium text-[var(--accent-primary)]
                        transition-colors duration-[var(--duration-fast)]
                        hover:bg-[var(--accent-primary)]/15"
@@ -95,26 +96,25 @@ export function DocsTopbar({ tabs, locale, docsLabel }: DocsTopbarProps) {
               <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
               <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
             </svg>
-            {docsLabel}
+            <span className="truncate">{docsLabel}</span>
           </Link>
         </div>
 
         {/* 文档集 Tab（桌面端，置于 header 同一行） */}
         {tabs.length > 0 && (
           <nav
-            className="ml-6 hidden h-full items-stretch gap-1 md:flex"
+            className="ml-6 hidden h-full min-w-0 items-stretch gap-1 overflow-x-auto md:flex"
             aria-label={docsLabel}
           >
             {tabs.map((tab) => {
               const isActive = tab.slug === activeSlug;
-              const href = tab.firstPostSlug
-                ? `/docs/${tab.slug}/${tab.firstPostSlug}`
-                : `/docs/${tab.slug}`;
+              const href = `/docs/${tab.slug}`;
               return (
                 <Link
                   key={tab.slug}
                   href={href}
-                  className={`relative flex h-full items-center border-b-2 px-3 text-sm font-medium
+                  aria-current={isActive ? "page" : undefined}
+                  className={`relative flex h-full shrink-0 items-center border-b-2 px-3 text-sm font-medium
                               transition-colors duration-[var(--duration-fast)]
                               ${
                                 isActive
@@ -130,7 +130,7 @@ export function DocsTopbar({ tabs, locale, docsLabel }: DocsTopbarProps) {
         )}
 
         {/* 右侧操作区 */}
-        <div className="ml-auto flex shrink-0 items-center gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-1 pl-1 sm:gap-2">
           <SearchTrigger locale={locale as "zh-CN" | "en"} scope="docs" />
 
           <button
@@ -180,13 +180,12 @@ export function DocsTopbar({ tabs, locale, docsLabel }: DocsTopbarProps) {
           <div className="flex flex-col gap-0.5">
             {tabs.map((tab) => {
               const isActive = tab.slug === activeSlug;
-              const href = tab.firstPostSlug
-                ? `/docs/${tab.slug}/${tab.firstPostSlug}`
-                : `/docs/${tab.slug}`;
+              const href = `/docs/${tab.slug}`;
               return (
                 <Link
                   key={tab.slug}
                   href={href}
+                  aria-current={isActive ? "page" : undefined}
                   onClick={() => setMobileTabsOpen(false)}
                   className={`rounded-[var(--radius-md)] px-3 py-2.5 text-sm font-medium
                               transition-colors duration-[var(--duration-fast)]

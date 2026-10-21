@@ -1,11 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { DocsTopbar, type DocsTab } from "./docs-topbar";
+import type { ComponentProps } from "react";
 
 // 受控的 pathname，用于测试激活态
 let mockPathname = "/docs";
 
 vi.mock("@/i18n/routing", () => ({
+  Link: ({ children, ...props }: ComponentProps<"a">) => <a {...props}>{children}</a>,
   usePathname: () => mockPathname,
   useRouter: () => ({ replace: vi.fn() }),
 }));
@@ -49,18 +51,17 @@ describe("DocsTopbar", () => {
     expect(inactiveLink?.className).toContain("border-transparent");
   });
 
-  it("Tab 携带 firstPostSlug 时链接直达首篇文章", () => {
-    const tabsWithFirst: DocsTab[] = [
-      { slug: "react", title: "React 深入", firstPostSlug: "intro" },
+  it("Tab 链接到知识库目录", () => {
+    const directoryTabs: DocsTab[] = [
+      { slug: "react", title: "React 深入" },
       { slug: "node", title: "Node 实战" },
     ];
-    render(<DocsTopbar tabs={tabsWithFirst} locale="zh-CN" docsLabel="文档" />);
+    render(<DocsTopbar tabs={directoryTabs} locale="zh-CN" docsLabel="文档" />);
 
     expect(screen.getByText("React 深入").closest("a")).toHaveAttribute(
       "href",
-      "/docs/react/intro"
+      "/docs/react"
     );
-    // 无 firstPostSlug 时回退到文档集入口
     expect(screen.getByText("Node 实战").closest("a")).toHaveAttribute(
       "href",
       "/docs/node"

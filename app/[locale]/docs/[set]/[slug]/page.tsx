@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { MarkdownRenderer } from "@/components/markdown/MarkdownRenderer";
-import { DocsSidebar } from "@/components/docs/docs-sidebar";
 import { TableOfContents } from "@/components/TableOfContents";
 import { CoverHero } from "@/components/cover-hero";
-import { getPostBySlug, getColumnBySlug, getColumnAdjacentPosts } from "@/lib/db";
+import { getPostBySlug, getDocsDirectory, getColumnAdjacentPosts } from "@/lib/db";
 import { ViewCounter } from "@/components/view-counter";
 import { extractHeadings } from "@/lib/markdown/extractHeadings";
 import {
@@ -19,17 +18,22 @@ import {
 import { aboutConfig } from "@/config/about";
 import type { Locale } from "@/i18n/config";
 import type { Heading } from "@/lib/markdown/extractHeadings";
-import type { ColumnDetail, Post } from "@/lib/types";
+import type { DocsDirectory, DocsDirectoryChapter, Post } from "@/lib/types";
 
 interface PageProps {
   params: Promise<{ locale: string; set: string; slug: string }>;
 }
 
+/**
+ * --- @ty.aicoding@ ---
+ */
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale, set, slug } = await params;
-  const post = await getPostBySlug(slug, locale as Locale);
+  const [post, directory] = await Promise.all([
+    getPostBySlug(slug, locale as Locale), getDocsDirectory(set, locale as Locale),
+  ]);
 
-  if (!post) {
+  if (!post || !directory || post.columnId !== directory.id) {
     return { title: "Post Not Found" };
   }
 
@@ -67,20 +71,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
+/**
+ * --- @ty.aicoding@ ---
+ */
 export default async function DocsPostDetailPage({ params }: PageProps) {
   const { locale, set, slug } = await params;
   setRequestLocale(locale);
 
-  const post = await getPostBySlug(slug, locale as Locale);
+  const [post, setData] = await Promise.all([
+    getPostBySlug(slug, locale as Locale), getDocsDirectory(set, locale as Locale),
+  ]);
 
-  if (!post || !post.columnId) {
-    notFound();
-  }
-
-  // 获取文档集详情（用于左侧章节目录）
-  const setData = await getColumnBySlug(set, locale as Locale);
-
-  if (!setData) {
+  if (!post || !setData || post.columnId !== setData.id) {
     notFound();
   }
 
@@ -105,18 +107,16 @@ export default async function DocsPostDetailPage({ params }: PageProps) {
     updatedAt: post.updatedAt,
   });
 
-  // 定位当前文章所属章节（用于面包屑；排除虚拟「未分类」章节）
+  // 定位所属章节，包含虚拟未分类章节。
   const currentChapter = setData.chapters.find(
     (ch) =>
-      ch.id !== "__uncategorized__" &&
       ch.posts.some((p) => p.slug === post.slug)
   );
-  const chapterTitle = currentChapter?.title ?? null;
 
   const t = await getTranslations();
 
   const translations = {
-    drawerLabel: t("docs.label"),
+    breadcrumbs: t("docs.breadcrumbs"),
     docsHome: t("docs.label"),
     readingTime: (time: number) => t("post.readingTime", { time }),
     views: (count: number) => t("post.views", { count }),
@@ -128,7 +128,7 @@ export default async function DocsPostDetailPage({ params }: PageProps) {
     <DocsPostContent
       post={post}
       setData={setData}
-      chapterTitle={chapterTitle}
+      chapter={currentChapter}
       prev={prev}
       next={next}
       headings={headings}
@@ -138,16 +138,19 @@ export default async function DocsPostDetailPage({ params }: PageProps) {
   );
 }
 
+/**
+ * --- @ty.aicoding@ ---
+ */
 interface DocsPostContentProps {
   post: Post;
-  setData: ColumnDetail;
-  chapterTitle: string | null;
+  setData: DocsDirectory;
+  chapter?: DocsDirectoryChapter;
   prev: Post | null;
   next: Post | null;
   headings: Heading[];
   jsonLd: Record<string, unknown>;
   translations: {
-    drawerLabel: string;
+    breadcrumbs: string;
     docsHome: string;
     readingTime: (time: number) => string;
     views: (count: number) => string;
@@ -156,10 +159,13 @@ interface DocsPostContentProps {
   };
 }
 
+/**
+ * --- @ty.aicoding@ ---
+ */
 function DocsPostContent({
   post,
   setData,
-  chapterTitle,
+  chapter,
   prev,
   next,
   headings,
@@ -171,15 +177,6 @@ function DocsPostContent({
 
   return (
     <div className="flex flex-1">
-      {/* 左侧文档集章节目录（常驻） */}
-      <DocsSidebar
-        setSlug={setData.slug}
-        setTitle={setData.title}
-        chapters={setData.chapters}
-        currentPostSlug={post.slug}
-        drawerLabel={t.drawerLabel}
-      />
-
       {/* 中间文章内容区：填满左侧章节目录与右侧 TOC 之间的空间 */}
       <main className="min-w-0 flex-1">
         <div className="px-6 py-12 sm:py-16">
@@ -192,7 +189,7 @@ function DocsPostContent({
             />
 
             {/* 面包屑：知识库 / 知识库分类 / 章节 / 文章（无章节则知识库 / 分类 / 文章） */}
-            <nav className="mb-6 flex items-center gap-2 text-xs text-[var(--text-tertiary)]">
+            <nav aria-label={t.breadcrumbs} className="mb-6 flex flex-wrap items-center gap-2 text-xs text-[var(--text-tertiary)]">
               <Link
                 href="/docs"
                 className="transition-colors duration-[var(--duration-fast)] hover:text-[var(--accent-primary)]"
@@ -206,10 +203,10 @@ function DocsPostContent({
               >
                 {setData.title}
               </Link>
-              {chapterTitle && (
+              {chapter && (
                 <>
                   <span>/</span>
-                  <span>{chapterTitle}</span>
+                  <Link href={`/docs/${setData.slug}/chapters/${chapter.id}`} className="transition-colors hover:text-[var(--accent-primary)]">{chapter.title}</Link>
                 </>
               )}
               <span>/</span>

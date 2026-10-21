@@ -75,11 +75,48 @@ export interface ColumnDetail extends Column {
 }
 
 /**
- * 专栏 + 首篇文章 slug（用于文档站 Tab 直达首篇 / 入口重定向）。
- * firstPostSlug 为 null 表示该文档集暂无已发布文章。
+ * 知识库总览统计，仅计入已发布文章。
+ * --- @ty.aicoding@ ---
  */
-export interface ColumnWithFirstPost extends Column {
-  firstPostSlug: string | null;
+export interface DocsOverview extends Column {
+  chapterCount: number;
+  articleCount: number;
+}
+
+/**
+ * 侧栏和单库目录共用的精简文章条目，不携带正文或摘要。
+ * --- @ty.aicoding@ ---
+ */
+export interface DocsDirectoryPost {
+  id: string;
+  slug: string;
+  title: string;
+}
+
+/**
+ * 章节及其已发布文章目录。
+ * --- @ty.aicoding@ ---
+ */
+export interface DocsDirectoryChapter extends ColumnChapter {
+  posts: DocsDirectoryPost[];
+}
+
+/**
+ * 知识库完整导航树，不携带文章正文。
+ * --- @ty.aicoding@ ---
+ */
+export interface DocsDirectory extends Column {
+  chapters: DocsDirectoryChapter[];
+}
+
+/**
+ * 章节目录文章摘要，仅在访问该章节时加载。
+ * --- @ty.aicoding@ ---
+ */
+export interface DocsChapterPost extends DocsDirectoryPost {
+  excerpt: string;
+  publishedAt: string;
+  readingTime: number;
 }
 
 /**
