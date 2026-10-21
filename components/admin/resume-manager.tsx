@@ -5,6 +5,10 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
 // ---- 原始数据行类型（双语字段） ----
+/**
+ * 简历基本信息后台数据行，专业技能以双语多行文本存储。
+ * --- @ty.aicoding@ ---
+ */
 interface ProfileRow {
   id: string;
   avatar: string | null;
@@ -19,8 +23,9 @@ interface ProfileRow {
   job_intention_en: string | null;
   edu_zh: string | null;
   edu_en: string | null;
+  skills_zh: string | null;
+  skills_en: string | null;
 }
-
 /** 主站头像池条目（admin 原始行） */
 interface SiteAvatarRow {
   id: string;
@@ -28,12 +33,6 @@ interface SiteAvatarRow {
   label: string | null;
   enabled: boolean;
   created_at: string;
-}
-interface SkillRow {
-  id: string;
-  sort: number;
-  content_zh: string;
-  content_en: string | null;
 }
 /**
  * 工作经历后台数据行，包含前台展示状态。
@@ -88,7 +87,6 @@ interface CodeRow {
 
 interface ResumeManagerProps {
   profile: ProfileRow | null;
-  skills: SkillRow[];
   experiences: ExpRow[];
   projects: ProjRow[];
   settings: SettingsRow | null;
@@ -115,7 +113,7 @@ const TABS: { key: Tab; label: string }[] = [
  * 简历后台管理入口，根据当前页签渲染对应编辑区域。
  * --- @ty.aicoding@ ---
  */
-export function ResumeManager({ profile, skills, experiences, projects, settings, codes, siteAvatars }: ResumeManagerProps) {
+export function ResumeManager({ profile, experiences, projects, settings, codes, siteAvatars }: ResumeManagerProps) {
   const [tab, setTab] = useState<Tab>("basic");
 
   return (
@@ -138,7 +136,7 @@ export function ResumeManager({ profile, skills, experiences, projects, settings
       </div>
 
       {tab === "basic" && <BasicInfoForm profile={profile} />}
-      {tab === "skills" && <SkillsSection skills={skills} />}
+      {tab === "skills" && <SkillsSection profile={profile} />}
       {tab === "experiences" && <ExperiencesSection experiences={experiences} />}
       {tab === "projects" && <ProjectsSection projects={projects} settings={settings} />}
       {tab === "access" && <AccessControlSection settings={settings} codes={codes} />}
@@ -331,101 +329,81 @@ function BasicInfoForm({ profile }: { profile: ProfileRow | null }) {
 // ============================================
 // 专业技能
 // ============================================
-function SkillsSection({ skills }: { skills: SkillRow[] }) {
+/**
+ * 以双语多行文本维护专业技能，每个非空行对应前台的一条技能。
+ * --- @ty.aicoding@ ---
+ */
+function SkillsSection({ profile }: { profile: ProfileRow | null }) {
   const router = useRouter();
-  const [editing, setEditing] = useState<SkillRow | "new" | null>(null);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ content_zh: "", content_en: "", sort: 0 });
+  const [form, setForm] = useState({
+    skills_zh: profile?.skills_zh ?? "",
+    skills_en: profile?.skills_en ?? "",
+  });
 
-  const openNew = () => {
-    setForm({ content_zh: "", content_en: "", sort: skills.length });
-    setEditing("new");
-  };
-  const openEdit = (row: SkillRow) => {
-    setForm({ content_zh: row.content_zh, content_en: row.content_en ?? "", sort: row.sort });
-    setEditing(row);
-  };
-  const cancel = () => setEditing(null);
-
+  /**
+   * 保存专业技能多行文本；空内容保存为 null，前台不会渲染占位。
+   * --- @ty.aicoding@ ---
+   */
   const save = async () => {
-    if (!form.content_zh.trim()) {
-      alert("请填写中文技能内容");
+    if (!profile) {
+      alert("请先保存基本信息，再维护专业技能");
       return;
     }
     setSaving(true);
     const supabase = createClient();
-    const data = {
-      content_zh: form.content_zh,
-      content_en: form.content_en || null,
-      sort: form.sort,
-    };
-    const { error } =
-      editing === "new"
-        ? await supabase.from("resume_skills").insert(data)
-        : await supabase.from("resume_skills").update(data).eq("id", (editing as SkillRow).id);
+    const { error } = await supabase
+      .from("resume_profile")
+      .update({
+        skills_zh: form.skills_zh.trim() || null,
+        skills_en: form.skills_en.trim() || null,
+      })
+      .eq("id", profile.id);
     setSaving(false);
     if (error) {
       alert("保存失败：" + error.message);
-      return;
-    }
-    setEditing(null);
-    router.refresh();
-  };
-
-  const remove = async (row: SkillRow) => {
-    if (!confirm("确定删除该技能条目吗？")) return;
-    const supabase = createClient();
-    const { error } = await supabase.from("resume_skills").delete().eq("id", row.id);
-    if (error) {
-      alert("删除失败：" + error.message);
       return;
     }
     router.refresh();
   };
 
   return (
-    <SectionShell
-      addLabel="新增技能"
-      onAdd={openNew}
-      showForm={editing !== null}
-      form={
+    <div className="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-secondary)] p-5">
+      {!profile ? (
+        <p className="text-sm text-[var(--warning)]">请先在“基本信息”中保存简历资料，再维护专业技能。</p>
+      ) : (
         <div className="space-y-4">
           <div>
-            <label className={labelCls}>技能内容（中文）*</label>
+            <label className={labelCls}>专业技能（中文，每行一条）</label>
             <textarea
-              value={form.content_zh}
-              onChange={(e) => setForm((p) => ({ ...p, content_zh: e.target.value }))}
-              rows={2}
+              value={form.skills_zh}
+              onChange={(e) => setForm((p) => ({ ...p, skills_zh: e.target.value }))}
+              rows={8}
               className={inputCls}
+              placeholder={"熟练掌握 HTML、CSS、JavaScript\n熟悉 React、Next.js、TypeScript"}
             />
           </div>
           <div>
-            <label className={labelCls}>技能内容（英文）</label>
+            <label className={labelCls}>专业技能（英文，每行一条）</label>
             <textarea
-              value={form.content_en}
-              onChange={(e) => setForm((p) => ({ ...p, content_en: e.target.value }))}
-              rows={2}
+              value={form.skills_en}
+              onChange={(e) => setForm((p) => ({ ...p, skills_en: e.target.value }))}
+              rows={8}
               className={inputCls}
+              placeholder={"Proficient in HTML, CSS, and JavaScript\nExperienced with React, Next.js, and TypeScript"}
             />
           </div>
-          <SortField value={form.sort} onChange={(v) => setForm((p) => ({ ...p, sort: v }))} />
-          <FormActions saving={saving} onSave={save} onCancel={cancel} />
+          <button
+            type="button"
+            onClick={save}
+            disabled={saving}
+            className="rounded-[var(--radius-md)] bg-[var(--accent-primary)] px-4 py-2 text-sm font-medium text-[var(--bg-primary)] transition-colors duration-[var(--duration-fast)] hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {saving ? "保存中..." : "保存专业技能"}
+          </button>
         </div>
-      }
-    >
-      <ul className="divide-y divide-[var(--border-subtle)] rounded-[var(--radius-lg)] border border-[var(--border-subtle)]">
-        {skills.map((s) => (
-          <li key={s.id} className="flex items-start justify-between gap-4 px-4 py-3">
-            <div className="min-w-0">
-              <div className="text-sm text-[var(--text-primary)]">{s.content_zh}</div>
-              {s.content_en && <div className="mt-0.5 truncate text-xs text-[var(--text-tertiary)]">{s.content_en}</div>}
-            </div>
-            <RowActions onEdit={() => openEdit(s)} onDelete={() => remove(s)} sort={s.sort} />
-          </li>
-        ))}
-        {skills.length === 0 && <EmptyRow />}
-      </ul>
-    </SectionShell>
+      )}
+    </div>
   );
 }
 

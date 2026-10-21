@@ -41,7 +41,7 @@ const resume: ResumeData = {
     jobIntention: "web 前端开发工程师",
     edu: "某大学 某专业",
   },
-  skills: [{ id: "s1", content: "熟练掌握 HTML、CSS、JS" }],
+  skills: ["熟练掌握 HTML、CSS、JS"],
   experiences: [
     { id: "e1", period: "2021.09-至今", company: "某公司", role: "前端", highlights: ["要点A"] },
   ],

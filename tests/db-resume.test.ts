@@ -67,10 +67,9 @@ beforeEach(() => {
       job_intention_en: "Web Frontend Engineer",
       edu_zh: "某大学",
       edu_en: null,
+      skills_zh: " 技能一 \n\n技能二",
+      skills_en: "Skill 1\nSkill 2",
     },
-    resume_skills: [
-      { id: "s1", content_zh: "技能一", content_en: "Skill 1" },
-    ],
     resume_experiences: [
       {
         id: "e1",
@@ -135,7 +134,7 @@ describe("getResume", () => {
     const r = await getResume("zh-CN");
     expect(r.profile?.name).toBe("张三");
     expect(r.profile?.certificate).toBe("软件设计师中级证书");
-    expect(r.skills[0].content).toBe("技能一");
+    expect(r.skills).toEqual(["技能一", "技能二"]);
     expect(r.experiences[0].company).toBe("某公司");
     expect(r.experiences).toHaveLength(1);
     expect(r.projects[0].name).toBe("项目甲");
@@ -152,7 +151,7 @@ describe("getResume", () => {
     // certificate_en 为 null，回退到 zh
     expect(r.profile?.certificate).toBe("软件设计师中级证书");
     expect(r.profile?.edu).toBe("某大学"); // edu_en null 回退
-    expect(r.skills[0].content).toBe("Skill 1");
+    expect(r.skills).toEqual(["Skill 1", "Skill 2"]);
     expect(r.experiences[0].company).toBe("Some Co");
     expect(r.projects[0].name).toBe("Project A");
     expect(r.projects[0].techStack).toBe("Vue 2, Vuex, Element UI");
@@ -178,6 +177,15 @@ describe("getResume", () => {
     tableData.resume_projects[0].tech_stack_zh = "   ";
     const chinese = await getResume("zh-CN");
     expect(chinese.projects[0].techStack).toBeNull();
+  });
+
+  /**
+   * --- @ty.aicoding@ ---
+   */
+  it("英文技能为空白时回退中文并过滤空行", async () => {
+    tableData.resume_profile.skills_en = "   ";
+    const r = await getResume("en");
+    expect(r.skills).toEqual(["技能一", "技能二"]);
   });
 
   it("要点/贡献字段按行拆分并去除空白与空行", async () => {

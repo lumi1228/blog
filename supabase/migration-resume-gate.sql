@@ -2,27 +2,23 @@
 -- 简历门禁迁移脚本（在 Supabase Dashboard → SQL Editor 执行一次）
 -- 可重复运行：CREATE POLICY 前均先 DROP IF EXISTS。
 -- 内容：① 移除简历表公开读策略  ② 证件照存储 bucket  ③ 访问控制表（门禁开关 + 授权码）
--- 前置：resume_profile/resume_skills/resume_experiences/resume_projects 四张表已存在。
+-- 前置：resume_profile/resume_experiences/resume_projects 三张表已存在。
 -- ============================================
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ---------- ① 收紧 RLS：移除简历表的公开读策略 ----------
 DROP POLICY IF EXISTS "公开读取简历基本信息" ON resume_profile;
-DROP POLICY IF EXISTS "公开读取简历技能" ON resume_skills;
 DROP POLICY IF EXISTS "公开读取简历工作经历" ON resume_experiences;
 DROP POLICY IF EXISTS "公开读取简历项目经验" ON resume_projects;
 -- 保留（确保存在）：仅认证用户可读写，前台经 /api/resume/unlock 用 service_role 读取
 ALTER TABLE resume_profile ENABLE ROW LEVEL SECURITY;
-ALTER TABLE resume_skills ENABLE ROW LEVEL SECURITY;
 ALTER TABLE resume_experiences ENABLE ROW LEVEL SECURITY;
 ALTER TABLE resume_projects ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "管理员完全访问简历基本信息" ON resume_profile;
-DROP POLICY IF EXISTS "管理员完全访问简历技能" ON resume_skills;
 DROP POLICY IF EXISTS "管理员完全访问简历工作经历" ON resume_experiences;
 DROP POLICY IF EXISTS "管理员完全访问简历项目经验" ON resume_projects;
 CREATE POLICY "管理员完全访问简历基本信息" ON resume_profile FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "管理员完全访问简历技能" ON resume_skills FOR ALL USING (auth.role() = 'authenticated');
 CREATE POLICY "管理员完全访问简历工作经历" ON resume_experiences FOR ALL USING (auth.role() = 'authenticated');
 CREATE POLICY "管理员完全访问简历项目经验" ON resume_projects FOR ALL USING (auth.role() = 'authenticated');
 

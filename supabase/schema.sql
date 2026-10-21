@@ -336,19 +336,12 @@ CREATE TABLE IF NOT EXISTS resume_profile (
   job_intention_zh TEXT,
   job_intention_en TEXT,
   edu_zh TEXT,                       -- 毕业院校整段，如「统招本科，YYYY.MM-YYYY.MM，XX 大学，XX 专业」
-  edu_en TEXT
+  edu_en TEXT,
+  skills_zh TEXT,                    -- 专业技能，按换行符分隔，每行一条
+  skills_en TEXT
 );
 
--- 12.2 专业技能
-CREATE TABLE IF NOT EXISTS resume_skills (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  sort INTEGER DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  content_zh TEXT NOT NULL,
-  content_en TEXT
-);
-
--- 12.3 工作经历
+-- 12.2 工作经历
 CREATE TABLE IF NOT EXISTS resume_experiences (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   sort INTEGER DEFAULT 0,
@@ -363,7 +356,7 @@ CREATE TABLE IF NOT EXISTS resume_experiences (
   highlights_en TEXT
 );
 
--- 12.4 项目经验
+-- 12.3 项目经验
 CREATE TABLE IF NOT EXISTS resume_projects (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   sort INTEGER DEFAULT 0,
@@ -381,7 +374,6 @@ CREATE TABLE IF NOT EXISTS resume_projects (
 -- --- @ty.aicoding@ ---
 
 -- 索引
-CREATE INDEX IF NOT EXISTS idx_resume_skills_sort ON resume_skills(sort);
 CREATE INDEX IF NOT EXISTS idx_resume_experiences_sort ON resume_experiences(sort);
 CREATE INDEX IF NOT EXISTS idx_resume_projects_sort ON resume_projects(sort);
 
@@ -393,12 +385,10 @@ CREATE TRIGGER resume_profile_updated_at
 
 -- RLS
 ALTER TABLE resume_profile ENABLE ROW LEVEL SECURITY;
-ALTER TABLE resume_skills ENABLE ROW LEVEL SECURITY;
 ALTER TABLE resume_experiences ENABLE ROW LEVEL SECURITY;
 ALTER TABLE resume_projects ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "管理员完全访问简历基本信息" ON resume_profile FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "管理员完全访问简历技能" ON resume_skills FOR ALL USING (auth.role() = 'authenticated');
 CREATE POLICY "管理员完全访问简历工作经历" ON resume_experiences FOR ALL USING (auth.role() = 'authenticated');
 CREATE POLICY "管理员完全访问简历项目经验" ON resume_projects FOR ALL USING (auth.role() = 'authenticated');
 -- 说明：简历表「不」开放公开 SELECT —— 前台简历预览受授权码门禁保护，
@@ -407,12 +397,11 @@ CREATE POLICY "管理员完全访问简历项目经验" ON resume_projects FOR A
 
 -- 若你之前已执行过含「公开读取简历…」策略的旧版本，请在 Supabase SQL Editor 执行以下语句移除公开读：
 --   DROP POLICY IF EXISTS "公开读取简历基本信息" ON resume_profile;
---   DROP POLICY IF EXISTS "公开读取简历技能" ON resume_skills;
 --   DROP POLICY IF EXISTS "公开读取简历工作经历" ON resume_experiences;
 --   DROP POLICY IF EXISTS "公开读取简历项目经验" ON resume_projects;
 
 -- ============================================
--- 12.5 证件照存储（Supabase Storage 公开 bucket）
+-- 12.4 证件照存储（Supabase Storage 公开 bucket）
 -- ============================================
 -- 证件照不再放代码仓库，改为后台上传到 Storage，resume_profile.avatar 存公开 URL。
 INSERT INTO storage.buckets (id, name, public)
@@ -428,7 +417,7 @@ CREATE POLICY "管理员删除简历资源" ON storage.objects
   FOR DELETE TO authenticated USING (bucket_id = 'resume');
 
 -- ============================================
--- 12.6 简历访问控制（门禁开关 + 授权码，后台维护）
+-- 12.5 简历访问控制（门禁开关 + 授权码，后台维护）
 -- ============================================
 -- 门禁总开关（单例）：true = 需授权码才能查看简历；false = 简历公开直接可看。
 CREATE TABLE IF NOT EXISTS resume_settings (

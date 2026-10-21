@@ -1,12 +1,22 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { ResumeManager } from "@/components/admin/resume-manager";
+
+const { updateMock, eqMock } = vi.hoisted(() => {
+  const eq = vi.fn().mockResolvedValue({ error: null });
+  return {
+    eqMock: eq,
+    updateMock: vi.fn(() => ({ eq })),
+  };
+});
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
 }));
 vi.mock("@/utils/supabase/client", () => ({
-  createClient: () => ({}),
+  createClient: () => ({
+    from: () => ({ update: updateMock }),
+  }),
 }));
 
 const profile = {
@@ -23,11 +33,12 @@ const profile = {
   job_intention_en: null,
   edu_zh: "某大学",
   edu_en: null,
+  skills_zh: "技能一\n技能二",
+  skills_en: "Skill 1\nSkill 2",
 };
 
 const baseProps = {
   profile,
-  skills: [],
   experiences: [],
   projects: [],
   settings: { id: "s1", gate_enabled: true, show_project_tech_stack: true },
@@ -36,17 +47,49 @@ const baseProps = {
 };
 
 describe("ResumeManager", () => {
+  /**
+   * --- @ty.aicoding@ ---
+   */
+  beforeEach(() => {
+    updateMock.mockClear();
+    eqMock.mockClear();
+  });
+
   it("默认展示基本信息表单并回填姓名", () => {
     render(<ResumeManager {...baseProps} />);
     expect(screen.getByText("保存基本信息")).toBeInTheDocument();
     expect(screen.getByDisplayValue("张三")).toBeInTheDocument();
   });
 
-  it("切换到专业技能 Tab 展示新增按钮与空状态", () => {
+  /**
+   * --- @ty.aicoding@ ---
+   */
+  it("切换到专业技能 Tab 展示双语多行文本与保存按钮", () => {
     render(<ResumeManager {...baseProps} />);
     fireEvent.click(screen.getByText("专业技能"));
-    expect(screen.getByText("新增技能")).toBeInTheDocument();
-    expect(screen.getByText("暂无数据，点击上方按钮新增")).toBeInTheDocument();
+    const [skillsZh, skillsEn] = screen.getAllByRole("textbox");
+    expect(skillsZh).toHaveValue("技能一\n技能二");
+    expect(skillsEn).toHaveValue("Skill 1\nSkill 2");
+    expect(screen.getByText("保存专业技能")).toBeInTheDocument();
+  });
+
+  /**
+   * --- @ty.aicoding@ ---
+   */
+  it("保存专业技能时更新 resume_profile 的双语多行字段", async () => {
+    render(<ResumeManager {...baseProps} />);
+    fireEvent.click(screen.getByText("专业技能"));
+    const [skillsZh] = screen.getAllByRole("textbox");
+    fireEvent.change(skillsZh, { target: { value: "技能甲\n\n技能乙  " } });
+    fireEvent.click(screen.getByText("保存专业技能"));
+
+    await waitFor(() => {
+      expect(updateMock).toHaveBeenCalledWith({
+        skills_zh: "技能甲\n\n技能乙",
+        skills_en: "Skill 1\nSkill 2",
+      });
+      expect(eqMock).toHaveBeenCalledWith("id", "1");
+    });
   });
 
   it("点击新增工作经历展示表单字段", () => {

@@ -98,7 +98,6 @@ vi.mock("@/utils/supabase/client", () => ({
 
 const baseManagerProps = {
   profile: null,
-  skills: [],
   experiences: [],
   projects: [],
   settings: null,

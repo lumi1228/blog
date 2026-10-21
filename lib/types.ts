@@ -147,12 +147,6 @@ export interface ResumeProfile {
   edu: string | null;
 }
 
-/** 专业技能条目 */
-export interface ResumeSkill {
-  id: string;
-  content: string;
-}
-
 /** 工作经历条目 */
 export interface ResumeExperience {
   id: string;
@@ -176,10 +170,13 @@ export interface ResumeProject {
   contributions: string[];
 }
 
-/** 简历聚合数据 */
+/**
+ * 简历聚合数据，专业技能已按非空行拆分为字符串数组。
+ * --- @ty.aicoding@ ---
+ */
 export interface ResumeData {
   profile: ResumeProfile | null;
-  skills: ResumeSkill[];
+  skills: string[];
   experiences: ResumeExperience[];
   projects: ResumeProject[];
 }

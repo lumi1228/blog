@@ -395,12 +395,12 @@ function ResumeSheet({ resume }: { resume: ResumeData }) {
         {skills.length > 0 && (
           <Section icon="skill" title={t("sectionSkills")}>
             <ol className="space-y-1.5 text-[13.5px] leading-relaxed">
-              {skills.map((s, i) => (
-                <li key={s.id} data-pdf-break={i > 0 ? "" : undefined} className="flex gap-2">
+              {skills.map((skill, i) => (
+                <li key={`${i}-${skill}`} data-pdf-break={i > 0 ? "" : undefined} className="flex gap-2">
                   <span className="shrink-0 font-semibold" style={{ color: NAVY }}>
                     {i + 1}.
                   </span>
-                  <span>{s.content}</span>
+                  <span>{skill}</span>
                 </li>
               ))}
             </ol>

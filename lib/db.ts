@@ -878,18 +878,14 @@ export async function getResume(
   const pick = (zh: string | null, en: string | null) =>
     isZh ? zh : en || zh;
 
-  const [profileRes, skillsRes, expRes, projRes, settingsRes] = await Promise.all([
+  const [profileRes, expRes, projRes, settingsRes] = await Promise.all([
     sb
       .from("resume_profile")
       .select(
-        "avatar, phone, email, blog_url, name_zh, name_en, certificate_zh, certificate_en, job_intention_zh, job_intention_en, edu_zh, edu_en"
+        "avatar, phone, email, blog_url, name_zh, name_en, certificate_zh, certificate_en, job_intention_zh, job_intention_en, edu_zh, edu_en, skills_zh, skills_en"
       )
       .limit(1)
       .maybeSingle(),
-    sb
-      .from("resume_skills")
-      .select("id, content_zh, content_en")
-      .order("sort", { ascending: true }),
     sb
       .from("resume_experiences")
       .select(
@@ -927,10 +923,9 @@ export async function getResume(
       }
     : null;
 
-  const skills = (skillsRes.data || []).map((row: any) => ({
-    id: row.id,
-    content: pick(row.content_zh, row.content_en) ?? "",
-  }));
+  const skills = splitLines(
+    isZh ? p?.skills_zh : p?.skills_en?.trim() || p?.skills_zh
+  );
 
   const experiences = (expRes.data || []).map((row: any) => ({
     id: row.id,
