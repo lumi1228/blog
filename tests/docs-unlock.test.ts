@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeAll, beforeEach } from "vitest";
 
 // 在导入被测模块前注入签名密钥
@@ -7,15 +6,27 @@ beforeAll(() => {
 });
 
 // 可变 mock：授权码列表
-let codeRows: { code: string; expires_at: string | null; enabled: boolean }[] = [];
+let gateEnabled = true;
+let codeRows: { code: string; expires_at: string | null; enabled: boolean; resources: string[] }[] = [];
 
 vi.mock("@/utils/supabase/server", () => ({
   createAdminClient: () => ({
     from: (table: string) => ({
       select: () => ({
-        // resume_access_codes 用 await select()
-        then: (resolve: (v: any) => void) =>
-          resolve({ data: table === "resume_access_codes" ? codeRows : [], error: null }),
+        eq: (_column: string, value: string) =>
+          table === "access_gate_settings"
+            ? {
+                maybeSingle: async () => ({
+                  data: { enabled: gateEnabled, session_ttl_seconds: 604800 },
+                  error: null,
+                }),
+              }
+            : Promise.resolve({
+                data: table === "access_codes"
+                  ? codeRows.filter((row) => row.resources.includes(value))
+                  : [],
+                error: null,
+              }),
       }),
     }),
   }),
@@ -36,11 +47,13 @@ const future = new Date(Date.now() + 864e5).toISOString();
 const past = new Date(Date.now() - 864e5).toISOString();
 
 beforeEach(() => {
+  gateEnabled = true;
   codeRows = [
-    { code: "GOOD", expires_at: null, enabled: true },
-    { code: "FUTURE", expires_at: future, enabled: true },
-    { code: "EXPIRED", expires_at: past, enabled: true },
-    { code: "DISABLED", expires_at: null, enabled: false },
+    { code: "GOOD", expires_at: null, enabled: true, resources: ["docs"] },
+    { code: "FUTURE", expires_at: future, enabled: true, resources: ["docs"] },
+    { code: "EXPIRED", expires_at: past, enabled: true, resources: ["docs"] },
+    { code: "DISABLED", expires_at: null, enabled: false, resources: ["docs"] },
+    { code: "RESUME-ONLY", expires_at: null, enabled: true, resources: ["resume"] },
   ];
 });
 
@@ -85,6 +98,18 @@ describe("POST /api/docs/unlock（知识库门禁）", () => {
     const res = await POST(req({ code: "NOPE" }, "20.1.0.6"));
     expect(res.status).toBe(401);
     expect(res.cookies.get(DOCS_GATE_COOKIE)?.value).toBeFalsy();
+  });
+
+  it("只有简历范围的授权码不能解锁知识库", async () => {
+    const res = await POST(req({ code: "RESUME-ONLY" }, "20.1.0.7"));
+    expect(res.status).toBe(401);
+  });
+
+  it("知识库门禁关闭时无需授权码", async () => {
+    gateEnabled = false;
+    const res = await POST(req({}, "20.1.0.8"));
+    expect(res.status).toBe(200);
+    expect((await res.json()).ok).toBe(true);
   });
 
   it("同一 IP 错误码尝试过多触发 429", async () => {

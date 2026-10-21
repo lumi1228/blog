@@ -10,7 +10,7 @@ export default async function AdminResumePage() {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
 
-  const [profileRes, expRes, projRes, settingsRes, codesRes, siteAvatarsRes] = await Promise.all([
+  const [profileRes, expRes, projRes, settingsRes] = await Promise.all([
     supabase
       .from("resume_profile")
       .select(
@@ -32,17 +32,9 @@ export default async function AdminResumePage() {
       .order("sort", { ascending: true }),
     supabase
       .from("resume_settings")
-      .select("id, gate_enabled, show_project_tech_stack")
+      .select("id, show_project_tech_stack")
       .limit(1)
       .maybeSingle(),
-    supabase
-      .from("resume_access_codes")
-      .select("id, code, label, expires_at, enabled, created_at")
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("site_avatars")
-      .select("id, url, label, enabled, created_at")
-      .order("created_at", { ascending: false }),
   ]);
 
   return (
@@ -58,8 +50,6 @@ export default async function AdminResumePage() {
         experiences={expRes.data ?? []}
         projects={projRes.data ?? []}
         settings={settingsRes.data ?? null}
-        codes={codesRes.data ?? []}
-        siteAvatars={siteAvatarsRes.data ?? []}
       />
     </div>
   );

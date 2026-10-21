@@ -3,8 +3,8 @@ import { createAdminClient } from "@/utils/supabase/server";
 import { getResume } from "@/lib/db";
 import {
   createRateLimiter,
+  getAccessGateSetting,
   getClientIp,
-  isResumeGateEnabled,
   verifyAccessCode,
 } from "@/lib/access-code";
 
@@ -12,7 +12,7 @@ import {
  * 简历解锁接口（授权码门禁，配置全部存数据库，后台可维护）。
  *
  * 逻辑分支：
- * - 门禁关闭（resume_settings.gate_enabled = false）→ 直接返回简历（公开）。
+ * - 简历资源门禁关闭 → 直接返回简历（公开）。
  * - 门禁开启 + 未传码 → 401 code_required（供前端探测门禁状态，不计入限流）。
  * - 门禁开启 + 传码 → 校验授权码，命中返回简历；否则 401 invalid_code（计入限流）。
  *
@@ -24,6 +24,10 @@ export const runtime = "nodejs";
 // 简易内存限流（best-effort）：每 IP 60s 内最多 10 次「错误码」尝试
 const limiter = createRateLimiter();
 
+/**
+ * 按简历资源门禁设置处理公开读取或授权码解锁。
+ * --- @ty.aicoding@ ---
+ */
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
 
@@ -41,7 +45,8 @@ export async function POST(request: NextRequest) {
     const supabase = createAdminClient();
 
     // 1) 门禁关闭 → 直接公开
-    if (!(await isResumeGateEnabled(supabase))) {
+    const gate = await getAccessGateSetting(supabase, "resume");
+    if (!gate.enabled) {
       const resume = await getResume(locale, supabase);
       return NextResponse.json({ resume });
     }
@@ -57,7 +62,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 4) 校验授权码
-    if (!(await verifyAccessCode(supabase, code))) {
+    if (!(await verifyAccessCode(supabase, code, "resume"))) {
       limiter.record(ip);
       return NextResponse.json({ error: "invalid_code" }, { status: 401 });
     }

@@ -1,9 +1,9 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 
 /**
- * 授权码校验共享逻辑（简历门禁与知识库门禁共用）。
+ * 授权码校验共享逻辑（简历门禁与知识库门禁共用基础设施）。
  *
- * - 授权码明文存储于 resume_access_codes，仅服务端用 service_role 读取（绕过 RLS）。
+ * - 授权码明文存储于 access_codes，并由 access_code_resources 声明资源范围。
  * - 校验采用「先等长哈希再常量时间比较」，避免长度泄露与时序攻击。
  * - 限流为 best-effort 内存实现（冷启动会重置），各接口各自持有一个实例。
  *
@@ -15,6 +15,23 @@ import { createHash, timingSafeEqual } from "node:crypto";
 type AdminClient = {
   from: (table: string) => any; // eslint-disable-line @typescript-eslint/no-explicit-any
 };
+
+/**
+ * 可受访问门禁保护的资源。
+ * --- @ty.aicoding@ ---
+ */
+export type AccessResource = "resume" | "docs";
+
+/**
+ * 资源门禁设置。
+ * --- @ty.aicoding@ ---
+ */
+export interface AccessGateSetting {
+  enabled: boolean;
+  sessionTtlSeconds: number;
+}
+
+export const DEFAULT_GATE_SESSION_TTL_SECONDS = 7 * 24 * 60 * 60;
 
 /** 从请求头解析客户端 IP（best-effort） */
 export function getClientIp(request: Request): string {
@@ -57,29 +74,50 @@ export function createRateLimiter(
   };
 }
 
-/** 读取简历门禁总开关（默认开启） */
-export async function isResumeGateEnabled(
-  supabase: AdminClient
-): Promise<boolean> {
-  const { data } = await supabase
-    .from("resume_settings")
-    .select("gate_enabled")
-    .limit(1)
+/**
+ * 读取指定资源的门禁设置；缺失或查询失败时默认开启并使用 7 天会话。
+ * --- @ty.aicoding@ ---
+ */
+export async function getAccessGateSetting(
+  supabase: AdminClient,
+  resource: AccessResource
+): Promise<AccessGateSetting> {
+  const { data, error } = await supabase
+    .from("access_gate_settings")
+    .select("enabled, session_ttl_seconds")
+    .eq("resource", resource)
     .maybeSingle();
-  return data?.gate_enabled ?? true;
+
+  if (error || !data) {
+    return {
+      enabled: true,
+      sessionTtlSeconds: DEFAULT_GATE_SESSION_TTL_SECONDS,
+    };
+  }
+
+  return {
+    enabled: data.enabled ?? true,
+    sessionTtlSeconds:
+      data.session_ttl_seconds ?? DEFAULT_GATE_SESSION_TTL_SECONDS,
+  };
 }
 
 /**
  * 校验授权码是否命中「启用 + 未过期 + 匹配」的记录。
  * 遍历全部记录（即便已命中也不提前 return），减少时序差异。
+ * --- @ty.aicoding@ ---
  */
 export async function verifyAccessCode(
   supabase: AdminClient,
-  code: string
+  code: string,
+  resource: AccessResource
 ): Promise<boolean> {
-  const { data: codes } = await supabase
-    .from("resume_access_codes")
-    .select("code, expires_at, enabled");
+  const { data: codes, error } = await supabase
+    .from("access_codes")
+    .select("code, expires_at, enabled, access_code_resources!inner(resource)")
+    .eq("access_code_resources.resource", resource);
+
+  if (error) return false;
 
   const now = Date.now();
   let valid = false;

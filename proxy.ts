@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { routing } from "@/i18n/routing";
 import { updateSession } from "@/utils/supabase/middleware";
 import { DOCS_GATE_COOKIE, verifyToken } from "@/lib/docs-gate";
+import { isDocsGateEnabled } from "@/lib/access-gate";
 
 // next-intl 中间件
 const intlMiddleware = createMiddleware(routing);
@@ -11,11 +12,10 @@ const intlMiddleware = createMiddleware(routing);
 // 注意 /unlock-docs（解锁页）不以 docs 段开头，天然不匹配
 const DOCS_PATH = /^\/(en\/)?docs(\/|$)/;
 
-/** 知识库门禁是否启用（默认开启；设为 "false" 可一键放开为完全公开） */
-function docsGateEnabled(): boolean {
-  return process.env.DOCS_GATE_ENABLED !== "false";
-}
-
+/**
+ * 应用后台认证、知识库门禁与国际化路由中间件。
+ * --- @ty.aicoding@ ---
+ */
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
@@ -24,8 +24,8 @@ export async function proxy(request: NextRequest) {
     return await updateSession(request);
   }
 
-  // 知识库门禁：入口处校验一次授权码，凭 7 天签名 cookie 放行后续访问
-  if (docsGateEnabled() && DOCS_PATH.test(pathname)) {
+  // 知识库门禁：入口处校验一次授权码，凭按数据库时长签发的 cookie 放行后续访问
+  if (DOCS_PATH.test(pathname) && (await isDocsGateEnabled())) {
     const token = request.cookies.get(DOCS_GATE_COOKIE)?.value;
     const valid = await verifyToken(token);
     if (!valid) {

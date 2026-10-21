@@ -48,9 +48,9 @@ npm run test:e2e     # Playwright e2e tests
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | client+server | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | client+server | Supabase anon/publishable key |
-| `SUPABASE_SERVICE_ROLE_KEY` | **server only** | service_role key; used by `createAdminClient` (resume unlock API). Never expose to client. |
+| `SUPABASE_SERVICE_ROLE_KEY` | **server only** | service_role key; used by `createAdminClient` and the Edge-compatible docs gate setting lookup. Never expose to client. |
 | `DOCS_GATE_SECRET` | **server only** | HMAC key for signing the knowledge-base (`/docs`) access cookie. Falls back to `SUPABASE_SERVICE_ROLE_KEY` if unset. |
-| `DOCS_GATE_ENABLED` | **server only** | `"false"` disables the `/docs` access gate (fully public). Any other value / unset = gate enabled. |
+| `DOCS_GATE_ENABLED` | **server only** | Emergency override: `"false"` makes `/docs` public regardless of the database switch. Any other value / unset defers to `access_gate_settings`. |
 
 ---
 
@@ -207,9 +207,11 @@ npm run test:e2e     # Playwright e2e tests
 | 文章封面体系 | 分类封面：`category-manager.tsx`；专栏（知识库一级分类）封面：`columns-left-panel.tsx → ColumnModal`（首页知识库卡片展示用）；章节封面：`columns-left-panel.tsx → ChapterModal`；文章封面：`post-editor.tsx`；统一控件 `components/admin/cover-image-field.tsx`。前台展示优先级 `coverImage ?? coverImageFallback`：列表卡片 `article-card.tsx`；详情页头部以 `components/cover-hero.tsx`（封面作标题背景 + 暗色蒙版 + 浅色文字，保证任意封面/主题文字可读）；首页知识库模块卡片 `components/home-docs-section.tsx → DocsCard` 展示 `column.coverImage`。回退在 `lib/db.ts`（`getPosts`/`getPostBySlug`/`getColumnBySlug`）解析，章节封面优先于分类封面；专栏封面经 `getColumns` 读取 `columns.cover_image`；**OG/SEO 图仅用 `coverImage`，不含回退**。DB：`categories.cover_image`、`columns.cover_image`、`column_chapters.cover_image`（见 `supabase/schema.sql` 与 `supabase/migration-cover-images.sql`）|
 | About page | `app/[locale]/about/page.tsx`, `config/about.ts`, `components/resume-modal.tsx` |
 | Resume (about modal + PDF) | `components/resume-modal.tsx`, `lib/db.ts → getResume(locale, client?)`; 授权码门禁，打开时探测门禁状态，数据不随页面下发 |
-| Resume unlock API | `app/api/resume/unlock/route.ts`（POST，读 `resume_settings.gate_enabled`：关→直接返回；开→校验 `resume_access_codes` 后用 `createAdminClient` 返回简历）|
-| Knowledge-base gate (`/docs` 门禁) | `proxy.ts`（中间件拦截 `/docs`、`/en/docs`，验签 `docs_access` cookie，无效→重定向 `/[locale]/unlock-docs?next=…`）、`lib/docs-gate.ts`（HMAC 签发/校验凭证）、`app/api/docs/unlock/route.ts`（复用 `resume_access_codes` 校验，成功下发 7 天签名 cookie）、`app/[locale]/unlock-docs/page.tsx` + `components/docs/docs-gate-form.tsx`（解锁页/表单，支持 `?code=` 魔法链接 + `?next=` 跳回）。授权码校验共享逻辑在 `lib/access-code.ts`。「入口处校验一次，进入后凭 cookie 不再校验」。 |
-| Admin resume | `app/admin/(dashboard)/resume/page.tsx`, `components/admin/resume-manager.tsx`（6 个 Tab：基本信息/技能/经历/项目/访问控制/主站头像）；专业技能使用 `resume_profile.skills_zh/en` 多行文本存储并按非空行展示，旧 `resume_skills` 表由 `migration-resume-skills-text.sql` 合并后删除；工作经历与项目经验分别通过各自表的 `is_visible` 开关控制是否进入公开简历，新旧数据默认展示；项目技术栈使用 `tech_stack_zh/en` 录入，并由 `resume_settings.show_project_tech_stack` 全局控制前台/PDF 展示，字段为空时不占位；证件照上传到 Storage bucket `resume`（public）；门禁开关与授权码存 `resume_settings`/`resume_access_codes` |
+| Resume unlock API | `app/api/resume/unlock/route.ts`（POST，读取 `access_gate_settings(resource=resume)`；关闭时直接返回简历，开启时仅接受拥有 `resume` 范围的 `access_codes`）|
+| Knowledge-base gate (`/docs` 门禁) | `proxy.ts` + `lib/access-gate.ts` 读取 `access_gate_settings(resource=docs)` 并拦截 `/docs`、`/en/docs`；`lib/docs-gate.ts` 负责 HMAC 凭证；`app/api/docs/unlock/route.ts` 仅接受拥有 `docs` 范围的授权码，并按 `session_ttl_seconds` 下发签名 cookie；`app/[locale]/unlock-docs/page.tsx` + `components/docs/docs-gate-form.tsx` 提供解锁页。`DOCS_GATE_ENABLED=false` 仅作为部署级紧急公开覆盖。 |
+| Admin resume | `app/admin/(dashboard)/resume/page.tsx`, `components/admin/resume-manager.tsx`（4 个 Tab：基本信息/专业技能/工作经历/项目经验）；专业技能使用 `resume_profile.skills_zh/en` 多行文本存储并按非空行展示；经历和项目由 `is_visible` 控制前台展示；项目技术栈由 `resume_settings.show_project_tech_stack` 全局控制；简历证件照上传到 Storage bucket `resume`（public） |
+| Admin site avatars | `app/admin/(dashboard)/site-avatars/page.tsx`, `components/admin/site-avatar-manager.tsx`；独立维护 `site_avatars` 与 Storage bucket `avatars`，供主页/关于页随机展示，与简历证件照无关 |
+| Admin access control | `app/admin/(dashboard)/access-control/page.tsx`, `components/admin/access-control-manager.tsx`；分别管理简历/知识库门禁开关，共享 `access_codes`，通过 `access_code_resources` 选择 `resume`、`docs` 或两者。升级迁移见 `supabase/migration-access-control-resources.sql`，旧码默认迁移为两种范围 |
 | SEO / metadata | `lib/seo.ts`, `app/sitemap.ts`, `app/robots.ts` |
 | URL redirects | `next.config.ts → redirects()` (`/columns/*` → `/docs/*`, 301, both locales) |
 | i18n UI strings | `messages/zh-CN.json`, `messages/en.json` |

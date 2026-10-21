@@ -26,14 +26,6 @@ interface ProfileRow {
   skills_zh: string | null;
   skills_en: string | null;
 }
-/** 主站头像池条目（admin 原始行） */
-interface SiteAvatarRow {
-  id: string;
-  url: string;
-  label: string | null;
-  enabled: boolean;
-  created_at: string;
-}
 /**
  * 工作经历后台数据行，包含前台展示状态。
  * --- @ty.aicoding@ ---
@@ -73,16 +65,7 @@ interface ProjRow {
  */
 interface SettingsRow {
   id: string;
-  gate_enabled: boolean;
   show_project_tech_stack: boolean;
-}
-interface CodeRow {
-  id: string;
-  code: string;
-  label: string | null;
-  expires_at: string | null;
-  enabled: boolean;
-  created_at: string;
 }
 
 interface ResumeManagerProps {
@@ -90,30 +73,26 @@ interface ResumeManagerProps {
   experiences: ExpRow[];
   projects: ProjRow[];
   settings: SettingsRow | null;
-  codes: CodeRow[];
-  siteAvatars: SiteAvatarRow[];
 }
 
 const inputCls =
   "w-full rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:outline-none";
 const labelCls = "mb-1 block text-xs text-[var(--text-tertiary)]";
 
-type Tab = "basic" | "skills" | "experiences" | "projects" | "access" | "avatars";
+type Tab = "basic" | "skills" | "experiences" | "projects";
 
 const TABS: { key: Tab; label: string }[] = [
   { key: "basic", label: "基本信息" },
   { key: "skills", label: "专业技能" },
   { key: "experiences", label: "工作经历" },
   { key: "projects", label: "项目经验" },
-  { key: "access", label: "访问控制" },
-  { key: "avatars", label: "主站头像" },
 ];
 
 /**
  * 简历后台管理入口，根据当前页签渲染对应编辑区域。
  * --- @ty.aicoding@ ---
  */
-export function ResumeManager({ profile, experiences, projects, settings, codes, siteAvatars }: ResumeManagerProps) {
+export function ResumeManager({ profile, experiences, projects, settings }: ResumeManagerProps) {
   const [tab, setTab] = useState<Tab>("basic");
 
   return (
@@ -139,8 +118,6 @@ export function ResumeManager({ profile, experiences, projects, settings, codes,
       {tab === "skills" && <SkillsSection profile={profile} />}
       {tab === "experiences" && <ExperiencesSection experiences={experiences} />}
       {tab === "projects" && <ProjectsSection projects={projects} settings={settings} />}
-      {tab === "access" && <AccessControlSection settings={settings} codes={codes} />}
-      {tab === "avatars" && <SiteAvatarsSection siteAvatars={siteAvatars} />}
     </div>
   );
 }
@@ -930,222 +907,6 @@ function ProjectVisibilitySwitch({ project }: { project: ProjRow }) {
 }
 
 // ============================================
-// 访问控制（门禁开关 + 授权码）
-// ============================================
-function AccessControlSection({ settings, codes }: { settings: SettingsRow | null; codes: CodeRow[] }) {
-  const router = useRouter();
-  const [gateEnabled, setGateEnabled] = useState(settings?.gate_enabled ?? true);
-  const [toggling, setToggling] = useState(false);
-  const [now] = useState(() => Date.now());
-
-  // 授权码表单
-  const [editing, setEditing] = useState<CodeRow | "new" | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ code: "", label: "", expires_at: "", enabled: true });
-
-  const enabledValidCount = codes.filter(
-    (c) => c.enabled && (!c.expires_at || Date.parse(c.expires_at) >= now)
-  ).length;
-
-  const toggleGate = async () => {
-    setToggling(true);
-    const next = !gateEnabled;
-    const supabase = createClient();
-    let error;
-    if (settings) {
-      ({ error } = await supabase
-        .from("resume_settings")
-        .update({ gate_enabled: next, updated_at: new Date().toISOString() })
-        .eq("id", settings.id));
-    } else {
-      ({ error } = await supabase.from("resume_settings").insert({ gate_enabled: next }));
-    }
-    setToggling(false);
-    if (error) {
-      alert("保存失败：" + error.message);
-      return;
-    }
-    setGateEnabled(next);
-    router.refresh();
-  };
-
-  const openNew = () => {
-    setForm({ code: "", label: "", expires_at: "", enabled: true });
-    setEditing("new");
-  };
-  const openEdit = (row: CodeRow) => {
-    setForm({
-      code: row.code,
-      label: row.label ?? "",
-      // 转成 yyyy-MM-dd 供 date input
-      expires_at: row.expires_at ? row.expires_at.slice(0, 10) : "",
-      enabled: row.enabled,
-    });
-    setEditing(row);
-  };
-  const cancel = () => setEditing(null);
-
-  const save = async () => {
-    if (!form.code.trim()) {
-      alert("请填写授权码");
-      return;
-    }
-    setSaving(true);
-    const supabase = createClient();
-    const data = {
-      code: form.code.trim(),
-      label: form.label || null,
-      // date input 给的是当天，存为当天 23:59:59 UTC（含当天有效）
-      expires_at: form.expires_at ? new Date(`${form.expires_at}T23:59:59.999Z`).toISOString() : null,
-      enabled: form.enabled,
-    };
-    const { error } =
-      editing === "new"
-        ? await supabase.from("resume_access_codes").insert(data)
-        : await supabase.from("resume_access_codes").update(data).eq("id", (editing as CodeRow).id);
-    setSaving(false);
-    if (error) {
-      alert("保存失败：" + error.message);
-      return;
-    }
-    setEditing(null);
-    router.refresh();
-  };
-
-  const remove = async (row: CodeRow) => {
-    if (!confirm(`确定删除授权码「${row.label || row.code}」吗？`)) return;
-    const supabase = createClient();
-    const { error } = await supabase.from("resume_access_codes").delete().eq("id", row.id);
-    if (error) {
-      alert("删除失败：" + error.message);
-      return;
-    }
-    router.refresh();
-  };
-
-  return (
-    <div className="space-y-6">
-      {/* 门禁开关 */}
-      <div className="flex items-center justify-between rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-secondary)] p-5">
-        <div>
-          <div className="text-sm font-semibold text-[var(--text-primary)]">简历访问门禁</div>
-          <p className="mt-1 text-xs text-[var(--text-tertiary)]">
-            {gateEnabled ? "已开启：访客需输入有效授权码才能查看简历" : "已关闭：简历对所有访客公开可见"}
-          </p>
-        </div>
-        <button
-          onClick={toggleGate}
-          disabled={toggling}
-          role="switch"
-          aria-checked={gateEnabled}
-          className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-[var(--duration-fast)] disabled:opacity-50 ${
-            gateEnabled ? "bg-[var(--accent-primary)]" : "bg-[var(--bg-tertiary)]"
-          }`}
-        >
-          <span
-            className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform duration-[var(--duration-fast)] ${
-              gateEnabled ? "translate-x-[22px]" : "translate-x-0.5"
-            }`}
-          />
-        </button>
-      </div>
-
-      {/* 门禁开但无有效码警告 */}
-      {gateEnabled && enabledValidCount === 0 && (
-        <div className="rounded-[var(--radius-md)] border border-[var(--warning)]/40 bg-[var(--warning)]/10 px-4 py-3 text-sm text-[var(--warning)]">
-          门禁已开启，但当前没有任何启用且未过期的授权码，访客将无法查看简历。请新增授权码或关闭门禁。
-        </div>
-      )}
-
-      {/* 授权码表单 */}
-      {editing && (
-        <div className="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-secondary)] p-5">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className={labelCls}>授权码 *</label>
-              <input value={form.code} onChange={(e) => setForm((p) => ({ ...p, code: e.target.value }))} className={inputCls} />
-            </div>
-            <div>
-              <label className={labelCls}>备注（如给谁用）</label>
-              <input value={form.label} onChange={(e) => setForm((p) => ({ ...p, label: e.target.value }))} className={inputCls} />
-            </div>
-            <div>
-              <label className={labelCls}>到期日（留空 = 长期有效）</label>
-              <input type="date" value={form.expires_at} onChange={(e) => setForm((p) => ({ ...p, expires_at: e.target.value }))} className={inputCls} />
-            </div>
-            <div className="flex items-end">
-              <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-                <input type="checkbox" checked={form.enabled} onChange={(e) => setForm((p) => ({ ...p, enabled: e.target.checked }))} />
-                启用
-              </label>
-            </div>
-          </div>
-          <div className="mt-4">
-            <FormActions saving={saving} onSave={save} onCancel={cancel} />
-          </div>
-        </div>
-      )}
-
-      {!editing && (
-        <button
-          onClick={openNew}
-          className="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-[var(--accent-primary)] px-4 py-2 text-sm font-medium text-[var(--bg-primary)] transition-all duration-[var(--duration-fast)] hover:shadow-[var(--shadow-glow-accent)]"
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          新增授权码
-        </button>
-      )}
-
-      {/* 授权码列表 */}
-      <ul className="divide-y divide-[var(--border-subtle)] rounded-[var(--radius-lg)] border border-[var(--border-subtle)]">
-        {codes.map((c) => {
-          const expired = !!c.expires_at && Date.parse(c.expires_at) < now;
-          return (
-            <li key={c.id} className="flex items-start justify-between gap-4 px-4 py-3">
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm font-medium text-[var(--text-primary)]" style={{ fontFamily: "var(--font-mono)" }}>
-                    {c.code}
-                  </span>
-                  {!c.enabled && <Badge text="已停用" tone="muted" />}
-                  {expired && <Badge text="已过期" tone="error" />}
-                  {!c.expires_at && <Badge text="长期" tone="ok" />}
-                </div>
-                <div className="mt-0.5 text-xs text-[var(--text-tertiary)]">
-                  {c.label || "—"}
-                  {c.expires_at && ` · 到期 ${c.expires_at.slice(0, 10)}`}
-                </div>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <button onClick={() => openEdit(c)} className="rounded-[var(--radius-sm)] px-2 py-1 text-xs text-[var(--accent-secondary)] hover:bg-[var(--accent-muted)]">
-                  编辑
-                </button>
-                <button onClick={() => remove(c)} className="rounded-[var(--radius-sm)] px-2 py-1 text-xs text-[var(--error)] hover:bg-[var(--error)]/10">
-                  删除
-                </button>
-              </div>
-            </li>
-          );
-        })}
-        {codes.length === 0 && <EmptyRow />}
-      </ul>
-    </div>
-  );
-}
-
-function Badge({ text, tone }: { text: string; tone: "ok" | "error" | "muted" }) {
-  const cls =
-    tone === "ok"
-      ? "bg-[var(--success)]/15 text-[var(--success)]"
-      : tone === "error"
-      ? "bg-[var(--error)]/15 text-[var(--error)]"
-      : "bg-[var(--bg-tertiary)] text-[var(--text-tertiary)]";
-  return <span className={`rounded-[var(--radius-sm)] px-1.5 py-0.5 text-[10px] font-medium ${cls}`}>{text}</span>;
-}
-
-// ============================================
 // 复用小组件
 // ============================================
 function SectionShell({
@@ -1231,160 +992,4 @@ function RowActions({ onEdit, onDelete, sort }: { onEdit: () => void; onDelete: 
 
 function EmptyRow() {
   return <li className="px-4 py-6 text-center text-sm text-[var(--text-tertiary)]">暂无数据，点击上方按钮新增</li>;
-}
-
-// ============================================
-// 主站头像
-// ============================================
-function SiteAvatarsSection({ siteAvatars }: { siteAvatars: SiteAvatarRow[] }) {
-  const router = useRouter();
-  const [uploading, setUploading] = useState(false);
-
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      alert("请选择图片文件");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      alert("图片不能超过 5MB");
-      return;
-    }
-    setUploading(true);
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await fetch("/api/admin/upload-site-avatar", { method: "POST", body: fd });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        alert("上传失败：" + (data.error || res.status));
-        return;
-      }
-      const { url } = await res.json();
-      const supabase = createClient();
-      const { error } = await supabase.from("site_avatars").insert({ url, enabled: true });
-      if (error) {
-        alert("保存失败：" + error.message);
-        return;
-      }
-      router.refresh();
-    } catch (err) {
-      alert("上传失败：" + (err instanceof Error ? err.message : String(err)));
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const toggleEnabled = async (row: SiteAvatarRow) => {
-    const supabase = createClient();
-    const { error } = await supabase
-      .from("site_avatars")
-      .update({ enabled: !row.enabled })
-      .eq("id", row.id);
-    if (error) {
-      alert("操作失败：" + error.message);
-      return;
-    }
-    router.refresh();
-  };
-
-  const remove = async (row: SiteAvatarRow) => {
-    if (!confirm("确定删除该头像吗？Storage 中的文件不会自动清理。")) return;
-    const supabase = createClient();
-    const { error } = await supabase.from("site_avatars").delete().eq("id", row.id);
-    if (error) {
-      alert("删除失败：" + error.message);
-      return;
-    }
-    router.refresh();
-  };
-
-  const enabledCount = siteAvatars.filter((a) => a.enabled).length;
-
-  return (
-    <div className="space-y-5">
-      {/* 说明栏 */}
-      <div className="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-secondary)] p-5">
-        <div className="mb-1 text-sm font-semibold text-[var(--text-primary)]">主站头像池</div>
-        <p className="text-xs text-[var(--text-tertiary)]">
-          上传多张头像后，主页和关于页每次加载时会随机展示其中一张已启用的头像。
-          当前已启用{" "}
-          <span className="font-medium text-[var(--text-primary)]">{enabledCount}</span> 张
-          / 共 <span className="font-medium text-[var(--text-primary)]">{siteAvatars.length}</span> 张。
-          与简历证件照独立存储，互不影响。
-        </p>
-      </div>
-
-      {/* 空状态 */}
-      {siteAvatars.length === 0 && (
-        <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--border-default)] px-8 py-12 text-center">
-          <p className="text-sm text-[var(--text-tertiary)]">暂无头像，点击下方按钮上传第一张</p>
-        </div>
-      )}
-
-      {/* 头像网格 */}
-      {siteAvatars.length > 0 && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-          {siteAvatars.map((item) => (
-            <div
-              key={item.id}
-              className={`relative overflow-hidden rounded-[var(--radius-lg)] border bg-[var(--bg-secondary)] ${
-                item.enabled
-                  ? "border-[var(--accent-primary)]/30"
-                  : "border-[var(--border-subtle)] opacity-60"
-              }`}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={item.url}
-                alt={item.label || "主站头像"}
-                className="aspect-square w-full object-cover"
-              />
-              {/* 启用状态角标 */}
-              <div className="absolute right-2 top-2">
-                {item.enabled ? (
-                  <span className="rounded-full bg-[var(--success)]/90 px-1.5 py-0.5 text-[10px] font-medium text-white">
-                    启用
-                  </span>
-                ) : (
-                  <span className="rounded-full bg-[var(--bg-tertiary)]/90 px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-tertiary)]">
-                    停用
-                  </span>
-                )}
-              </div>
-              {/* 操作栏 */}
-              <div className="space-y-1.5 p-2">
-                <div className="truncate text-xs text-[var(--text-tertiary)]">{item.label || "—"}</div>
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => toggleEnabled(item)}
-                    className="flex-1 rounded-[var(--radius-sm)] bg-[var(--bg-tertiary)] px-2 py-1 text-xs text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
-                  >
-                    {item.enabled ? "停用" : "启用"}
-                  </button>
-                  <button
-                    onClick={() => remove(item)}
-                    className="rounded-[var(--radius-sm)] px-2 py-1 text-xs text-[var(--error)] transition-colors hover:bg-[var(--error)]/10"
-                  >
-                    删除
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* 上传按钮 */}
-      <label className="inline-flex cursor-pointer items-center gap-2 rounded-[var(--radius-md)] bg-[var(--accent-primary)] px-4 py-2 text-sm font-medium text-[var(--bg-primary)] transition-all duration-[var(--duration-fast)] hover:shadow-[var(--shadow-glow-accent)]">
-        <input type="file" accept="image/*" onChange={handleUpload} disabled={uploading} className="hidden" />
-        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-        </svg>
-        {uploading ? "上传中..." : "上传头像"}
-      </label>
-    </div>
-  );
 }

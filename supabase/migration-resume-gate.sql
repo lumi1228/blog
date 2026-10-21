@@ -1,7 +1,8 @@
 -- ============================================
 -- 简历门禁迁移脚本（在 Supabase Dashboard → SQL Editor 执行一次）
 -- 可重复运行：CREATE POLICY 前均先 DROP IF EXISTS。
--- 内容：① 移除简历表公开读策略  ② 证件照存储 bucket  ③ 访问控制表（门禁开关 + 授权码）
+-- 内容：① 移除简历表公开读策略  ② 证件照存储 bucket  ③ 简历展示设置
+-- 资源级门禁与授权码请继续执行 migration-access-control-resources.sql。
 -- 前置：resume_profile/resume_experiences/resume_projects 三张表已存在。
 -- ============================================
 
@@ -37,38 +38,21 @@ CREATE POLICY "管理员更新简历资源" ON storage.objects
 CREATE POLICY "管理员删除简历资源" ON storage.objects
   FOR DELETE TO authenticated USING (bucket_id = 'resume');
 
--- ---------- ③ 访问控制表（门禁开关 + 授权码） ----------
+-- ---------- ③ 简历展示设置 ----------
 CREATE TABLE IF NOT EXISTS resume_settings (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  gate_enabled BOOLEAN NOT NULL DEFAULT true,
+  show_project_tech_stack BOOLEAN NOT NULL DEFAULT true,
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS resume_access_codes (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  code TEXT NOT NULL,
-  label TEXT,
-  expires_at TIMESTAMPTZ,          -- 空 = 长期有效
-  enabled BOOLEAN NOT NULL DEFAULT true,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS idx_resume_access_codes_enabled ON resume_access_codes(enabled);
-
--- 默认插入一行门禁设置（默认开启门禁）
-INSERT INTO resume_settings (gate_enabled)
+INSERT INTO resume_settings (show_project_tech_stack)
 SELECT true
 WHERE NOT EXISTS (SELECT 1 FROM resume_settings);
 
 ALTER TABLE resume_settings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE resume_access_codes ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "管理员访问简历门禁设置" ON resume_settings;
-DROP POLICY IF EXISTS "管理员访问简历授权码" ON resume_access_codes;
-CREATE POLICY "管理员访问简历门禁设置" ON resume_settings
-  FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "管理员访问简历授权码" ON resume_access_codes
-  FOR ALL USING (auth.role() = 'authenticated');
-
--- （可选）顺手加一个初始授权码，避免门禁开着却无码导致锁死：
--- INSERT INTO resume_access_codes (code, label, enabled) VALUES ('改成你的码', '默认码', true);
+DROP POLICY IF EXISTS "管理员访问简历展示设置" ON resume_settings;
+CREATE POLICY "管理员访问简历展示设置" ON resume_settings
+  FOR ALL USING (auth.role() = 'authenticated')
+  WITH CHECK (auth.role() = 'authenticated');

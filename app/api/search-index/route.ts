@@ -3,7 +3,13 @@ import { cookies } from "next/headers";
 import { routing } from "@/i18n/routing";
 import { getSearchIndex, getDocsSearchIndex } from "@/lib/db";
 import { DOCS_GATE_COOKIE, verifyToken } from "@/lib/docs-gate";
+import { getAccessGateSetting } from "@/lib/access-code";
+import { createAdminClient } from "@/utils/supabase/server";
 
+/**
+ * 返回站点或知识库搜索索引，并按知识库资源门禁校验访问凭证。
+ * --- @ty.aicoding@ ---
+ */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const locale = searchParams.get("locale");
@@ -19,9 +25,12 @@ export async function GET(request: Request) {
 
   // 知识库作用域受门禁保护：未持有效凭证时拒绝，避免绕过入口枚举文档内容
   if (scope === "docs" && process.env.DOCS_GATE_ENABLED !== "false") {
-    const token = (await cookies()).get(DOCS_GATE_COOKIE)?.value;
-    if (!(await verifyToken(token))) {
-      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    const gate = await getAccessGateSetting(createAdminClient(), "docs");
+    if (gate.enabled) {
+      const token = (await cookies()).get(DOCS_GATE_COOKIE)?.value;
+      if (!(await verifyToken(token))) {
+        return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+      }
     }
   }
 

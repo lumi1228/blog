@@ -3,7 +3,7 @@
  *
  * 分两部分：
  * 1. getRandomSiteAvatar — 服务端随机查询逻辑单元测试
- * 2. SiteAvatarsSection — 后台头像 Tab 渲染测试（通过 ResumeManager 入口）
+ * 2. SiteAvatarManager — 独立后台头像管理组件渲染测试
  */
 
 // ============================================================
@@ -83,11 +83,11 @@ describe("getRandomSiteAvatar", () => {
 });
 
 // ============================================================
-// Part 2 — SiteAvatarsSection 渲染测试（通过 ResumeManager）
+// Part 2 — SiteAvatarManager 渲染测试
 // ============================================================
 
-import { render, screen, fireEvent } from "@testing-library/react";
-import { ResumeManager } from "@/components/admin/resume-manager";
+import { render, screen } from "@testing-library/react";
+import { SiteAvatarManager } from "@/components/admin/site-avatar-manager";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
@@ -96,31 +96,15 @@ vi.mock("@/utils/supabase/client", () => ({
   createClient: () => ({}),
 }));
 
-const baseManagerProps = {
-  profile: null,
-  experiences: [],
-  projects: [],
-  settings: null,
-  codes: [],
-  siteAvatars: [],
-};
-
-describe("ResumeManager — 主站头像 Tab", () => {
-  it("Tab 标签「主站头像」存在", () => {
-    render(<ResumeManager {...baseManagerProps} />);
-    expect(screen.getByText("主站头像")).toBeInTheDocument();
-  });
-
-  it("空头像时切换到 Tab 显示说明区域和空状态提示", () => {
-    render(<ResumeManager {...baseManagerProps} />);
-    fireEvent.click(screen.getByText("主站头像"));
+describe("SiteAvatarManager", () => {
+  it("空头像时显示说明区域和空状态提示", () => {
+    render(<SiteAvatarManager siteAvatars={[]} />);
     expect(screen.getByText("主站头像池")).toBeInTheDocument();
     expect(screen.getByText("暂无头像，点击下方按钮上传第一张")).toBeInTheDocument();
   });
 
   it("空头像时显示上传按钮", () => {
-    render(<ResumeManager {...baseManagerProps} />);
-    fireEvent.click(screen.getByText("主站头像"));
+    render(<SiteAvatarManager siteAvatars={[]} />);
     expect(screen.getByText("上传头像")).toBeInTheDocument();
   });
 
@@ -129,8 +113,7 @@ describe("ResumeManager — 主站头像 Tab", () => {
       { id: "a1", url: "https://cdn.example.com/a.png", label: "日常版", enabled: true, created_at: "2025-01-01" },
       { id: "a2", url: "https://cdn.example.com/b.png", label: null, enabled: false, created_at: "2025-01-02" },
     ];
-    render(<ResumeManager {...baseManagerProps} siteAvatars={siteAvatars} />);
-    fireEvent.click(screen.getByText("主站头像"));
+    render(<SiteAvatarManager siteAvatars={siteAvatars} />);
     // 有标签的显示标签，无标签显示 —
     expect(screen.getByText("日常版")).toBeInTheDocument();
     expect(screen.getByText("—")).toBeInTheDocument();
@@ -145,8 +128,7 @@ describe("ResumeManager — 主站头像 Tab", () => {
       { id: "a1", url: "https://cdn.example.com/a.png", label: null, enabled: true, created_at: "2025-01-01" },
       { id: "a2", url: "https://cdn.example.com/b.png", label: null, enabled: false, created_at: "2025-01-02" },
     ];
-    render(<ResumeManager {...baseManagerProps} siteAvatars={siteAvatars} />);
-    fireEvent.click(screen.getByText("主站头像"));
+    render(<SiteAvatarManager siteAvatars={siteAvatars} />);
 
     // 第一张（启用）：角标 span「启用」+ 操作 button「停用」
     // 第二张（停用）：角标 span「停用」+ 操作 button「启用」
@@ -164,8 +146,7 @@ describe("ResumeManager — 主站头像 Tab", () => {
       { id: "a2", url: "https://cdn.example.com/b.png", label: null, enabled: true, created_at: "2025-01-02" },
       { id: "a3", url: "https://cdn.example.com/c.png", label: null, enabled: false, created_at: "2025-01-03" },
     ];
-    render(<ResumeManager {...baseManagerProps} siteAvatars={siteAvatars} />);
-    fireEvent.click(screen.getByText("主站头像"));
+    render(<SiteAvatarManager siteAvatars={siteAvatars} />);
     // 已启用 2 张 / 共 3 张 — span 内纯数字
     const numSpans = screen.getAllByText(/^\d+$/);
     const numbers = numSpans.map((el) => el.textContent);

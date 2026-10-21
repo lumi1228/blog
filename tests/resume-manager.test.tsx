@@ -41,9 +41,7 @@ const baseProps = {
   profile,
   experiences: [],
   projects: [],
-  settings: { id: "s1", gate_enabled: true, show_project_tech_stack: true },
-  codes: [],
-  siteAvatars: [],
+  settings: { id: "s1", show_project_tech_stack: true },
 };
 
 describe("ResumeManager", () => {
@@ -141,26 +139,13 @@ describe("ResumeManager", () => {
     expect(screen.getByText("技术栈（英文）")).toBeInTheDocument();
   });
 
-  /**
-   * --- @ty.aicoding@ ---
-   */
-  it("访问控制 Tab：门禁开启但无码时显示警告", () => {
-    render(<ResumeManager {...baseProps} settings={{ id: "s1", gate_enabled: true, show_project_tech_stack: true }} codes={[]} />);
-    fireEvent.click(screen.getByText("访问控制"));
-    expect(screen.getByText("简历访问门禁")).toBeInTheDocument();
-    expect(screen.getByText(/访客将无法查看简历/)).toBeInTheDocument();
-    expect(screen.getByText("新增授权码")).toBeInTheDocument();
-  });
-
-  it("访问控制 Tab：渲染已有授权码并标注长期/已过期", () => {
-    const codes = [
-      { id: "c1", code: "GOOD", label: "给HR", expires_at: null, enabled: true, created_at: "2025-01-01" },
-      { id: "c2", code: "OLD", label: null, expires_at: "2000-01-01T23:59:59Z", enabled: true, created_at: "2025-01-01" },
-    ];
-    render(<ResumeManager {...baseProps} codes={codes} />);
-    fireEvent.click(screen.getByText("访问控制"));
-    expect(screen.getByText("GOOD")).toBeInTheDocument();
-    expect(screen.getByText("长期")).toBeInTheDocument();
-    expect(screen.getByText("已过期")).toBeInTheDocument();
+  it("只保留四个简历内容维护页签", () => {
+    render(<ResumeManager {...baseProps} />);
+    expect(screen.getByText("基本信息")).toBeInTheDocument();
+    expect(screen.getByText("专业技能")).toBeInTheDocument();
+    expect(screen.getByText("工作经历")).toBeInTheDocument();
+    expect(screen.getByText("项目经验")).toBeInTheDocument();
+    expect(screen.queryByText("访问控制")).not.toBeInTheDocument();
+    expect(screen.queryByText("主站头像")).not.toBeInTheDocument();
   });
 });

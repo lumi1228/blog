@@ -14,12 +14,19 @@ vi.mock("@/i18n/routing", () => ({
 
 // 门禁 cookie + 校验：默认放行，可通过 gateValid 切换为未授权
 let gateValid = true;
+let gateEnabled = true;
 vi.mock("next/headers", () => ({
   cookies: async () => ({ get: () => ({ value: "token" }) }),
 }));
 vi.mock("@/lib/docs-gate", () => ({
   DOCS_GATE_COOKIE: "docs_access",
   verifyToken: async () => gateValid,
+}));
+vi.mock("@/lib/access-code", () => ({
+  getAccessGateSetting: async () => ({ enabled: gateEnabled, sessionTtlSeconds: 604800 }),
+}));
+vi.mock("@/utils/supabase/server", () => ({
+  createAdminClient: () => ({}),
 }));
 
 import { GET } from "./route";
@@ -31,6 +38,7 @@ function makeRequest(url: string) {
 describe("GET /api/search-index", () => {
   beforeEach(() => {
     gateValid = true;
+    gateEnabled = true;
     getSearchIndex.mockReset().mockResolvedValue([
       { slug: "a", title: "A", excerpt: "", tags: [], publishedAt: "2024" },
     ]);
@@ -79,5 +87,15 @@ describe("GET /api/search-index", () => {
     );
     expect(res.status).toBe(401);
     expect(getDocsSearchIndex).not.toHaveBeenCalled();
+  });
+
+  it("scope=docs 在数据库门禁关闭时无需凭证", async () => {
+    gateEnabled = false;
+    gateValid = false;
+    const res = await GET(
+      makeRequest("http://x/api/search-index?locale=zh-CN&scope=docs")
+    );
+    expect(res.status).toBe(200);
+    expect(getDocsSearchIndex).toHaveBeenCalledWith("zh-CN");
   });
 });

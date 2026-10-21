@@ -417,41 +417,59 @@ CREATE POLICY "管理员删除简历资源" ON storage.objects
   FOR DELETE TO authenticated USING (bucket_id = 'resume');
 
 -- ============================================
--- 12.5 简历访问控制（门禁开关 + 授权码，后台维护）
+-- 12.5 简历展示设置与资源级访问控制（后台维护）
 -- ============================================
--- 门禁总开关（单例）：true = 需授权码才能查看简历；false = 简历公开直接可看。
 CREATE TABLE IF NOT EXISTS resume_settings (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  gate_enabled BOOLEAN NOT NULL DEFAULT true,
   show_project_tech_stack BOOLEAN NOT NULL DEFAULT true,
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 授权码（明文存储，仅后台可读写）：可设备注、到期日（空=长期）、单条启停。
-CREATE TABLE IF NOT EXISTS resume_access_codes (
+CREATE TABLE IF NOT EXISTS access_gate_settings (
+  resource TEXT PRIMARY KEY CHECK (resource IN ('resume', 'docs')),
+  enabled BOOLEAN NOT NULL DEFAULT true,
+  session_ttl_seconds INTEGER NOT NULL DEFAULT 604800 CHECK (session_ttl_seconds > 0),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS access_codes (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   code TEXT NOT NULL,
   label TEXT,
-  expires_at TIMESTAMPTZ,          -- 空 = 长期有效
+  expires_at TIMESTAMPTZ,
   enabled BOOLEAN NOT NULL DEFAULT true,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_resume_access_codes_enabled ON resume_access_codes(enabled);
+CREATE TABLE IF NOT EXISTS access_code_resources (
+  code_id UUID NOT NULL REFERENCES access_codes(id) ON DELETE CASCADE,
+  resource TEXT NOT NULL CHECK (resource IN ('resume', 'docs')),
+  PRIMARY KEY (code_id, resource)
+);
 
--- 默认插入一行门禁设置（默认开启门禁）
-INSERT INTO resume_settings (gate_enabled)
+CREATE INDEX IF NOT EXISTS idx_access_codes_enabled ON access_codes(enabled);
+CREATE INDEX IF NOT EXISTS idx_access_code_resources_resource ON access_code_resources(resource);
+
+INSERT INTO resume_settings (show_project_tech_stack)
 SELECT true
 WHERE NOT EXISTS (SELECT 1 FROM resume_settings);
+INSERT INTO access_gate_settings (resource, enabled)
+VALUES ('resume', true), ('docs', true)
+ON CONFLICT (resource) DO NOTHING;
 
 ALTER TABLE resume_settings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE resume_access_codes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE access_gate_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE access_codes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE access_code_resources ENABLE ROW LEVEL SECURITY;
 
--- 仅认证用户（后台）可读写；前台不开放，解锁接口用 service_role 读取。
-CREATE POLICY "管理员访问简历门禁设置" ON resume_settings
-  FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "管理员访问简历授权码" ON resume_access_codes
-  FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "管理员访问简历展示设置" ON resume_settings
+  FOR ALL USING (auth.role() = 'authenticated') WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "管理员访问资源门禁设置" ON access_gate_settings
+  FOR ALL USING (auth.role() = 'authenticated') WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "管理员访问授权码" ON access_codes
+  FOR ALL USING (auth.role() = 'authenticated') WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "管理员访问授权码范围" ON access_code_resources
+  FOR ALL USING (auth.role() = 'authenticated') WITH CHECK (auth.role() = 'authenticated');
 
 -- ============================================
 -- 13. 简历初始数据

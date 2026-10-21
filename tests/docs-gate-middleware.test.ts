@@ -22,6 +22,11 @@ vi.mock("@/i18n/routing", () => ({
   routing: { locales: ["zh-CN", "en"], defaultLocale: "zh-CN" },
 }));
 
+let gateEnabled = true;
+vi.mock("@/lib/access-gate", () => ({
+  isDocsGateEnabled: async () => gateEnabled,
+}));
+
 import { proxy } from "@/proxy";
 import { signToken, DOCS_GATE_COOKIE } from "@/lib/docs-gate";
 import { NextRequest } from "next/server";
@@ -33,6 +38,7 @@ function makeReq(path: string, token?: string) {
 }
 
 afterEach(() => {
+  gateEnabled = true;
   delete process.env.DOCS_GATE_ENABLED;
 });
 
@@ -69,8 +75,8 @@ describe("proxy 知识库门禁", () => {
     expect(res.headers.get("x-handler")).toBe("intl");
   });
 
-  it("DOCS_GATE_ENABLED=false 时 /docs 无凭证也放行", async () => {
-    process.env.DOCS_GATE_ENABLED = "false";
+  it("数据库门禁关闭时 /docs 无凭证也放行", async () => {
+    gateEnabled = false;
     const res = await proxy(makeReq("/docs"));
     expect(res.headers.get("x-handler")).toBe("intl");
   });
