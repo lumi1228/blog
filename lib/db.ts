@@ -878,7 +878,7 @@ export async function getResume(
   const pick = (zh: string | null, en: string | null) =>
     isZh ? zh : en || zh;
 
-  const [profileRes, skillsRes, expRes, projRes] = await Promise.all([
+  const [profileRes, skillsRes, expRes, projRes, settingsRes] = await Promise.all([
     sb
       .from("resume_profile")
       .select(
@@ -899,11 +899,18 @@ export async function getResume(
     sb
       .from("resume_projects")
       .select(
-        "id, name_zh, name_en, summary_zh, summary_en, contributions_zh, contributions_en"
+        "id, name_zh, name_en, summary_zh, summary_en, tech_stack_zh, tech_stack_en, contributions_zh, contributions_en"
       )
       .eq("is_visible", true)
       .order("sort", { ascending: true }),
+    sb
+      .from("resume_settings")
+      .select("show_project_tech_stack")
+      .limit(1)
+      .maybeSingle(),
   ]);
+
+  const showProjectTechStack = settingsRes.data?.show_project_tech_stack ?? true;
 
   const p = profileRes.data as any;
   const profile = p
@@ -936,6 +943,12 @@ export async function getResume(
     id: row.id,
     name: pick(row.name_zh, row.name_en) ?? "",
     summary: pick(row.summary_zh, row.summary_en) ?? null,
+    techStack: showProjectTechStack
+      ? (isZh
+          ? row.tech_stack_zh
+          : row.tech_stack_en?.trim() || row.tech_stack_zh
+        )?.trim() || null
+      : null,
     contributions: splitLines(pick(row.contributions_zh, row.contributions_en)),
   }));
 

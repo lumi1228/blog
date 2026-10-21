@@ -372,6 +372,8 @@ CREATE TABLE IF NOT EXISTS resume_projects (
   name_en TEXT,
   summary_zh TEXT,
   summary_en TEXT,
+  tech_stack_zh TEXT,
+  tech_stack_en TEXT,
   contributions_zh TEXT,             -- 核心贡献，按换行符分隔，每行一条
   contributions_en TEXT
 );
@@ -431,6 +433,7 @@ CREATE POLICY "管理员删除简历资源" ON storage.objects
 CREATE TABLE IF NOT EXISTS resume_settings (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   gate_enabled BOOLEAN NOT NULL DEFAULT true,
+  show_project_tech_stack BOOLEAN NOT NULL DEFAULT true,
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 

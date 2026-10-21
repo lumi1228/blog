@@ -44,7 +44,11 @@ const resume: ResumeData = {
   skills: [{ id: "s1", content: "熟练掌握 HTML、CSS、JS" }],
   experiences: [
     { id: "e1", period: "2021.09-至今", company: "某公司", role: "前端", highlights: ["要点A"] },
-  ],  projects: [{ id: "p1", name: "某中台系统", summary: "一站式平台", contributions: ["贡献1"] }],
+  ],
+  projects: [
+    { id: "p1", name: "某中台系统", summary: "一站式平台", techStack: "React、TypeScript", contributions: ["贡献1"] },
+    { id: "p2", name: "未填写技术栈的项目", summary: "无占位项目", techStack: null, contributions: [] },
+  ],
 };
 
 const resp = (ok: boolean, status: number, body: unknown) => ({
@@ -127,7 +131,10 @@ describe("ResumeModal（授权码门禁 + 打开探测）", () => {
     await waitFor(() => expect(screen.getByText("tooMany")).toBeInTheDocument());
   });
 
-  it("授权码正确后渲染简历并可导出 PDF", async () => {
+  /**
+   * --- @ty.aicoding@ ---
+   */
+  it("授权码正确后仅渲染非空技术栈并可导出 PDF", async () => {
     render(<ResumeModal />);
     fireEvent.click(screen.getByText("viewResume"));
     const input = await screen.findByLabelText("codePlaceholder");
@@ -135,6 +142,8 @@ describe("ResumeModal（授权码门禁 + 打开探测）", () => {
     fireEvent.click(screen.getByText("unlock"));
     await waitFor(() => expect(screen.getByText("张三")).toBeInTheDocument());
     expect(document.getElementById("resume-print-area")).toBeTruthy();
+    expect(screen.getByText("React、TypeScript")).toBeInTheDocument();
+    expect(screen.getAllByText(/projectTechStack/)).toHaveLength(1);
     fireEvent.click(screen.getByText("export"));
     await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
   });

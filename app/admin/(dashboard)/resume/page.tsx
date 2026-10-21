@@ -31,12 +31,12 @@ export default async function AdminResumePage() {
     supabase
       .from("resume_projects")
       .select(
-        "id, sort, is_visible, name_zh, name_en, summary_zh, summary_en, contributions_zh, contributions_en"
+        "id, sort, is_visible, name_zh, name_en, summary_zh, summary_en, tech_stack_zh, tech_stack_en, contributions_zh, contributions_en"
       )
       .order("sort", { ascending: true }),
     supabase
       .from("resume_settings")
-      .select("id, gate_enabled")
+      .select("id, gate_enabled, show_project_tech_stack")
       .limit(1)
       .maybeSingle(),
     supabase

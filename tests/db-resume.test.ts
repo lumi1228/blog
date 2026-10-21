@@ -49,6 +49,9 @@ vi.mock("@/utils/supabase/server", () => ({
 
 import { getResume } from "@/lib/db";
 
+/**
+ * --- @ty.aicoding@ ---
+ */
 beforeEach(() => {
   tableData = {
     resume_profile: {
@@ -80,6 +83,9 @@ beforeEach(() => {
         highlights_en: null,
       },
     ],
+    resume_settings: {
+      show_project_tech_stack: true,
+    },
     resume_projects: [
       {
         id: "p1",
@@ -88,6 +94,8 @@ beforeEach(() => {
         name_en: "Project A",
         summary_zh: "简介",
         summary_en: null,
+        tech_stack_zh: "Vue 2、Vuex、Element UI",
+        tech_stack_en: "Vue 2, Vuex, Element UI",
         contributions_zh: "贡献1\n\n贡献2",
         contributions_en: null,
       },
@@ -98,6 +106,8 @@ beforeEach(() => {
         name_en: "Hidden Project",
         summary_zh: "不应返回",
         summary_en: null,
+        tech_stack_zh: "内部框架",
+        tech_stack_en: null,
         contributions_zh: "隐藏贡献",
         contributions_en: null,
       },
@@ -116,9 +126,13 @@ describe("getResume", () => {
     expect(r.skills[0].content).toBe("技能一");
     expect(r.experiences[0].company).toBe("某公司");
     expect(r.projects[0].name).toBe("项目甲");
+    expect(r.projects[0].techStack).toBe("Vue 2、Vuex、Element UI");
     expect(r.projects).toHaveLength(1);
   });
 
+  /**
+   * --- @ty.aicoding@ ---
+   */
   it("英文 locale 解析 _en，缺失时回退 _zh", async () => {
     const r = await getResume("en");
     expect(r.profile?.name).toBe("Test User");
@@ -128,6 +142,29 @@ describe("getResume", () => {
     expect(r.skills[0].content).toBe("Skill 1");
     expect(r.experiences[0].company).toBe("Some Co");
     expect(r.projects[0].name).toBe("Project A");
+    expect(r.projects[0].techStack).toBe("Vue 2, Vuex, Element UI");
+  });
+
+  /**
+   * --- @ty.aicoding@ ---
+   */
+  it("全局开关关闭时已填写的技术栈也不返回", async () => {
+    tableData.resume_settings = { show_project_tech_stack: false };
+    const r = await getResume("zh-CN");
+    expect(r.projects[0].techStack).toBeNull();
+  });
+
+  /**
+   * --- @ty.aicoding@ ---
+   */
+  it("技术栈为空时返回 null，英文空白时回退中文", async () => {
+    tableData.resume_projects[0].tech_stack_en = "   ";
+    const english = await getResume("en");
+    expect(english.projects[0].techStack).toBe("Vue 2、Vuex、Element UI");
+
+    tableData.resume_projects[0].tech_stack_zh = "   ";
+    const chinese = await getResume("zh-CN");
+    expect(chinese.projects[0].techStack).toBeNull();
   });
 
   it("要点/贡献字段按行拆分并去除空白与空行", async () => {

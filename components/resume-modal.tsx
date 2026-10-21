@@ -347,7 +347,10 @@ export function ResumeModal() {
   );
 }
 
-/** 简历纸张：固定浅色版式，复刻附件结构 */
+/**
+ * 简历纸张：固定浅色版式，复刻附件结构。
+ * --- @ty.aicoding@ ---
+ */
 function ResumeSheet({ resume }: { resume: ResumeData }) {
   const t = useTranslations("resume");
   const { profile, skills, experiences, projects } = resume;
@@ -446,6 +449,12 @@ function ResumeSheet({ resume }: { resume: ResumeData }) {
                     <p className="mt-1 text-[13px] leading-relaxed text-[#444]">
                       <span className="font-semibold text-[#222]">{t("projectSummary")}：</span>
                       {proj.summary}
+                    </p>
+                  )}
+                  {proj.techStack && (
+                    <p className="mt-1 text-[13px] leading-relaxed text-[#444]">
+                      <span className="font-semibold text-[#222]">{t("projectTechStack")}：</span>
+                      {proj.techStack}
                     </p>
                   )}
                   {proj.contributions.length > 0 && (

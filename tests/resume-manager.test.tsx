@@ -30,7 +30,7 @@ const baseProps = {
   skills: [],
   experiences: [],
   projects: [],
-  settings: { id: "s1", gate_enabled: true },
+  settings: { id: "s1", gate_enabled: true, show_project_tech_stack: true },
   codes: [],
   siteAvatars: [],
 };
@@ -62,18 +62,33 @@ describe("ResumeManager", () => {
    */
   it("项目经验 Tab 渲染已有项目及展示开关状态", () => {
     const projects = [
-      { id: "p1", sort: 0, is_visible: true, name_zh: "某中台系统", name_en: null, summary_zh: "中台", summary_en: null, contributions_zh: "a\nb", contributions_en: null },
-      { id: "p2", sort: 1, is_visible: false, name_zh: "内部项目", name_en: null, summary_zh: null, summary_en: null, contributions_zh: null, contributions_en: null },
+      { id: "p1", sort: 0, is_visible: true, name_zh: "某中台系统", name_en: null, summary_zh: "中台", summary_en: null, tech_stack_zh: "React、TypeScript", tech_stack_en: null, contributions_zh: "a\nb", contributions_en: null },
+      { id: "p2", sort: 1, is_visible: false, name_zh: "内部项目", name_en: null, summary_zh: null, summary_en: null, tech_stack_zh: null, tech_stack_en: null, contributions_zh: null, contributions_en: null },
     ];
     render(<ResumeManager {...baseProps} projects={projects} />);
     fireEvent.click(screen.getByText("项目经验"));
     expect(screen.getByText("某中台系统")).toBeInTheDocument();
+    expect(screen.getByRole("switch", { name: "前台展示项目技术栈" })).toHaveAttribute("aria-checked", "true");
     expect(screen.getByRole("switch", { name: /某中台系统/ })).toHaveAttribute("aria-checked", "true");
     expect(screen.getByRole("switch", { name: /内部项目/ })).toHaveAttribute("aria-checked", "false");
   });
 
+  /**
+   * --- @ty.aicoding@ ---
+   */
+  it("新增项目表单在项目简介后提供双语技术栈字段", () => {
+    render(<ResumeManager {...baseProps} />);
+    fireEvent.click(screen.getByText("项目经验"));
+    fireEvent.click(screen.getByText("新增项目"));
+    expect(screen.getByText("技术栈（中文）")).toBeInTheDocument();
+    expect(screen.getByText("技术栈（英文）")).toBeInTheDocument();
+  });
+
+  /**
+   * --- @ty.aicoding@ ---
+   */
   it("访问控制 Tab：门禁开启但无码时显示警告", () => {
-    render(<ResumeManager {...baseProps} settings={{ id: "s1", gate_enabled: true }} codes={[]} />);
+    render(<ResumeManager {...baseProps} settings={{ id: "s1", gate_enabled: true, show_project_tech_stack: true }} codes={[]} />);
     fireEvent.click(screen.getByText("访问控制"));
     expect(screen.getByText("简历访问门禁")).toBeInTheDocument();
     expect(screen.getByText(/访客将无法查看简历/)).toBeInTheDocument();

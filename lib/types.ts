@@ -163,11 +163,15 @@ export interface ResumeExperience {
   highlights: string[];
 }
 
-/** 项目经验条目 */
+/**
+ * 项目经验条目。
+ * --- @ty.aicoding@ ---
+ */
 export interface ResumeProject {
   id: string;
   name: string;
   summary: string | null;
+  techStack: string | null;
   /** 核心贡献列表（已按行拆分） */
   contributions: string[];
 }

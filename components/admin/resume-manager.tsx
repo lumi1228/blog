@@ -58,12 +58,19 @@ interface ProjRow {
   name_en: string | null;
   summary_zh: string | null;
   summary_en: string | null;
+  tech_stack_zh: string | null;
+  tech_stack_en: string | null;
   contributions_zh: string | null;
   contributions_en: string | null;
 }
+/**
+ * 简历全局设置后台数据行。
+ * --- @ty.aicoding@ ---
+ */
 interface SettingsRow {
   id: string;
   gate_enabled: boolean;
+  show_project_tech_stack: boolean;
 }
 interface CodeRow {
   id: string;
@@ -99,6 +106,10 @@ const TABS: { key: Tab; label: string }[] = [
   { key: "avatars", label: "主站头像" },
 ];
 
+/**
+ * 简历后台管理入口，根据当前页签渲染对应编辑区域。
+ * --- @ty.aicoding@ ---
+ */
 export function ResumeManager({ profile, skills, experiences, projects, settings, codes, siteAvatars }: ResumeManagerProps) {
   const [tab, setTab] = useState<Tab>("basic");
 
@@ -124,7 +135,7 @@ export function ResumeManager({ profile, skills, experiences, projects, settings
       {tab === "basic" && <BasicInfoForm profile={profile} />}
       {tab === "skills" && <SkillsSection skills={skills} />}
       {tab === "experiences" && <ExperiencesSection experiences={experiences} />}
-      {tab === "projects" && <ProjectsSection projects={projects} />}
+      {tab === "projects" && <ProjectsSection projects={projects} settings={settings} />}
       {tab === "access" && <AccessControlSection settings={settings} codes={codes} />}
       {tab === "avatars" && <SiteAvatarsSection siteAvatars={siteAvatars} />}
     </div>
@@ -559,7 +570,7 @@ function ExperiencesSection({ experiences }: { experiences: ExpRow[] }) {
  * 管理项目经验的新增、编辑、删除与展示状态。
  * --- @ty.aicoding@ ---
  */
-function ProjectsSection({ projects }: { projects: ProjRow[] }) {
+function ProjectsSection({ projects, settings }: { projects: ProjRow[]; settings: SettingsRow | null }) {
   const router = useRouter();
   const [editing, setEditing] = useState<ProjRow | "new" | null>(null);
   const [saving, setSaving] = useState(false);
@@ -568,21 +579,43 @@ function ProjectsSection({ projects }: { projects: ProjRow[] }) {
     name_en: "",
     summary_zh: "",
     summary_en: "",
+    tech_stack_zh: "",
+    tech_stack_en: "",
     contributions_zh: "",
     contributions_en: "",
     sort: 0,
   });
 
+  /**
+   * 打开新增项目表单并初始化空字段。
+   * --- @ty.aicoding@ ---
+   */
   const openNew = () => {
-    setForm({ name_zh: "", name_en: "", summary_zh: "", summary_en: "", contributions_zh: "", contributions_en: "", sort: projects.length });
+    setForm({
+      name_zh: "",
+      name_en: "",
+      summary_zh: "",
+      summary_en: "",
+      tech_stack_zh: "",
+      tech_stack_en: "",
+      contributions_zh: "",
+      contributions_en: "",
+      sort: projects.length,
+    });
     setEditing("new");
   };
+  /**
+   * 将项目数据回填到编辑表单。
+   * --- @ty.aicoding@ ---
+   */
   const openEdit = (row: ProjRow) => {
     setForm({
       name_zh: row.name_zh,
       name_en: row.name_en ?? "",
       summary_zh: row.summary_zh ?? "",
       summary_en: row.summary_en ?? "",
+      tech_stack_zh: row.tech_stack_zh ?? "",
+      tech_stack_en: row.tech_stack_en ?? "",
       contributions_zh: row.contributions_zh ?? "",
       contributions_en: row.contributions_en ?? "",
       sort: row.sort,
@@ -591,6 +624,10 @@ function ProjectsSection({ projects }: { projects: ProjRow[] }) {
   };
   const cancel = () => setEditing(null);
 
+  /**
+   * 保存项目经验及其双语技术栈内容。
+   * --- @ty.aicoding@ ---
+   */
   const save = async () => {
     if (!form.name_zh.trim()) {
       alert("请填写中文项目名称");
@@ -603,6 +640,8 @@ function ProjectsSection({ projects }: { projects: ProjRow[] }) {
       name_en: form.name_en || null,
       summary_zh: form.summary_zh || null,
       summary_en: form.summary_en || null,
+      tech_stack_zh: form.tech_stack_zh.trim() || null,
+      tech_stack_en: form.tech_stack_en.trim() || null,
       contributions_zh: form.contributions_zh || null,
       contributions_en: form.contributions_en || null,
       sort: form.sort,
@@ -632,59 +671,151 @@ function ProjectsSection({ projects }: { projects: ProjRow[] }) {
   };
 
   return (
-    <SectionShell
-      addLabel="新增项目"
-      onAdd={openNew}
-      showForm={editing !== null}
-      form={
-        <div className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className={labelCls}>项目名称（中文）*</label>
-              <input value={form.name_zh} onChange={(e) => setForm((p) => ({ ...p, name_zh: e.target.value }))} className={inputCls} />
+    <div className="space-y-4">
+      <ProjectTechStackVisibilitySwitch settings={settings} />
+      <SectionShell
+        addLabel="新增项目"
+        onAdd={openNew}
+        showForm={editing !== null}
+        form={
+          <div className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className={labelCls}>项目名称（中文）*</label>
+                <input value={form.name_zh} onChange={(e) => setForm((p) => ({ ...p, name_zh: e.target.value }))} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>项目名称（英文）</label>
+                <input value={form.name_en} onChange={(e) => setForm((p) => ({ ...p, name_en: e.target.value }))} className={inputCls} />
+              </div>
             </div>
             <div>
-              <label className={labelCls}>项目名称（英文）</label>
-              <input value={form.name_en} onChange={(e) => setForm((p) => ({ ...p, name_en: e.target.value }))} className={inputCls} />
+              <label className={labelCls}>项目简介（中文）</label>
+              <textarea value={form.summary_zh} onChange={(e) => setForm((p) => ({ ...p, summary_zh: e.target.value }))} rows={2} className={inputCls} />
             </div>
-          </div>
-          <div>
-            <label className={labelCls}>项目简介（中文）</label>
-            <textarea value={form.summary_zh} onChange={(e) => setForm((p) => ({ ...p, summary_zh: e.target.value }))} rows={2} className={inputCls} />
-          </div>
-          <div>
-            <label className={labelCls}>项目简介（英文）</label>
-            <textarea value={form.summary_en} onChange={(e) => setForm((p) => ({ ...p, summary_en: e.target.value }))} rows={2} className={inputCls} />
-          </div>
-          <div>
-            <label className={labelCls}>核心贡献（中文，每行一条）</label>
-            <textarea value={form.contributions_zh} onChange={(e) => setForm((p) => ({ ...p, contributions_zh: e.target.value }))} rows={5} className={inputCls} />
-          </div>
-          <div>
-            <label className={labelCls}>核心贡献（英文，每行一条）</label>
-            <textarea value={form.contributions_en} onChange={(e) => setForm((p) => ({ ...p, contributions_en: e.target.value }))} rows={5} className={inputCls} />
-          </div>
-          <SortField value={form.sort} onChange={(v) => setForm((p) => ({ ...p, sort: v }))} />
-          <FormActions saving={saving} onSave={save} onCancel={cancel} />
-        </div>
-      }
-    >
-      <ul className="divide-y divide-[var(--border-subtle)] rounded-[var(--radius-lg)] border border-[var(--border-subtle)]">
-        {projects.map((proj) => (
-          <li key={proj.id} className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-            <div className="min-w-0">
-              <div className="text-sm font-medium text-[var(--text-primary)]">{proj.name_zh}</div>
-              {proj.summary_zh && <div className="mt-0.5 truncate text-xs text-[var(--text-tertiary)]">{proj.summary_zh}</div>}
+            <div>
+              <label className={labelCls}>项目简介（英文）</label>
+              <textarea value={form.summary_en} onChange={(e) => setForm((p) => ({ ...p, summary_en: e.target.value }))} rows={2} className={inputCls} />
             </div>
-            <div className="flex shrink-0 flex-wrap items-center gap-2">
-              <ProjectVisibilitySwitch key={`${proj.id}-${proj.is_visible}`} project={proj} />
-              <RowActions onEdit={() => openEdit(proj)} onDelete={() => remove(proj)} sort={proj.sort} />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className={labelCls}>技术栈（中文）</label>
+                <input
+                  value={form.tech_stack_zh}
+                  onChange={(e) => setForm((p) => ({ ...p, tech_stack_zh: e.target.value }))}
+                  placeholder="例如：Next.js、React、TypeScript"
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>技术栈（英文）</label>
+                <input
+                  value={form.tech_stack_en}
+                  onChange={(e) => setForm((p) => ({ ...p, tech_stack_en: e.target.value }))}
+                  placeholder="e.g. Next.js, React, TypeScript"
+                  className={inputCls}
+                />
+              </div>
             </div>
-          </li>
-        ))}
-        {projects.length === 0 && <EmptyRow />}
-      </ul>
-    </SectionShell>
+            <div>
+              <label className={labelCls}>核心贡献（中文，每行一条）</label>
+              <textarea value={form.contributions_zh} onChange={(e) => setForm((p) => ({ ...p, contributions_zh: e.target.value }))} rows={5} className={inputCls} />
+            </div>
+            <div>
+              <label className={labelCls}>核心贡献（英文，每行一条）</label>
+              <textarea value={form.contributions_en} onChange={(e) => setForm((p) => ({ ...p, contributions_en: e.target.value }))} rows={5} className={inputCls} />
+            </div>
+            <SortField value={form.sort} onChange={(v) => setForm((p) => ({ ...p, sort: v }))} />
+            <FormActions saving={saving} onSave={save} onCancel={cancel} />
+          </div>
+        }
+      >
+        <ul className="divide-y divide-[var(--border-subtle)] rounded-[var(--radius-lg)] border border-[var(--border-subtle)]">
+          {projects.map((proj) => (
+            <li key={proj.id} className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+              <div className="min-w-0">
+                <div className="text-sm font-medium text-[var(--text-primary)]">{proj.name_zh}</div>
+                {proj.summary_zh && <div className="mt-0.5 truncate text-xs text-[var(--text-tertiary)]">{proj.summary_zh}</div>}
+              </div>
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
+                <ProjectVisibilitySwitch key={`${proj.id}-${proj.is_visible}`} project={proj} />
+                <RowActions onEdit={() => openEdit(proj)} onDelete={() => remove(proj)} sort={proj.sort} />
+              </div>
+            </li>
+          ))}
+          {projects.length === 0 && <EmptyRow />}
+        </ul>
+      </SectionShell>
+    </div>
+  );
+}
+
+/**
+ * 控制整份前台简历及 PDF 是否展示已填写的项目技术栈。
+ * --- @ty.aicoding@ ---
+ */
+function ProjectTechStackVisibilitySwitch({ settings }: { settings: SettingsRow | null }) {
+  const router = useRouter();
+  const [enabled, setEnabled] = useState(settings?.show_project_tech_stack ?? true);
+  const [saving, setSaving] = useState(false);
+
+  /**
+   * 持久化项目技术栈的全局展示状态。
+   * --- @ty.aicoding@ ---
+   */
+  const toggleVisibility = async () => {
+    const next = !enabled;
+    setSaving(true);
+    const supabase = createClient();
+    const { error } = settings
+      ? await supabase
+          .from("resume_settings")
+          .update({ show_project_tech_stack: next, updated_at: new Date().toISOString() })
+          .eq("id", settings.id)
+      : await supabase.from("resume_settings").insert({ show_project_tech_stack: next });
+    setSaving(false);
+
+    if (error) {
+      alert("操作失败：" + error.message);
+      return;
+    }
+
+    setEnabled(next);
+    router.refresh();
+  };
+
+  return (
+    <div className="flex flex-col gap-3 rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-secondary)] p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <div className="text-sm font-semibold text-[var(--text-primary)]">前台展示项目技术栈</div>
+        <p className="mt-1 text-xs leading-relaxed text-[var(--text-tertiary)]">
+          开启后，仅展示已填写的技术栈；未填写的项目不会产生占位，PDF 同步生效。
+        </p>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={enabled}
+        aria-label="前台展示项目技术栈"
+        disabled={saving}
+        onClick={toggleVisibility}
+        className="flex shrink-0 items-center gap-2 text-xs text-[var(--text-secondary)] disabled:opacity-50"
+      >
+        <span>{enabled ? "已开启" : "已关闭"}</span>
+        <span
+          aria-hidden="true"
+          className={`relative h-5 w-9 shrink-0 rounded-full transition-colors duration-[var(--duration-fast)] ${
+            enabled ? "bg-[var(--accent-primary)]" : "bg-[var(--bg-tertiary)]"
+          }`}
+        >
+          <span
+            className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white transition-transform duration-[var(--duration-fast)] ${
+              enabled ? "translate-x-4" : "translate-x-0"
+            }`}
+          />
+        </span>
+      </button>
+    </div>
   );
 }
 

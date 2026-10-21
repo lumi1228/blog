@@ -123,6 +123,7 @@
     "labelJobIntention": "Objective",
     "labelEdu": "Education",
     "projectSummary": "Overview",
+    "projectTechStack": "Tech Stack",
     "projectContributions": "Key Contributions"
   },
   "common": {
