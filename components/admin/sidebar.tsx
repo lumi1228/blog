@@ -1,9 +1,10 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { useTheme } from "@/components/theme-provider";
 
 const navItems = [
   {
@@ -92,13 +93,52 @@ interface AdminSidebarProps {
 export function AdminSidebar({ userEmail }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { resolvedTheme, setTheme } = useTheme();
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    if (!accountMenuOpen) return;
+
+    /**
+     * 点击账号区域外部时关闭弹出菜单。
+     * --- @ty.aicoding@ ---
+     */
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!accountMenuRef.current?.contains(event.target as Node)) {
+        setAccountMenuOpen(false);
+      }
+    };
+
+    /**
+     * 按 Escape 键关闭账号弹出菜单。
+     * --- @ty.aicoding@ ---
+     */
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setAccountMenuOpen(false);
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [accountMenuOpen]);
+
+  /**
+   * 退出后台登录并返回登录页。
+   * --- @ty.aicoding@ ---
+   */
   const handleLogout = async () => {
+    setAccountMenuOpen(false);
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/admin/login");
     router.refresh();
   };
+
+  const userInitial = (userEmail.trim()[0] || "A").toUpperCase();
 
   return (
     <aside className="flex w-56 flex-col border-r border-[var(--border-subtle)] bg-[var(--bg-secondary)]">
@@ -137,27 +177,97 @@ export function AdminSidebar({ userEmail }: AdminSidebarProps) {
         })}
       </nav>
 
-      {/* 底部用户信息 */}
-      <div className="border-t border-[var(--border-subtle)] p-3">
-        {/* 主题切换 */}
-        <div className="mb-2 flex items-center justify-between gap-2 px-3 py-1">
-          <span className="text-xs text-[var(--text-tertiary)]">主题</span>
-          <ThemeToggle />
-        </div>
+      {/* 底部账号入口 */}
+      <div ref={accountMenuRef} className="relative border-t border-[var(--border-subtle)] p-3">
+        {accountMenuOpen && (
+          <div
+            id="admin-account-menu"
+            role="menu"
+            aria-label="账号操作"
+            className="absolute bottom-[calc(100%+8px)] left-3 right-3 z-50 rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-elevated)] p-2 shadow-[var(--shadow-lg)] animate-fade-in"
+          >
+            <div className="flex items-center justify-between gap-2 px-2 py-2">
+              <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+                <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1.5m0 15V21m9-9h-1.5M4.5 12H3m15.364 6.364-1.061-1.061M6.697 6.697 5.636 5.636m12.728 0-1.061 1.061M6.697 17.303l-1.061 1.061M16.5 12a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" />
+                </svg>
+                <span>外观</span>
+              </div>
+              <div className="flex rounded-[var(--radius-md)] bg-[var(--bg-tertiary)] p-1" aria-label="外观模式">
+                <button
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={resolvedTheme === "light"}
+                  onClick={() => setTheme("light")}
+                  className={`rounded-[var(--radius-sm)] px-2.5 py-1 text-xs font-medium transition-all duration-[var(--duration-fast)] ${
+                    resolvedTheme === "light"
+                      ? "bg-[var(--bg-primary)] text-[var(--text-primary)] shadow-[var(--shadow-sm)]"
+                      : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
+                  }`}
+                >
+                  浅色
+                </button>
+                <button
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={resolvedTheme === "dark"}
+                  onClick={() => setTheme("dark")}
+                  className={`rounded-[var(--radius-sm)] px-2.5 py-1 text-xs font-medium transition-all duration-[var(--duration-fast)] ${
+                    resolvedTheme === "dark"
+                      ? "bg-[var(--bg-primary)] text-[var(--text-primary)] shadow-[var(--shadow-sm)]"
+                      : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
+                  }`}
+                >
+                  深色
+                </button>
+              </div>
+            </div>
 
-        <div className="mb-2 truncate px-3 text-xs text-[var(--text-tertiary)]">
-          {userEmail}
-        </div>
+            <div className="my-1 border-t border-[var(--border-subtle)]" />
+
+            <button
+              type="button"
+              role="menuitem"
+              onClick={handleLogout}
+              className="flex w-full items-center gap-2 rounded-[var(--radius-md)] px-2 py-2 text-sm text-[var(--text-secondary)] transition-colors duration-[var(--duration-fast)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--error)]"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+              </svg>
+              退出登录
+            </button>
+          </div>
+        )}
+
         <button
-          onClick={handleLogout}
-          className="flex w-full items-center gap-2 rounded-[var(--radius-md)] px-3 py-2 text-sm 
-                     text-[var(--text-secondary)] transition-colors duration-[var(--duration-fast)]
-                     hover:bg-[var(--bg-tertiary)] hover:text-[var(--error)]"
+          type="button"
+          aria-label={accountMenuOpen ? "关闭账号菜单" : "打开账号菜单"}
+          aria-haspopup="menu"
+          aria-controls="admin-account-menu"
+          aria-expanded={accountMenuOpen}
+          onClick={() => setAccountMenuOpen((open) => !open)}
+          className={`flex h-11 w-full items-center gap-2.5 rounded-[var(--radius-md)] px-2 text-left transition-colors duration-[var(--duration-fast)] ${
+            accountMenuOpen
+              ? "bg-[var(--bg-tertiary)]"
+              : "hover:bg-[var(--bg-tertiary)]"
+          }`}
         >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-full)] bg-[var(--accent-muted)] text-sm font-semibold text-[var(--accent-primary)]">
+            {userInitial}
+          </span>
+          <span className="min-w-0 flex-1 truncate text-sm text-[var(--text-secondary)]">{userEmail}</span>
+          <svg
+            className={`h-4 w-4 shrink-0 text-[var(--text-tertiary)] transition-transform duration-[var(--duration-fast)] ${
+              accountMenuOpen ? "rotate-180" : "rotate-0"
+            }`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.5}
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
           </svg>
-          退出登录
         </button>
       </div>
     </aside>
