@@ -199,7 +199,7 @@ npm run test:e2e     # Playwright e2e tests
 |---|---|
 | Modify navbar | `components/navbar.tsx`, `components/navbar-client.tsx` |
 | Change homepage layout | `app/[locale]/page.tsx`, `components/article-card.tsx` |
-| Blog list (统一列表 + Tab) | `app/[locale]/blog/page.tsx`（全部）、`app/[locale]/category/[slug]/page.tsx`（单分类）共用 `components/blog-list-view.tsx` + `components/blog-tabs.tsx`；均分页（`?page=`，PAGE_SIZE=10），Tab 真实路由跳转。导航「博客」父级 → `/blog`，下拉仅列分类 |
+| Blog list (统一列表 + Tab) | `app/[locale]/blog/page.tsx`（全部）、`app/[locale]/category/[slug]/page.tsx`（单分类）共用 `components/blog-list-view.tsx` + `components/blog-tabs.tsx`；均分页（`?page=`，PAGE_SIZE=10），Tab 真实路由跳转。导航「博客」为单一链接 → `/blog`，无分类下拉 |
 | Post detail page | `app/[locale]/posts/[slug]/page.tsx`, `components/TableOfContents.tsx`, `components/view-counter.tsx` |
 | Markdown rendering | `components/markdown/`, `lib/markdown/shiki.ts` |
 | Search feature | `components/search/`, `app/api/search-index/` (supports `?scope=docs`) |
