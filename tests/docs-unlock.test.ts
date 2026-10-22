@@ -63,6 +63,9 @@ describe("POST /api/docs/unlock（知识库门禁）", () => {
     expect(res.status).toBe(400);
   });
 
+  /**
+   * --- @ty.aicoding@ ---
+   */
   it("正确码 → 200 且下发有效签名 cookie 与 UI 标记", async () => {
     const res = await POST(req({ code: "GOOD" }, "20.1.0.2"));
     expect(res.status).toBe(200);
@@ -71,7 +74,8 @@ describe("POST /api/docs/unlock（知识库门禁）", () => {
 
     const token = res.cookies.get(DOCS_GATE_COOKIE)?.value;
     expect(token).toBeTruthy();
-    expect(await verifyToken(token)).toBe(true);
+    expect(await verifyToken(token, "docs")).toBe(true);
+    expect(res.cookies.get(DOCS_GATE_COOKIE)?.maxAge).toBe(604800);
 
     // 非 httpOnly UI 标记，供前端入口判断
     const flag = res.cookies.get(DOCS_UNLOCKED_FLAG);
@@ -79,9 +83,15 @@ describe("POST /api/docs/unlock（知识库门禁）", () => {
     expect(flag?.httpOnly).toBe(false);
   });
 
-  it("未过期限期码 → 200", async () => {
+  /**
+   * --- @ty.aicoding@ ---
+   */
+  it("未过期限期码 → 会话不超过授权码剩余有效期", async () => {
     const res = await POST(req({ code: "FUTURE" }, "20.1.0.3"));
     expect(res.status).toBe(200);
+    const maxAge = res.cookies.get(DOCS_GATE_COOKIE)?.maxAge ?? 0;
+    expect(maxAge).toBeGreaterThan(86000);
+    expect(maxAge).toBeLessThanOrEqual(86400);
   });
 
   it("已过期码 → 401", async () => {

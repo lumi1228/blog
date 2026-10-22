@@ -49,7 +49,7 @@ npm run test:e2e     # Playwright e2e tests
 | `NEXT_PUBLIC_SUPABASE_URL` | client+server | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | client+server | Supabase anon/publishable key |
 | `SUPABASE_SERVICE_ROLE_KEY` | **server only** | service_role key; used by `createAdminClient` and the Edge-compatible docs gate setting lookup. Never expose to client. |
-| `DOCS_GATE_SECRET` | **server only** | HMAC key for signing the knowledge-base (`/docs`) access cookie. Falls back to `SUPABASE_SERVICE_ROLE_KEY` if unset. |
+| `DOCS_GATE_SECRET` | **server only** | HMAC key for signing resource-bound knowledge-base and resume access cookies. Falls back to `SUPABASE_SERVICE_ROLE_KEY` if unset. |
 | `DOCS_GATE_ENABLED` | **server only** | Emergency override: `"false"` makes `/docs` public regardless of the database switch. Any other value / unset defers to `access_gate_settings`. |
 
 ---
@@ -206,15 +206,16 @@ npm run test:e2e     # Playwright e2e tests
 | Categories | `app/[locale]/category/[slug]/page.tsx`（复用 `BlogListView`）, `lib/db.ts → getCategories` |
 | Tags | `app/[locale]/tag/[slug]/page.tsx`, `lib/db.ts → getTags` |
 | Docs sub-site (= Columns) | `app/[locale]/docs/`, `components/docs/`, `lib/db.ts → getDocsOverview`, `getDocsDirectory`, `getDocsChapter`, `getColumns` |
-| Docs search scope | `lib/db.ts → getDocsSearchIndex`, `app/api/search-index/route.ts`（`scope=docs` 受 `docs_access` cookie 门禁保护）|
+| Docs search scope | `lib/db.ts → getDocsSearchIndex`, `app/api/search-index/route.ts`（`scope=docs` 受 `docs_access` Cookie 门禁保护；门禁开启时响应使用 `private, no-store`，避免共享缓存泄露索引）|
 | Admin post editor | `components/admin/post-editor.tsx`, `app/admin/(dashboard)/` |
 | Admin categories/tags | `components/admin/category-manager.tsx`, `components/admin/tag-manager.tsx` |
 | Admin columns | `components/admin/columns-workspace.tsx` |
 | 文章封面体系 | 分类封面：`category-manager.tsx`；专栏（知识库一级分类）封面：`columns-left-panel.tsx → ColumnModal`（首页知识库卡片展示用）；章节封面：`columns-left-panel.tsx → ChapterModal`；文章封面：`post-editor.tsx`；统一控件 `components/admin/cover-image-field.tsx`。前台展示优先级 `coverImage ?? coverImageFallback`：列表卡片 `article-card.tsx`；详情页头部以 `components/cover-hero.tsx`（封面作标题背景 + 暗色蒙版 + 浅色文字，保证任意封面/主题文字可读）；首页知识库模块卡片 `components/home-docs-section.tsx → DocsCard` 展示 `column.coverImage`。回退在 `lib/db.ts`（`getPosts`/`getPostBySlug`/`getColumnBySlug`）解析，章节封面优先于分类封面；专栏封面经 `getColumns` 读取 `columns.cover_image`；**OG/SEO 图仅用 `coverImage`，不含回退**。DB：`categories.cover_image`、`columns.cover_image`、`column_chapters.cover_image`（见 `supabase/schema.sql` 与 `supabase/migration-cover-images.sql`）|
 | About page | `app/[locale]/about/page.tsx`, `config/about.ts`, `components/resume-modal.tsx` |
-| Resume (about modal + PDF) | `components/resume-modal.tsx`, `lib/db.ts → getResume(locale, client?)`; 授权码门禁，打开时探测门禁状态，数据不随页面下发 |
-| Resume unlock API | `app/api/resume/unlock/route.ts`（POST，读取 `access_gate_settings(resource=resume)`；关闭时直接返回简历，开启时仅接受拥有 `resume` 范围的 `access_codes`）|
-| Knowledge-base gate (`/docs` 门禁) | `proxy.ts` + `lib/access-gate.ts` 读取 `access_gate_settings(resource=docs)` 并拦截 `/docs`、`/en/docs`；`lib/docs-gate.ts` 负责 HMAC 凭证；`app/api/docs/unlock/route.ts` 仅接受拥有 `docs` 范围的授权码，并按 `session_ttl_seconds` 下发签名 cookie；`app/[locale]/unlock-docs/page.tsx` + `components/docs/docs-gate-form.tsx` 提供解锁页。`DOCS_GATE_ENABLED=false` 仅作为部署级紧急公开覆盖。 |
+| Resume (about modal + PDF) | `components/resume-modal.tsx`, `lib/db.ts → getResume(locale, client?)`; 授权码门禁，打开时探测门禁状态，数据不随页面下发；未授权探测响应附带 `sessionTtlSeconds`，复用该请求展示免验证时长 |
+| Public gate duration hint | `components/access-session-hint.tsx` 统一中英文时长提示；知识库配置由 `app/[locale]/layout.tsx → lib/db.ts → getAccessGateSessionTtl("docs")` 随页面下发并通过 Context 共用，简历时长来自已有探测请求，不新增前端配置接口。天数取 `sessionTtlSeconds / 86400`，提示时长上限且不超过授权码期限；未获取时长时只保留输入提示 |
+| Resume unlock API | `app/api/resume/unlock/route.ts`（POST，读取 `access_gate_settings(resource=resume)`；关闭时直接返回简历；开启时接受拥有 `resume` 范围的授权码并下发独立的 `resume_access` httpOnly Cookie，有效期取资源会话 TTL 与授权码剩余时间中的较早者；简历响应禁止缓存）|
+| Knowledge-base gate (`/docs` 门禁) | `proxy.ts` + `lib/access-gate.ts` 读取 `access_gate_settings(resource=docs)` 并拦截 `/docs`、`/en/docs`；`lib/docs-gate.ts` 负责绑定 `resume/docs` 资源的 HMAC 凭证；`app/api/docs/unlock/route.ts` 仅接受拥有 `docs` 范围的授权码并下发独立的 `docs_access` Cookie，有效期取 `session_ttl_seconds` 与授权码剩余时间中的较早者；`app/[locale]/unlock-docs/page.tsx` + `components/docs/docs-gate-form.tsx` 提供解锁页。`DOCS_GATE_ENABLED=false` 仅作为部署级紧急公开覆盖。 |
 | Admin resume | `app/admin/(dashboard)/resume/page.tsx`, `components/admin/resume-manager.tsx`（4 个 Tab：基本信息/专业技能/工作经历/项目经验）；专业技能使用 `resume_profile.skills_zh/en` 多行文本存储并按非空行展示；经历和项目由 `is_visible` 控制前台展示；项目技术栈由 `resume_settings.show_project_tech_stack` 全局控制；简历证件照上传到 Storage bucket `resume`（public） |
 | Admin site avatars | `app/admin/(dashboard)/site-avatars/page.tsx`, `components/admin/site-avatar-manager.tsx`；独立维护 `site_avatars` 与 Storage bucket `avatars`，供主页/关于页随机展示，与简历证件照无关 |
 | Admin access control | `app/admin/(dashboard)/access-control/page.tsx`, `components/admin/access-control-manager.tsx`；分别管理简历/知识库门禁开关，共享 `access_codes`，通过 `access_code_resources` 选择 `resume`、`docs` 或两者。升级迁移见 `supabase/migration-access-control-resources.sql`，旧码默认迁移为两种范围 |

@@ -14,6 +14,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const locale = searchParams.get("locale");
   const scope = searchParams.get("scope"); // "docs" | null（默认全站）
+  let docsGateProtected = false;
 
   // 校验 locale 参数是否在允许的 locales 列表中
   if (!locale || !(routing.locales as readonly string[]).includes(locale)) {
@@ -27,8 +28,9 @@ export async function GET(request: Request) {
   if (scope === "docs" && process.env.DOCS_GATE_ENABLED !== "false") {
     const gate = await getAccessGateSetting(createAdminClient(), "docs");
     if (gate.enabled) {
+      docsGateProtected = true;
       const token = (await cookies()).get(DOCS_GATE_COOKIE)?.value;
-      if (!(await verifyToken(token))) {
+      if (!(await verifyToken(token, "docs"))) {
         return NextResponse.json({ error: "unauthorized" }, { status: 401 });
       }
     }
@@ -52,7 +54,9 @@ export async function GET(request: Request) {
       {
         status: 200,
         headers: {
-          "Cache-Control": "public, max-age=300, s-maxage=300",
+          "Cache-Control": docsGateProtected
+            ? "private, no-store"
+            : "public, max-age=300, s-maxage=300",
         },
       }
     );

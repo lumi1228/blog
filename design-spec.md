@@ -1,7 +1,7 @@
 # Design Specification
 
 > **Version**: 2.6.0  
-> **Last Updated**: 2026-10-21
+> **Last Updated**: 2026-10-22
 > **Design Theme**: Midnight Elegance（极夜优雅·深邃暗紫版）  
 > **Purpose**: 前端样式规范文档，确保 AI 和开发者输出一致的视觉设计和样式代码
 
@@ -520,6 +520,16 @@ className="rounded-[var(--radius-full)]"  // 分类标签
 - 知识库目录按章节分组：细边框圆角容器、`bg-secondary` 章节标题行、紧凑文章标题列表；章节目录展示标题、摘要、日期和阅读时长，空章节保留提示。
 - 侧栏在知识库目录、章节、文章间共享；章节名是真实目录链接，独立箭头只控制展开。当前项使用 `aria-current="page"` 和 `accent-muted` 背景，折叠列表隐藏后不可聚焦，不以固定高度裁剪长标题。
 - `lg` 以下侧栏沿用底部抽屉；目录页不展示文章 TOC。顶部知识库 Tab 和面包屑使用本地化链接，均可逐级回到目录。
+
+---
+
+### 7.12 AccessSessionHint（免验证时长提示）
+
+**路径**: `components/access-session-hint.tsx`
+
+- 简历门禁、知识库入口弹框及独立解锁页共用，内联追加在原有说明段落中，继承父级 `text-sm`、`leading-relaxed` 和 `--text-secondary`。
+- 展示资源实际免验证时长及授权码期限限制；配置不可用时仅保留原输入说明，不展示推测时长。
+- 组件只展示已取得的配置，不自行请求接口。
 
 ---
 

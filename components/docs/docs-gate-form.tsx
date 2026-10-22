@@ -5,14 +5,16 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { requestDocsUnlock } from "@/lib/docs-unlock-client";
+import { AccessSessionHint } from "@/components/access-session-hint";
 
 /**
  * 知识库门禁解锁表单。
  *
- * - 校验授权码（POST /api/docs/unlock）→ 成功后服务端下发 7 天签名 cookie，
+ * - 校验授权码（POST /api/docs/unlock）→ 成功后服务端按资源时长及授权码期限下发签名 cookie，
  *   随后跳回用户原本想访问的 next 路径（默认 /docs）。
  * - 支持魔法链接：URL 带 ?code=xxx 时进入即自动提交，免手动输入。
  * - next 做白名单校验，只允许 /docs 或 /en/docs 开头，防开放重定向。
+ * --- @ty.aicoding@ ---
  */
 export function DocsGateForm() {
   const t = useTranslations("docsGate");
@@ -90,6 +92,7 @@ export function DocsGateForm() {
       </h1>
       <p className="mb-5 text-sm leading-relaxed text-[var(--text-secondary)]">
         {t("desc")}
+        <AccessSessionHint />
       </p>
 
       <form

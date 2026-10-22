@@ -9,13 +9,16 @@
   },
   "docsGate": {
     "title": "知识库已加密",
-    "desc": "请输入授权码进入知识库，验证一次后 7 天内无需再次输入",
+    "desc": "请输入授权码进入知识库。",
     "placeholder": "请输入授权码",
     "submit": "进入知识库",
     "verifying": "校验中...",
     "wrong": "授权码无效或已过期",
     "tooMany": "尝试次数过多，请稍后再试",
     "backHome": "返回首页"
+  },
+  "accessGate": {
+    "sessionHint": "验证后最多 {days} 天内无需重复输入，且不超过授权码有效期。"
   },
   "home": {
     "badge": "AI应用前端工程师 · Next全栈工程师",
@@ -105,7 +108,7 @@
     "exportError": "导出 PDF 失败，请重试",
     "close": "关闭",
     "lockTitle": "简历已加密",
-    "lockDesc": "请输入授权码查看完整简历",
+    "lockDesc": "请输入授权码查看完整简历。",
     "codePlaceholder": "请输入授权码",
     "unlock": "解锁查看",
     "unlocking": "校验中...",

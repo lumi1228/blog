@@ -3,17 +3,20 @@ import { createAdminClient } from "@/utils/supabase/server";
 import { getResume } from "@/lib/db";
 import {
   createRateLimiter,
+  getEffectiveSessionTtlMs,
   getAccessGateSetting,
   getClientIp,
   verifyAccessCode,
 } from "@/lib/access-code";
+import { RESUME_GATE_COOKIE, signToken, verifyToken } from "@/lib/docs-gate";
 
 /**
  * 简历解锁接口（授权码门禁，配置全部存数据库，后台可维护）。
  *
  * 逻辑分支：
  * - 简历资源门禁关闭 → 直接返回简历（公开）。
- * - 门禁开启 + 未传码 → 401 code_required（供前端探测门禁状态，不计入限流）。
+ * - 门禁开启 + 有效简历凭证 → 直接返回简历。
+ * - 门禁开启 + 无有效凭证且未传码 → 401 code_required（不计入限流）。
  * - 门禁开启 + 传码 → 校验授权码，命中返回简历；否则 401 invalid_code（计入限流）。
  *
  * 校验与取数均使用 service_role 客户端（绕过 RLS），简历表/授权码表均不对外公开。
@@ -48,27 +51,59 @@ export async function POST(request: NextRequest) {
     const gate = await getAccessGateSetting(supabase, "resume");
     if (!gate.enabled) {
       const resume = await getResume(locale, supabase);
-      return NextResponse.json({ resume });
+      return NextResponse.json(
+        { resume },
+        { headers: { "Cache-Control": "private, no-store" } }
+      );
     }
 
-    // 2) 门禁开启但未传码 → 提示前端需要授权码（不计入限流）
+    // 2) 已持有有效简历凭证 → 无需再次输入授权码
+    const cachedToken = request.cookies.get(RESUME_GATE_COOKIE)?.value;
+    if (await verifyToken(cachedToken, "resume")) {
+      const resume = await getResume(locale, supabase);
+      return NextResponse.json(
+        { resume },
+        { headers: { "Cache-Control": "private, no-store" } }
+      );
+    }
+
+    // 3) 门禁开启但未传码 → 提示前端需要授权码（不计入限流）
     if (!code) {
-      return NextResponse.json({ error: "code_required" }, { status: 401 });
+      return NextResponse.json(
+        { error: "code_required", sessionTtlSeconds: gate.sessionTtlSeconds },
+        { status: 401, headers: { "Cache-Control": "private, no-store" } }
+      );
     }
 
-    // 3) 限流拦截（针对错误码尝试）
+    // 4) 限流拦截（针对错误码尝试）
     if (limiter.tooMany(ip)) {
       return NextResponse.json({ error: "too_many_attempts" }, { status: 429 });
     }
 
-    // 4) 校验授权码
-    if (!(await verifyAccessCode(supabase, code, "resume"))) {
+    // 5) 校验授权码
+    const verifiedCode = await verifyAccessCode(supabase, code, "resume");
+    if (!verifiedCode) {
       limiter.record(ip);
       return NextResponse.json({ error: "invalid_code" }, { status: 401 });
     }
 
+    const ttlMs = getEffectiveSessionTtlMs(
+      gate.sessionTtlSeconds,
+      verifiedCode.expiresAt
+    );
     const resume = await getResume(locale, supabase);
-    return NextResponse.json({ resume });
+    const response = NextResponse.json(
+      { resume },
+      { headers: { "Cache-Control": "private, no-store" } }
+    );
+    response.cookies.set(RESUME_GATE_COOKIE, await signToken("resume", ttlMs), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/api/resume",
+      maxAge: Math.max(1, Math.ceil(ttlMs / 1000)),
+    });
+    return response;
   } catch (err) {
     console.error("[resume/unlock] 处理失败:", err);
     return NextResponse.json({ error: "server_error" }, { status: 500 });

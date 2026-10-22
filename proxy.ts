@@ -27,7 +27,7 @@ export async function proxy(request: NextRequest) {
   // 知识库门禁：入口处校验一次授权码，凭按数据库时长签发的 cookie 放行后续访问
   if (DOCS_PATH.test(pathname) && (await isDocsGateEnabled())) {
     const token = request.cookies.get(DOCS_GATE_COOKIE)?.value;
-    const valid = await verifyToken(token);
+    const valid = await verifyToken(token, "docs");
     if (!valid) {
       const isEn = pathname.startsWith("/en/");
       const unlockUrl = new URL(

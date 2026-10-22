@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { requestDocsUnlock } from "@/lib/docs-unlock-client";
+import { AccessSessionHint } from "@/components/access-session-hint";
 
 interface DocsGateModalProps {
   /** 关闭弹框 */
@@ -14,7 +15,8 @@ interface DocsGateModalProps {
 
 /**
  * 知识库门禁弹框：在当前页就地输入授权码校验，避免跳转独立解锁页。
- * 复用 docsGate 文案与 /api/docs/unlock 接口；校验通过后服务端下发 7 天凭证 cookie。
+ * 校验后按资源会话时长与授权码剩余有效期中的较短者下发凭证 cookie。
+ * --- @ty.aicoding@ ---
  */
 export function DocsGateModal({ onClose, onSuccess }: DocsGateModalProps) {
   const t = useTranslations("docsGate");
@@ -91,6 +93,7 @@ export function DocsGateModal({ onClose, onSuccess }: DocsGateModalProps) {
         </h2>
         <p className="mb-5 text-sm leading-relaxed text-[var(--text-secondary)]">
           {t("desc")}
+          <AccessSessionHint />
         </p>
 
         <form onSubmit={submit} className="space-y-3">

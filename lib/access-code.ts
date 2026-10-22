@@ -31,6 +31,14 @@ export interface AccessGateSetting {
   sessionTtlSeconds: number;
 }
 
+/**
+ * 已通过校验的授权码信息，用于约束后续会话的最晚到期时间。
+ * --- @ty.aicoding@ ---
+ */
+export interface VerifiedAccessCode {
+  expiresAt: number | null;
+}
+
 export const DEFAULT_GATE_SESSION_TTL_SECONDS = 7 * 24 * 60 * 60;
 
 /** 从请求头解析客户端 IP（best-effort） */
@@ -111,24 +119,47 @@ export async function verifyAccessCode(
   supabase: AdminClient,
   code: string,
   resource: AccessResource
-): Promise<boolean> {
+): Promise<VerifiedAccessCode | null> {
   const { data: codes, error } = await supabase
     .from("access_codes")
     .select("code, expires_at, enabled, access_code_resources!inner(resource)")
     .eq("access_code_resources.resource", resource);
 
-  if (error) return false;
+  if (error) return null;
 
   const now = Date.now();
-  let valid = false;
+  let match: VerifiedAccessCode | null = null;
   for (const row of (codes ?? []) as {
     code: string | null;
     expires_at: string | null;
     enabled: boolean;
   }[]) {
     if (!row.enabled) continue;
-    const notExpired = !row.expires_at || now <= Date.parse(row.expires_at);
-    if (safeEqual(code, row.code ?? "") && notExpired) valid = true;
+    const expiresAt = row.expires_at ? Date.parse(row.expires_at) : null;
+    const notExpired = expiresAt === null || (Number.isFinite(expiresAt) && now <= expiresAt);
+    if (!safeEqual(code, row.code ?? "") || !notExpired) continue;
+
+    // 同码存在多条记录时，采用授权范围更长的一条；null 表示长期有效。
+    if (
+      !match ||
+      (match.expiresAt !== null && (expiresAt === null || expiresAt > match.expiresAt))
+    ) {
+      match = { expiresAt };
+    }
   }
-  return valid;
+  return match;
+}
+
+/**
+ * 计算会话有效期，不能超过资源配置时长，也不能超过授权码剩余有效期。
+ * --- @ty.aicoding@ ---
+ */
+export function getEffectiveSessionTtlMs(
+  sessionTtlSeconds: number,
+  codeExpiresAt: number | null,
+  now = Date.now()
+): number {
+  const configuredTtlMs = Math.max(1, sessionTtlSeconds) * 1000;
+  if (codeExpiresAt === null) return configuredTtlMs;
+  return Math.max(1, Math.min(configuredTtlMs, codeExpiresAt - now));
 }

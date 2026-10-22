@@ -1,19 +1,24 @@
 /**
- * 知识库（/docs）访问门禁的签名凭证工具。
+ * 简历与知识库访问门禁的资源级签名凭证工具。
  *
  * 设计要点：
  * - 使用 Web Crypto（HMAC-SHA256）实现，edge 中间件与 node API route 通用，
  *   避免在中间件中引入 node:crypto。
- * - 凭证格式：`${exp}.${sig}`，其中 exp 为毫秒级过期时间戳，
- *   sig = base64url(HMAC-SHA256(secret, `${exp}`))。
+ * - 凭证格式：`${resource}.${exp}.${sig}`，其中 exp 为毫秒级过期时间戳，
+ *   sig = base64url(HMAC-SHA256(secret, `${resource}.${exp}`))。
  * - 校验时重算签名做常量时间比较，并检查未过期。签名防篡改，故无需服务端存储。
  *
  * 密钥来源：优先 DOCS_GATE_SECRET；缺省回退到 SUPABASE_SERVICE_ROLE_KEY（仅服务端可见）。
  * 两者都缺失时抛错，避免使用空密钥签发可被伪造的凭证。
  */
 
-/** 门禁凭证 cookie 名 */
+import type { AccessResource } from "@/lib/access-code";
+
+/** 知识库门禁凭证 cookie 名 */
 export const DOCS_GATE_COOKIE = "docs_access";
+
+/** 简历门禁凭证 cookie 名 */
+export const RESUME_GATE_COOKIE = "resume_access";
 
 /**
  * UI 标记 cookie 名（非 httpOnly，可被客户端读取）。
@@ -25,12 +30,16 @@ export const DOCS_UNLOCKED_FLAG = "docs_unlocked";
 /** 默认有效期：7 天 */
 export const DOCS_GATE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
+/**
+ * 读取简历与知识库共用的门禁签名密钥。
+ * --- @ty.aicoding@ ---
+ */
 function getSecret(): string {
   const secret =
     process.env.DOCS_GATE_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!secret) {
     throw new Error(
-      "缺少 DOCS_GATE_SECRET（或 SUPABASE_SERVICE_ROLE_KEY）环境变量，无法签发知识库门禁凭证"
+      "缺少 DOCS_GATE_SECRET（或 SUPABASE_SERVICE_ROLE_KEY）环境变量，无法签发访问门禁凭证"
     );
   }
   return secret;
@@ -71,36 +80,44 @@ function safeEqual(a: string, b: string): boolean {
 }
 
 /**
- * 签发门禁凭证。
+ * 签发绑定资源的门禁凭证。
+ * @param resource 凭证允许访问的资源
  * @param ttlMs 有效期（毫秒），默认 7 天
- * @returns 形如 `${exp}.${sig}` 的凭证字符串
+ * @returns 形如 `${resource}.${exp}.${sig}` 的凭证字符串
+ * --- @ty.aicoding@ ---
  */
-export async function signToken(ttlMs: number = DOCS_GATE_TTL_MS): Promise<string> {
+export async function signToken(
+  resource: AccessResource,
+  ttlMs: number = DOCS_GATE_TTL_MS
+): Promise<string> {
   const exp = Date.now() + ttlMs;
-  const sig = await hmac(String(exp));
-  return `${exp}.${sig}`;
+  const payload = `${resource}.${exp}`;
+  const sig = await hmac(payload);
+  return `${payload}.${sig}`;
 }
 
 /**
- * 校验门禁凭证：签名正确且未过期。
+ * 校验门禁凭证：资源匹配、签名正确且未过期。
  * @param token cookie 中的凭证字符串（可能为 undefined）
+ * @param expectedResource 当前请求要求访问的资源
+ * --- @ty.aicoding@ ---
  */
 export async function verifyToken(
-  token: string | undefined | null
+  token: string | undefined | null,
+  expectedResource: AccessResource
 ): Promise<boolean> {
   if (!token) return false;
-  const dot = token.indexOf(".");
-  if (dot <= 0) return false;
-
-  const expStr = token.slice(0, dot);
-  const sig = token.slice(dot + 1);
+  const parts = token.split(".");
+  if (parts.length !== 3) return false;
+  const [resource, expStr, sig] = parts;
+  if (resource !== expectedResource) return false;
 
   const exp = Number(expStr);
   if (!Number.isFinite(exp) || Date.now() > exp) return false;
 
   let expected: string;
   try {
-    expected = await hmac(expStr);
+    expected = await hmac(`${resource}.${expStr}`);
   } catch {
     return false;
   }

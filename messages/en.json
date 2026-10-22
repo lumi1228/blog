@@ -9,13 +9,16 @@
   },
   "docsGate": {
     "title": "Knowledge Base Locked",
-    "desc": "Enter the access code to continue. You won't be asked again for 7 days.",
+    "desc": "Enter the access code to access the knowledge base.",
     "placeholder": "Enter access code",
     "submit": "Enter Knowledge Base",
     "verifying": "Verifying...",
     "wrong": "Invalid or expired access code",
     "tooMany": "Too many attempts, please try again later",
     "backHome": "Back to Home"
+  },
+  "accessGate": {
+    "sessionHint": "After verification, you won't need to enter the code again for up to {days} days, or until the access code expires, whichever comes first."
   },
   "home": {
     "badge": "AI Application Frontend Engineer · Next.js Full-Stack Engineer",

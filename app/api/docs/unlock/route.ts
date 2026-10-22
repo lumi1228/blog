@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/utils/supabase/server";
 import {
   createRateLimiter,
+  getEffectiveSessionTtlMs,
   getAccessGateSetting,
   getClientIp,
   verifyAccessCode,
@@ -62,15 +63,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "too_many_attempts" }, { status: 429 });
     }
 
-    if (!(await verifyAccessCode(supabase, code, "docs"))) {
+    const verifiedCode = await verifyAccessCode(supabase, code, "docs");
+    if (!verifiedCode) {
       limiter.record(ip);
       return NextResponse.json({ error: "invalid_code" }, { status: 401 });
     }
 
     // 校验通过 → 下发签名凭证
-    const token = await signToken(gate.sessionTtlSeconds * 1000);
-    const res = NextResponse.json({ ok: true });
-    const maxAge = gate.sessionTtlSeconds;
+    const ttlMs = getEffectiveSessionTtlMs(
+      gate.sessionTtlSeconds,
+      verifiedCode.expiresAt
+    );
+    const token = await signToken("docs", ttlMs);
+    const res = NextResponse.json(
+      { ok: true },
+      { headers: { "Cache-Control": "private, no-store" } }
+    );
+    const maxAge = Math.max(1, Math.ceil(ttlMs / 1000));
     // httpOnly 签名凭证：中间件凭此校验放行
     res.cookies.set(DOCS_GATE_COOKIE, token, {
       httpOnly: true,

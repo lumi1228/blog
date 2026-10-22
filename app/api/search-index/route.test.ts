@@ -63,6 +63,9 @@ describe("GET /api/search-index", () => {
     expect(getDocsSearchIndex).not.toHaveBeenCalled();
   });
 
+  /**
+   * --- @ty.aicoding@ ---
+   */
   it("scope=docs 调用文档索引，条目带 /docs URL", async () => {
     const res = await GET(
       makeRequest("http://x/api/search-index?locale=zh-CN&scope=docs")
@@ -73,6 +76,7 @@ describe("GET /api/search-index", () => {
     expect(getDocsSearchIndex).toHaveBeenCalledWith("zh-CN");
     expect(getSearchIndex).not.toHaveBeenCalled();
     expect(json.entries[0].url).toBe("/docs/react/d");
+    expect(res.headers.get("cache-control")).toBe("private, no-store");
   });
 
   it("非法 locale 返回 400", async () => {
@@ -89,6 +93,9 @@ describe("GET /api/search-index", () => {
     expect(getDocsSearchIndex).not.toHaveBeenCalled();
   });
 
+  /**
+   * --- @ty.aicoding@ ---
+   */
   it("scope=docs 在数据库门禁关闭时无需凭证", async () => {
     gateEnabled = false;
     gateValid = false;
@@ -97,5 +104,6 @@ describe("GET /api/search-index", () => {
     );
     expect(res.status).toBe(200);
     expect(getDocsSearchIndex).toHaveBeenCalledWith("zh-CN");
+    expect(res.headers.get("cache-control")).toBe("public, max-age=300, s-maxage=300");
   });
 });

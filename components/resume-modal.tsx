@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations, useLocale } from "next-intl";
 import type { ResumeData } from "@/lib/types";
+import { AccessSessionHint } from "@/components/access-session-hint";
 
 /**
  * 关于我页面「查看简历」入口 + 授权码门禁 + 简历预览弹框 + 导出 PDF。
@@ -11,9 +12,10 @@ import type { ResumeData } from "@/lib/types";
  * - 自带触发按钮，点击打开弹框；需先输入授权码解锁。
  * - 简历数据不随页面下发，解锁时由 /api/resume/unlock 服务端校验授权码后返回，
  *   防止电话/邮箱等信息被绕过门禁获取。
- * - 不记忆解锁状态：关闭弹框即清空，再次打开需重新输入授权码。
+ * - 关闭弹框仅清空内存中的简历数据；有效期内再次打开时由服务端凭证自动解锁。
  * - 简历版式参考附件：深蓝标题栏 + 板块图标 + 基本信息双栏（含证件照）+ 列表。
  * - 「导出 PDF」用 html2canvas-pro 截图 + jsPDF 按安全断点分页，直接下载。
+ * --- @ty.aicoding@ ---
  */
 export function ResumeModal() {
   const t = useTranslations("resume");
@@ -29,12 +31,13 @@ export function ResumeModal() {
   const [error, setError] = useState("");
   const [resume, setResume] = useState<ResumeData | null>(null);
   const [probing, setProbing] = useState(false);
+  const [sessionTtlSeconds, setSessionTtlSeconds] = useState<number | null>(null);
 
   useEffect(() => setMounted(true), []);
 
   const close = useCallback(() => {
     setOpen(false);
-    // 不记忆：关闭即重置，再次打开需重新解锁
+    // 清空敏感数据但保留 httpOnly 授权凭证；再次打开时由接口重新取数
     setResume(null);
     setCode("");
     setError("");
@@ -71,6 +74,13 @@ export function ResumeModal() {
         if (res.ok) {
           const data = await res.json();
           setResume(data.resume as ResumeData);
+        } else if (res.status === 401) {
+          const data = await res.json();
+          if (!cancelled) {
+            setSessionTtlSeconds(
+              typeof data.sessionTtlSeconds === "number" ? data.sessionTtlSeconds : null
+            );
+          }
         }
         // 401（code_required）等 → 保持输码态，不展示错误
       } catch {
@@ -310,6 +320,7 @@ export function ResumeModal() {
                 </h3>
                 <p className="mb-5 text-sm leading-relaxed text-[var(--text-secondary)]">
                   {t("lockDesc")}
+                  <AccessSessionHint sessionTtlSeconds={sessionTtlSeconds} />
                 </p>
                 <form onSubmit={handleUnlock} className="space-y-3">
                   <input

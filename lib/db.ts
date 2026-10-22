@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { cache } from "react";
-import { createClient } from "@/utils/supabase/server";
+import { createAdminClient, createClient } from "@/utils/supabase/server";
+import { getAccessGateSetting, type AccessResource } from "@/lib/access-code";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   Post,
@@ -25,6 +26,19 @@ import type {
  */
 
 type Locale = "zh-CN" | "en";
+
+/**
+ * 读取公开提示所需的资源会话时长，沿用解锁接口的配置及默认值。
+ * --- @ty.aicoding@ ---
+ */
+export async function getAccessGateSessionTtl(resource: AccessResource): Promise<number | null> {
+  try {
+    const gate = await getAccessGateSetting(createAdminClient(), resource);
+    return gate.sessionTtlSeconds;
+  } catch {
+    return null;
+  }
+}
 
 // 获取 Supabase 客户端（Server Component 中使用）
 async function getSupabase() {

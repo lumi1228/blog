@@ -6,7 +6,11 @@ import type { ResumeData } from "@/lib/types";
 
 // next-intl：返回 key 透传 + 固定 locale
 vi.mock("next-intl", () => ({
-  useTranslations: () => (key: string) => key,
+  /**
+   * --- @ty.aicoding@ ---
+   */
+  useTranslations: () => (key: string, values?: { days?: number }) =>
+    key === "sessionHint" ? `免验证 ${values?.days} 天` : key,
   useLocale: () => "zh-CN",
 }));
 
@@ -59,6 +63,7 @@ const resp = (ok: boolean, status: number, body: unknown) => ({
 
 // 门禁/响应可配置：probe（无码）与解锁（带码）走同一 mock，按 body 区分
 let fetchConfig: { gateOpen: boolean; codeStatus?: number };
+let sessionUnlocked: boolean;
 
 beforeAll(() => {
   HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
@@ -69,16 +74,23 @@ beforeAll(() => {
   HTMLCanvasElement.prototype.toDataURL = vi.fn(() => "data:image/png;base64,AAAA");
 });
 
+/**
+ * --- @ty.aicoding@ ---
+ */
 beforeEach(() => {
   save.mockClear();
   addImage.mockClear();
   fetchConfig = { gateOpen: true };
+  sessionUnlocked = false;
   (global.fetch as any) = vi.fn(async (_url: string, init: any) => {
     const body = JSON.parse(init.body);
-    if (!fetchConfig.gateOpen) return resp(true, 200, { resume });
-    if (!body.code) return resp(false, 401, { error: "code_required" });
+    if (!fetchConfig.gateOpen || sessionUnlocked) return resp(true, 200, { resume });
+    if (!body.code) return resp(false, 401, { error: "code_required", sessionTtlSeconds: 259200 });
     if (fetchConfig.codeStatus === 429) return resp(false, 429, { error: "too_many_attempts" });
-    if (body.code === "right") return resp(true, 200, { resume });
+    if (body.code === "right") {
+      sessionUnlocked = true;
+      return resp(true, 200, { resume });
+    }
     return resp(false, 401, { error: "invalid_code" });
   });
 });
@@ -94,13 +106,18 @@ describe("ResumeModal（授权码门禁 + 打开探测）", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
-  it("门禁开启：打开后显示授权码输入，不展示简历/导出", async () => {
+  /**
+   * --- @ty.aicoding@ ---
+   */
+  it("门禁开启：仅复用一次探测响应展示免验证时长，不展示简历/导出", async () => {
     render(<ResumeModal />);
     fireEvent.click(screen.getByText("viewResume"));
     await screen.findByLabelText("codePlaceholder");
     expect(screen.getByText("lockTitle")).toBeInTheDocument();
     expect(screen.queryByText("张三")).not.toBeInTheDocument();
     expect(screen.queryByText("export")).not.toBeInTheDocument();
+    expect(screen.getByText(/免验证 3 天/)).toBeInTheDocument();
+    expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
   it("门禁关闭：打开后直接展示简历，无需输码", async () => {
@@ -148,7 +165,10 @@ describe("ResumeModal（授权码门禁 + 打开探测）", () => {
     await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
   });
 
-  it("关闭后再次打开需重新输入（不记忆）", async () => {
+  /**
+   * --- @ty.aicoding@ ---
+   */
+  it("关闭后再次打开通过服务端凭证自动解锁", async () => {
     render(<ResumeModal />);
     fireEvent.click(screen.getByText("viewResume"));
     const input = await screen.findByLabelText("codePlaceholder");
@@ -160,7 +180,7 @@ describe("ResumeModal（授权码门禁 + 打开探测）", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByText("viewResume"));
-    await screen.findByLabelText("codePlaceholder");
-    expect(screen.queryByText("张三")).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText("张三")).toBeInTheDocument());
+    expect(screen.queryByLabelText("codePlaceholder")).not.toBeInTheDocument();
   });
 });

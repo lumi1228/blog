@@ -59,8 +59,11 @@ describe("proxy 知识库门禁", () => {
     expect(loc).toContain("next=%2Fen%2Fdocs%2Fset-a%2Fpost-1");
   });
 
+  /**
+   * --- @ty.aicoding@ ---
+   */
   it("持有效凭证访问 /docs → 放行交给 intl 中间件", async () => {
-    const token = await signToken();
+    const token = await signToken("docs");
     const res = await proxy(makeReq("/docs/set-a/post-1", token));
     expect(res.headers.get("x-handler")).toBe("intl");
   });
@@ -86,8 +89,11 @@ describe("proxy 知识库门禁", () => {
     expect(res.headers.get("x-handler")).toBe("admin");
   });
 
+  /**
+   * --- @ty.aicoding@ ---
+   */
   it("过期凭证访问 /docs → 仍重定向", async () => {
-    const expired = await signToken(-1000);
+    const expired = await signToken("docs", -1000);
     const res = await proxy(makeReq("/docs", expired));
     expect([307, 308]).toContain(res.status);
     expect(res.headers.get("location")).toContain("/unlock-docs");

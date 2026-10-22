@@ -153,7 +153,7 @@ export function AccessControlManager({ settings, codes }: AccessControlManagerPr
       code: form.code.trim(),
       label: form.label || null,
       expires_at: form.expires_at
-        ? new Date(`${form.expires_at}T23:59:59.999Z`).toISOString()
+        ? new Date(`${form.expires_at}T23:59:59.999`).toISOString()
         : null,
       enabled: form.enabled,
     };
@@ -239,6 +239,7 @@ export function AccessControlManager({ settings, codes }: AccessControlManagerPr
     },
     { resume: 0, docs: 0 }
   );
+  const resumeTtl = settings.find((item) => item.resource === "resume")?.session_ttl_seconds ?? 604800;
   const docsTtl = settings.find((item) => item.resource === "docs")?.session_ttl_seconds ?? 604800;
 
   return (
@@ -246,7 +247,11 @@ export function AccessControlManager({ settings, codes }: AccessControlManagerPr
       <div className="grid gap-4 md:grid-cols-2">
         <GateSwitch
           title="简历访问门禁"
-          description={localSettings.resume ? "访客需输入拥有简历权限的授权码" : "简历对所有访客公开可见"}
+          description={
+            localSettings.resume
+              ? `解锁后最多 ${Math.max(1, Math.round(resumeTtl / 86400))} 天内无需再次输入；若授权码更早到期，以到期日为准`
+              : "简历对所有访客公开可见"
+          }
           enabled={localSettings.resume}
           saving={toggling === "resume"}
           onToggle={() => toggleGate("resume")}
@@ -255,7 +260,7 @@ export function AccessControlManager({ settings, codes }: AccessControlManagerPr
           title="知识库访问门禁"
           description={
             localSettings.docs
-              ? `访客解锁后 ${Math.max(1, Math.round(docsTtl / 86400))} 天内可访问知识库`
+              ? `解锁后最多 ${Math.max(1, Math.round(docsTtl / 86400))} 天内可访问；若授权码更早到期，以到期日为准`
               : "知识库对所有访客公开可见"
           }
           enabled={localSettings.docs}
