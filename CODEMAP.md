@@ -60,7 +60,7 @@ npm run test:e2e     # Playwright e2e tests
 /
 ├── app/                         # Next.js App Router
 │   ├── [locale]/                # Locale-scoped routes (zh-CN / en)
-│   │   ├── page.tsx             # Homepage (post list)
+│   │   ├── page.tsx             # Homepage (intro + public posts; no docs cards or docs query)
 │   │   ├── layout.tsx           # Locale layout (navbar + footer)
 │   │   ├── not-found.tsx        # 404 page
 │   │   ├── about/               # About page (intro + skills + collaboration + contact + 查看简历 entry)
@@ -110,7 +110,7 @@ npm run test:e2e     # Playwright e2e tests
 │   │   └── docs-sidebar.tsx     # Persistent chapter tree; chapter name navigates, arrow expands only
 │   ├── markdown/                # Markdown render components
 │   ├── search/                  # Search UI (SearchModal, SearchInput; supports scope=docs)
-│   ├── navbar.tsx               # Server Component navbar wrapper
+│   ├── navbar.tsx               # Server Component navbar wrapper; docs entry uses the existing authorization modal
 │   ├── navbar-client.tsx        # Client navbar (theme toggle, mobile menu, locale switch)
 │   ├── footer.tsx
 │   ├── article-card.tsx         # Post card used on list pages
@@ -118,7 +118,7 @@ npm run test:e2e     # Playwright e2e tests
 │   ├── blog-tabs.tsx            # 博客列表顶部 Tab 栏（全部→/blog，分类→/category/[slug]，真实链接 + aria-current 高亮）
 │   ├── cover-hero.tsx           # 文章详情页封面 Hero 头部（封面作标题背景 + 暗色蒙版保证文字可读）
 │   ├── resume-modal.tsx         # About page: 查看简历 entry + 授权码门禁 + preview modal + PDF export (jsPDF + html2canvas-pro)
-│   ├── column-card.tsx          # Doc-set card on homepage featured section (links to /docs)
+│   ├── column-card.tsx          # Doc-set card (links to /docs; not used on homepage)
 │   ├── pagination.tsx
 │   ├── TableOfContents.tsx      # Floating TOC for post detail
 │   ├── view-counter.tsx         # Client component: increments + displays view count
@@ -198,7 +198,7 @@ npm run test:e2e     # Playwright e2e tests
 | Task | Key Files |
 |---|---|
 | Modify navbar | `components/navbar.tsx`, `components/navbar-client.tsx` |
-| Change homepage layout | `app/[locale]/page.tsx`, `components/article-card.tsx` |
+| Change homepage layout | `app/[locale]/page.tsx`, `components/home-blog-section.tsx`, `components/article-card.tsx`; homepage only loads public posts and site avatar; docs access stays in the navbar with the existing authorization modal |
 | Blog list (统一列表 + Tab) | `app/[locale]/blog/page.tsx`（全部）、`app/[locale]/category/[slug]/page.tsx`（单分类）共用 `components/blog-list-view.tsx` + `components/blog-tabs.tsx`；均分页（`?page=`，PAGE_SIZE=10），Tab 真实路由跳转。导航「博客」为单一链接 → `/blog`，无分类下拉 |
 | Post detail page | `app/[locale]/posts/[slug]/page.tsx`, `components/TableOfContents.tsx`, `components/view-counter.tsx` |
 | Markdown rendering | `components/markdown/`, `lib/markdown/shiki.ts` |
@@ -210,7 +210,7 @@ npm run test:e2e     # Playwright e2e tests
 | Admin post editor | `components/admin/post-editor.tsx`, `app/admin/(dashboard)/` |
 | Admin categories/tags | `components/admin/category-manager.tsx`, `components/admin/tag-manager.tsx` |
 | Admin columns | `components/admin/columns-workspace.tsx` |
-| 文章封面体系 | 分类封面：`category-manager.tsx`；专栏（知识库一级分类）封面：`columns-left-panel.tsx → ColumnModal`（首页知识库卡片展示用）；章节封面：`columns-left-panel.tsx → ChapterModal`；文章封面：`post-editor.tsx`；统一控件 `components/admin/cover-image-field.tsx`。前台展示优先级 `coverImage ?? coverImageFallback`：列表卡片 `article-card.tsx`；详情页头部以 `components/cover-hero.tsx`（封面作标题背景 + 暗色蒙版 + 浅色文字，保证任意封面/主题文字可读）；首页知识库模块卡片 `components/home-docs-section.tsx → DocsCard` 展示 `column.coverImage`。回退在 `lib/db.ts`（`getPosts`/`getPostBySlug`/`getColumnBySlug`）解析，章节封面优先于分类封面；专栏封面经 `getColumns` 读取 `columns.cover_image`；**OG/SEO 图仅用 `coverImage`，不含回退**。DB：`categories.cover_image`、`columns.cover_image`、`column_chapters.cover_image`（见 `supabase/schema.sql` 与 `supabase/migration-cover-images.sql`）|
+| 文章封面体系 | 分类封面：`category-manager.tsx`；专栏（知识库一级分类）封面：`columns-left-panel.tsx → ColumnModal`；章节封面：`columns-left-panel.tsx → ChapterModal`；文章封面：`post-editor.tsx`；统一控件 `components/admin/cover-image-field.tsx`。前台展示优先级 `coverImage ?? coverImageFallback`：列表卡片 `article-card.tsx`；详情页头部以 `components/cover-hero.tsx`（封面作标题背景 + 暗色蒙版 + 浅色文字，保证任意封面/主题文字可读）；`components/home-docs-section.tsx → DocsCard` 为保留组件，已不在首页挂载。回退在 `lib/db.ts`（`getPosts`/`getPostBySlug`/`getColumnBySlug`）解析，章节封面优先于分类封面；专栏封面经 `getColumns` 读取 `columns.cover_image`；**OG/SEO 图仅用 `coverImage`，不含回退**。DB：`categories.cover_image`、`columns.cover_image`、`column_chapters.cover_image`（见 `supabase/schema.sql` 与 `supabase/migration-cover-images.sql`）|
 | About page | `app/[locale]/about/page.tsx`, `config/about.ts`, `components/resume-modal.tsx` |
 | Resume (about modal + PDF) | `components/resume-modal.tsx`, `lib/db.ts → getResume(locale, client?)`; 授权码门禁，打开时探测门禁状态，数据不随页面下发；未授权探测响应附带 `sessionTtlSeconds`，复用该请求展示免验证时长 |
 | Public gate duration hint | `components/access-session-hint.tsx` 统一中英文时长提示；知识库配置由 `app/[locale]/layout.tsx → lib/db.ts → getAccessGateSessionTtl("docs")` 随页面下发并通过 Context 共用，简历时长来自已有探测请求，不新增前端配置接口。天数取 `sessionTtlSeconds / 86400`，提示时长上限且不超过授权码期限；未获取时长时只保留输入提示 |

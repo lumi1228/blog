@@ -3,17 +3,15 @@ import { useTranslations } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
-import { HomeDocsSection } from "@/components/home-docs-section";
 import { HomeBlogSection } from "@/components/home-blog-section";
-import { getPosts, getColumns, getRandomSiteAvatar } from "@/lib/db";
+import { getPosts, getRandomSiteAvatar } from "@/lib/db";
 import { buildAlternates } from "@/lib/seo";
+import type { Post } from "@/lib/types";
 import type { Locale } from "@/i18n/config";
 import Image from "next/image";
 
 /** 首页 featured 博客展示数量（不分页） */
 const FEATURED_POSTS_COUNT = 5;
-/** 首页知识库展示数量 */
-const FEATURED_COLUMNS_COUNT = 3;
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -55,52 +53,47 @@ export async function generateMetadata({
   };
 }
 
+/**
+ * 首页只加载公开博客与站点头像。
+ * --- @ty.aicoding@ ---
+ */
 export default async function HomePage({ params }: PageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
 
   // 并行获取所有数据
-  const [{ posts: featuredPosts, total: totalPosts }, allColumns, siteAvatar] =
+  const [{ posts: featuredPosts, total: totalPosts }, siteAvatar] =
     await Promise.all([
       getPosts({
         locale: locale as Locale,
         limit: FEATURED_POSTS_COUNT,
         offset: 0,
       }),
-      getColumns(locale as Locale),
       getRandomSiteAvatar(),
     ]);
-
-  const featuredColumns = allColumns.slice(0, FEATURED_COLUMNS_COUNT);
-  const hasMoreColumns = allColumns.length > FEATURED_COLUMNS_COUNT;
 
   return (
     <HomeContent
       featuredPosts={featuredPosts}
       totalPosts={totalPosts}
-      columns={featuredColumns}
-      hasMoreColumns={hasMoreColumns}
-      totalColumns={allColumns.length}
       locale={locale}
       siteAvatar={siteAvatar}
     />
   );
 }
 
+/**
+ * 首页展示个人介绍与公开博客，知识库通过导航授权访问。
+ * --- @ty.aicoding@ ---
+ */
 function HomeContent({
   featuredPosts,
   totalPosts,
-  columns,
-  hasMoreColumns,
-  totalColumns,
   locale,
   siteAvatar,
 }: {
-  featuredPosts: any[];
+  featuredPosts: Post[];
   totalPosts: number;
-  columns: any[];
-  hasMoreColumns: boolean;
-  totalColumns: number;
   locale: string;
   siteAvatar: string | null;
 }) {
@@ -312,15 +305,7 @@ function HomeContent({
           </div>
         </section>
 
-        {/* ── Module 2：知识库全屏 ────────────────────────────────────────────── */}
-        <HomeDocsSection
-          columns={columns}
-          hasMore={hasMoreColumns}
-          totalCount={totalColumns}
-          locale={locale}
-        />
-
-        {/* ── Module 3：博客全屏 ──────────────────────────────────────────────── */}
+        {/* ── Module 2：博客全屏 ──────────────────────────────────────────────── */}
         <HomeBlogSection
           posts={featuredPosts}
           total={totalPosts}
