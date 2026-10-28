@@ -361,6 +361,10 @@ export function PostEditor({ categories, tags, columns, chapters, initialData, o
   // ============================================
   // 保存/发布
   // ============================================
+  /**
+   * 保存文章，并在首次发布或草稿转发布时记录真实发布日期。
+   * --- @ty.aicoding@ ---
+   */
   const handleSave = async (publishStatus?: "draft" | "published") => {
     if (!form.titleZh.trim()) {
       alert("请填写中文标题");
@@ -391,7 +395,7 @@ export function PostEditor({ categories, tags, columns, chapters, initialData, o
       content_en: form.contentEn || null,
       available_locales: form.titleEn ? ["zh-CN", "en"] : ["zh-CN"],
       reading_time: Math.max(1, Math.ceil((form.contentZh || "").length / 500)),
-      ...(status === "published" && !initialData?.status
+      ...(status === "published" && initialData?.status !== "published"
         ? { published_at: new Date().toISOString() }
         : {}),
     };

@@ -52,6 +52,7 @@ async function getSupabase() {
 
 /**
  * 获取已发布文章列表
+ * --- @ty.aicoding@ ---
  */
 export async function getPosts(options?: {
   locale?: Locale;
@@ -85,7 +86,8 @@ export async function getPosts(options?: {
       { count: "exact" }
     )
     .eq("status", "published")
-    .order("published_at", { ascending: false })
+    .order("published_at", { ascending: false, nullsFirst: false })
+    .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
   if (categorySlug) {
