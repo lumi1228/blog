@@ -33,6 +33,10 @@ export const metadata: Metadata = {
   description: "一个女性开发者的技术博客",
 };
 
+/**
+ * 应用全局字体、首屏主题与主题上下文。
+ * --- @ty.aicoding@ ---
+ */
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -71,11 +75,8 @@ export default async function RootLayout({
                       path === '/docs' ||
                       path.indexOf('/docs/') === 0;
                   }
-                  if (useLight) {
-                    document.documentElement.classList.add('light');
-                  } else {
-                    document.documentElement.classList.remove('light');
-                  }
+                  document.documentElement.classList.toggle('light', useLight);
+                  document.documentElement.classList.toggle('dark', !useLight);
                 } catch (e) {}
               })();
             `,

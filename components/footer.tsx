@@ -32,11 +32,15 @@ const socialLinks = [
   },
 ];
 
+/**
+ * 站点页脚，使用比主画布略深一级的中性背景。
+ * --- @ty.aicoding@ ---
+ */
 export async function Footer() {
   const t = await getTranslations("common");
 
   return (
-    <footer className="mt-auto border-t border-[var(--border-subtle)]">
+    <footer className="mt-auto border-t border-[var(--border-subtle)] bg-[var(--bg-soft-alt)]">
       <div className="mx-auto flex max-w-[1200px] flex-col items-center gap-4 px-6 py-8 sm:flex-row sm:justify-between">
         {/* 版权信息 */}
         <p className="text-sm text-[var(--text-tertiary)]">

@@ -49,6 +49,10 @@ function getAdminTheme(fallback: "dark" | "light"): "dark" | "light" {
   return saved === "light" || saved === "dark" ? saved : fallback;
 }
 
+/**
+ * 管理站点主题，并同步根节点的 light/dark 类。
+ * --- @ty.aicoding@ ---
+ */
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const defaultTheme = getDefaultThemeForPath(pathname);
@@ -61,14 +65,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // 记录上一次所属区域的默认主题，用于检测「跨区域」切换
   const prevDefaultRef = useRef<"dark" | "light">(defaultTheme);
 
-  // 应用主题到 DOM
+  /**
+   * 将已解析主题应用到 DOM，确保两种主题类互斥。
+   * --- @ty.aicoding@ ---
+   */
   const applyTheme = useCallback((resolved: "dark" | "light") => {
     const root = document.documentElement;
-    if (resolved === "light") {
-      root.classList.add("light");
-    } else {
-      root.classList.remove("light");
-    }
+    root.classList.toggle("light", resolved === "light");
+    root.classList.toggle("dark", resolved === "dark");
     setResolvedTheme(resolved);
   }, []);
 

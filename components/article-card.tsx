@@ -7,6 +7,10 @@ interface ArticleCardProps {
   locale?: string;
 }
 
+/**
+ * 博客列表文章卡片，封面叠层与卡片层级适配当前主题。
+ * --- @ty.aicoding@ ---
+ */
 export function ArticleCard({ post, index, locale = "zh-CN" }: ArticleCardProps) {
   const coverSrc = post.coverImage ?? post.coverImageFallback ?? null;
   return (
@@ -84,7 +88,7 @@ export function ArticleCard({ post, index, locale = "zh-CN" }: ArticleCardProps)
               className="h-full w-full object-cover transition-transform duration-[var(--duration-slow)]
                          group-hover:scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+            <div className="theme-media-overlay-vertical absolute inset-0 opacity-20 pointer-events-none" />
           </div>
         )}
       </div>

@@ -138,6 +138,10 @@ interface PostContentProps {
   };
 }
 
+/**
+ * 渲染博客文章详情及主题化封面内容。
+ * --- @ty.aicoding@ ---
+ */
 function PostContent({ post, prev, next, headings, jsonLd, translations }: PostContentProps) {
   const t = translations;
   const coverSrc = post.coverImage ?? post.coverImageFallback ?? null;
@@ -191,24 +195,23 @@ function PostContent({ post, prev, next, headings, jsonLd, translations }: PostC
                     <div className="mb-4">
                       <Link
                         href={`/category/${post.category.slug}`}
-                        className="inline-flex items-center gap-1.5 rounded-[var(--radius-full)]
-                                   border border-white/25 bg-white/15 px-3 py-1 text-xs font-medium text-white
-                                   backdrop-blur-md transition-colors duration-[var(--duration-fast)]
-                                   hover:bg-white/25"
+                        className="theme-media-chip inline-flex items-center gap-1.5 rounded-[var(--radius-full)]
+                                   border px-3 py-1 text-xs font-medium
+                                   transition-all duration-[var(--duration-fast)] hover:brightness-105"
                       >
                         {post.category.name}
                       </Link>
                     </div>
 
                     <h1
-                      className="mb-3 text-[1.75rem] font-bold leading-tight tracking-tight text-white
-                                 sm:text-[2rem] lg:text-[2.125rem] [text-shadow:0_2px_12px_rgba(0,0,0,0.55)]"
+                      className="theme-media-title mb-3 text-[1.75rem] font-bold leading-tight tracking-tight
+                                 sm:text-[2rem] lg:text-[2.125rem]"
                       style={{ fontFamily: "var(--font-display)" }}
                     >
                       {post.title}
                     </h1>
 
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-white/85 [text-shadow:0_1px_6px_rgba(0,0,0,0.65)]">
+                    <div className="theme-media-copy flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px]">
                       <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
                       <span>·</span>
                       <span>{t.readingTime(post.readingTime)}</span>
@@ -226,10 +229,9 @@ function PostContent({ post, prev, next, headings, jsonLd, translations }: PostC
                           <Link
                             key={tag.slug}
                             href={`/tag/${tag.slug}`}
-                            className="rounded-[var(--radius-sm)] border border-white/20 bg-white/10
-                                       px-2 py-0.5 text-xs text-white/90 backdrop-blur-sm
-                                       transition-colors duration-[var(--duration-fast)]
-                                       hover:border-white/45 hover:bg-white/20"
+                            className="theme-media-chip rounded-[var(--radius-sm)] border
+                                       px-2 py-0.5 text-xs transition-all duration-[var(--duration-fast)]
+                                       hover:brightness-105"
                           >
                             #{tag.name}
                           </Link>

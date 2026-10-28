@@ -1,24 +1,29 @@
 @import "tailwindcss";
 
+/* 让 Tailwind dark: 变体跟随站内主题类，而不是操作系统偏好。 --- @ty.aicoding@ --- */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ============================================
    设计系统 · CSS 变量
    风格：Nordic Aurora & Glacial Light (北欧极光与冰川之光)
    ============================================ */
 
-/* --- Dark Mode（默认：极夜优雅） --- */
+/* --- Dark Mode（默认：清晰的极夜中性色） --- --- @ty.aicoding@ --- */
 :root {
   color-scheme: dark;
 
-  /* 背景 - 精致的紫黑渐进 */
-  --bg-primary: #0A0A0F;         /* 极深紫黑 */
-  --bg-secondary: rgba(19, 19, 24, 0.4); /* 深紫灰（半透明，用于磨砂卡片） */
-  --bg-tertiary: #1A1A22;        /* 中深紫灰 */
-  --bg-elevated: #212129;        /* 浮层背景 */
+  /* 背景 - 中性蓝黑，增加画布、卡片与浮层之间的层级 */
+  --bg-primary: #0E1016;
+  --bg-secondary: #171A23;
+  --bg-tertiary: #222631;
+  --bg-elevated: #2B303C;
+  --bg-soft: #131720;
+  --bg-soft-alt: #11141C;
 
-  /* 文字 - 淡紫色调 */
-  --text-primary: #E8E6F0;       /* 淡紫白（更柔和） */
-  --text-secondary: #A8A3B8;     /* 淡紫灰 */
-  --text-tertiary: #6B6878;      /* 中紫灰 */
+  /* 文字 - 去除过量紫调，提高小字号信息的清晰度 */
+  --text-primary: #F5F6FA;
+  --text-secondary: #C7CBD4;
+  --text-tertiary: #98A0AE;
 
   /* 主色 · 深邃暗紫（唯一主色） */
   --accent-primary: #9333EA;     /* 深紫（Purple 600）- 神秘高贵 */
@@ -34,9 +39,20 @@
   --accent-gold: #FCD34D;
   --accent-gold-muted: rgba(252, 211, 77, 0.1);
 
-  /* 边框 - 深紫色调 */
-  --border-default: rgba(147, 51, 234, 0.08);
-  --border-subtle: rgba(147, 51, 234, 0.04);
+  /* 边框 - 中性结构色 */
+  --border-default: rgba(226, 232, 240, 0.14);
+  --border-subtle: rgba(226, 232, 240, 0.08);
+
+  /* 主题化媒体：暗色主题使用深色蒙版与浅色文字 */
+  --media-overlay-start: rgba(7, 9, 14, 0.92);
+  --media-overlay-middle: rgba(7, 9, 14, 0.58);
+  --media-overlay-end: rgba(7, 9, 14, 0.12);
+  --media-text-primary: #F8FAFC;
+  --media-text-secondary: rgba(248, 250, 252, 0.82);
+  --media-chip-bg: rgba(15, 18, 25, 0.52);
+  --media-chip-border: rgba(248, 250, 252, 0.24);
+  --media-text-shadow: 0 2px 14px rgba(0, 0, 0, 0.58);
+  --media-image-filter: brightness(0.82) saturate(0.88);
 
   /* 光晕 - 深紫色 */
   --glow-primary: rgba(147, 51, 234, 0.25);
@@ -70,18 +86,20 @@
   --radius-full: 9999px;
 }
 
-/* --- Light Mode（白日优雅） --- */
+/* --- Light Mode（柔和中性画布） --- --- @ty.aicoding@ --- */
 .light {
   color-scheme: light;
 
-  --bg-primary: #FAFAFC;         /* 淡紫白 */
-  --bg-secondary: rgba(245, 245, 250, 0.65); /* 淡紫灰 */
-  --bg-tertiary: #EDEDF5;
+  --bg-primary: #F5F7FB;
+  --bg-secondary: #FFFFFF;
+  --bg-tertiary: #E9EEF5;
   --bg-elevated: #FFFFFF;
+  --bg-soft: #EEF2F7;
+  --bg-soft-alt: #EAF0F8;
 
-  --text-primary: #1A1A22;       /* 深紫黑 */
-  --text-secondary: #52525E;
-  --text-tertiary: #9090A0;
+  --text-primary: #20242C;
+  --text-secondary: #4F5968;
+  --text-tertiary: #667085;
 
   --accent-primary: #7C3AED;     /* 深紫 */
   --accent-hover: #6D28D9;
@@ -94,8 +112,18 @@
   --accent-gold: #D97706;        /* 深金 */
   --accent-gold-muted: rgba(217, 119, 6, 0.08);
 
-  --border-default: rgba(124, 58, 237, 0.08);
-  --border-subtle: rgba(124, 58, 237, 0.04);
+  --border-default: rgba(32, 36, 44, 0.14);
+  --border-subtle: rgba(32, 36, 44, 0.08);
+
+  --media-overlay-start: rgba(245, 247, 251, 0.88);
+  --media-overlay-middle: rgba(245, 247, 251, 0.50);
+  --media-overlay-end: rgba(245, 247, 251, 0.06);
+  --media-text-primary: #20242C;
+  --media-text-secondary: #4F5968;
+  --media-chip-bg: rgba(255, 255, 255, 0.76);
+  --media-chip-border: rgba(32, 36, 44, 0.16);
+  --media-text-shadow: 0 1px 2px rgba(255, 255, 255, 0.72);
+  --media-image-filter: brightness(1.02) saturate(0.82) contrast(0.95);
 
   --glow-primary: rgba(124, 58, 237, 0.12);
   --glow-gold: rgba(217, 119, 6, 0.1);
@@ -214,6 +242,286 @@ body {
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
 }
 
+/* 主题化媒体外观，供 Hero、封面卡片与文章封面统一复用。 --- @ty.aicoding@ --- */
+.theme-media-image {
+  filter: var(--media-image-filter);
+}
+
+.theme-media-overlay-horizontal {
+  background: linear-gradient(
+    to right,
+    var(--media-overlay-start),
+    var(--media-overlay-middle),
+    var(--media-overlay-end)
+  );
+}
+
+.theme-media-overlay-vertical {
+  background: linear-gradient(
+    to top,
+    var(--media-overlay-start),
+    var(--media-overlay-middle),
+    var(--media-overlay-end)
+  );
+}
+
+.theme-media-overlay-mobile {
+  background: linear-gradient(
+    to bottom,
+    var(--media-overlay-start),
+    var(--media-overlay-middle),
+    var(--media-overlay-end)
+  );
+}
+
+.theme-media-title {
+  color: var(--media-text-primary);
+  text-shadow: var(--media-text-shadow);
+}
+
+.theme-media-copy {
+  color: var(--media-text-secondary);
+  text-shadow: var(--media-text-shadow);
+}
+
+.theme-media-chip {
+  color: var(--media-text-primary);
+  background: var(--media-chip-bg);
+  border-color: var(--media-chip-border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* 首页首屏改用低速线流画布，不再依赖背景图片。 --- @ty.aicoding@ --- */
+.home-hero {
+  isolation: isolate;
+  background-color: var(--bg-primary);
+}
+
+.home-hero-grid {
+  z-index: -2;
+  background-image:
+    linear-gradient(var(--border-subtle) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: 0.48;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 16%, black 84%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 16%, black 84%, transparent 100%);
+}
+
+.home-flow-field {
+  z-index: -1;
+}
+
+.home-flow-line {
+  position: absolute;
+  left: -30%;
+  width: clamp(11rem, 22vw, 22rem);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
+  box-shadow: 0 0 12px var(--glow-primary);
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: flow-line-drift 12s linear infinite;
+}
+
+.home-flow-line::after {
+  content: "";
+  position: absolute;
+  right: 10%;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent-secondary);
+  box-shadow: 0 0 14px var(--accent-primary);
+  transform: translateY(-50%);
+}
+
+.home-flow-line-1 {
+  top: 14%;
+  animation-duration: 14s;
+}
+
+.home-flow-line-2 {
+  top: 34%;
+  animation-delay: -8s;
+  animation-duration: 18s;
+}
+
+.home-flow-line-3 {
+  top: 53%;
+  animation-delay: -3s;
+  animation-duration: 16s;
+}
+
+.home-flow-line-4 {
+  top: 72%;
+  animation-delay: -11s;
+  animation-duration: 20s;
+}
+
+.home-flow-line-5 {
+  top: 88%;
+  animation-delay: -5s;
+  animation-duration: 17s;
+}
+
+.home-hero-chip {
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--bg-elevated) 82%, transparent);
+  border-color: var(--border-default);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.home-hero-status {
+  box-shadow: 0 0 12px var(--glow-primary);
+  animation: status-breathe 2.8s ease-in-out infinite;
+}
+
+.home-avatar-stage {
+  color: var(--accent-primary);
+}
+
+.home-avatar-axis {
+  background: var(--border-default);
+  opacity: 0.72;
+}
+
+.home-avatar-axis-horizontal {
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+}
+
+.home-avatar-axis-vertical {
+  bottom: 0;
+  top: 0;
+  left: 50%;
+  width: 1px;
+}
+
+.home-avatar-outline {
+  border: 1px solid var(--border-default);
+  transform: rotate(3deg);
+}
+
+.home-avatar-frame {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.home-avatar-frame img {
+  filter: saturate(0.9) contrast(1.02);
+}
+
+.home-avatar-scan {
+  height: 1px;
+  background: var(--accent-secondary);
+  box-shadow: 0 0 16px var(--accent-primary);
+  opacity: 0.68;
+  animation: portrait-scan 7s ease-in-out infinite;
+}
+
+.home-avatar-corner {
+  width: 28px;
+  height: 28px;
+  border-color: var(--accent-primary);
+  opacity: 0.72;
+}
+
+.home-avatar-corner-tl {
+  left: 0;
+  top: 0;
+  border-left: 2px solid;
+  border-top: 2px solid;
+}
+
+.home-avatar-corner-tr {
+  right: 0;
+  top: 0;
+  border-right: 2px solid;
+  border-top: 2px solid;
+}
+
+.home-avatar-corner-bl {
+  bottom: 0;
+  left: 0;
+  border-bottom: 2px solid;
+  border-left: 2px solid;
+}
+
+.home-avatar-corner-br {
+  bottom: 0;
+  right: 0;
+  border-bottom: 2px solid;
+  border-right: 2px solid;
+}
+
+.light .home-hero {
+  background-color: var(--bg-soft-alt);
+}
+
+.light .home-hero-grid {
+  opacity: 0.72;
+}
+
+.light .home-flow-field {
+  opacity: 0.68;
+}
+
+.light .home-flow-line {
+  box-shadow: 0 0 10px rgba(124, 58, 237, 0.18);
+}
+
+.light .home-avatar-frame {
+  background: var(--bg-elevated);
+  box-shadow: 0 20px 48px rgba(32, 36, 44, 0.12);
+}
+
+.light .home-featured-card {
+  min-height: 430px;
+  background-color: var(--bg-elevated);
+  border-color: var(--border-default);
+  box-shadow: var(--shadow-sm);
+}
+
+.light .home-featured-image {
+  bottom: auto;
+  height: 58%;
+  filter: brightness(0.96) saturate(0.94) contrast(1.02);
+}
+
+.light .home-featured-overlay {
+  top: 42%;
+  bottom: auto;
+  height: 22%;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.72) 48%,
+    rgba(255, 255, 255, 1) 100%
+  );
+}
+
+.light .home-featured-content {
+  padding-top: clamp(15rem, 66vw, 18rem);
+}
+
+@media (min-width: 1024px) {
+  .light .home-featured-card {
+    min-height: 100%;
+  }
+
+  .light .home-featured-content {
+    padding-top: clamp(19rem, 27vw, 23rem);
+  }
+}
+
 .light .frosted-glass {
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4);
 }
@@ -283,6 +591,52 @@ body {
 @keyframes glow-pulse {
   0%, 100% { opacity: 0.6; }
   50% { opacity: 1; }
+}
+
+/* 首页线流保持低速、低密度，避免与正文争夺注意力。 --- @ty.aicoding@ --- */
+@keyframes flow-line-drift {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 10vw, 0) rotate(-8deg);
+  }
+  12% {
+    opacity: 0.5;
+  }
+  78% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(165vw, -14vw, 0) rotate(-8deg);
+  }
+}
+
+@keyframes status-breathe {
+  0%, 100% {
+    opacity: 0.62;
+    transform: scale(0.86);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes portrait-scan {
+  0%, 12% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  22% {
+    opacity: 0.68;
+  }
+  78% {
+    opacity: 0.68;
+  }
+  88%, 100% {
+    opacity: 0;
+    transform: translateY(360px);
+  }
 }
 
 /* 极光缓慢飘流 */

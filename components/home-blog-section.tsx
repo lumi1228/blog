@@ -8,6 +8,10 @@ interface HomeBlogSectionProps {
   locale: string;
 }
 
+/**
+ * 首页博客区域，使用独立画布层级承载精选与紧凑文章卡片。
+ * --- @ty.aicoding@ ---
+ */
 export function HomeBlogSection({ posts, total, locale }: HomeBlogSectionProps) {
   const t = useTranslations();
   const [featuredPost, ...otherPosts] = posts;
@@ -15,7 +19,7 @@ export function HomeBlogSection({ posts, total, locale }: HomeBlogSectionProps) 
   return (
     <section
       id="blog"
-      className="relative flex flex-col overflow-hidden bg-[var(--bg-primary)] min-h-[calc(100dvh-4rem)] scroll-mt-16"
+      className="relative flex flex-col overflow-hidden bg-[var(--bg-soft-alt)] min-h-[calc(100dvh-4rem)] scroll-mt-16"
     >
       {/* 顶部分隔光带：明确与上一屏（知识库）的边界 */}
       <div
@@ -162,6 +166,10 @@ export function HomeBlogSection({ posts, total, locale }: HomeBlogSectionProps) 
 
 // ─── Featured 大卡（封面前置·沉浸式） ──────────────────────────────────────────
 
+/**
+ * 首页精选文章卡片，封面与叠加内容随主题切换明暗关系。
+ * --- @ty.aicoding@ ---
+ */
 function FeaturedPostCard({ post, locale }: { post: Post; locale: string }) {
   const coverSrc = post.coverImage ?? post.coverImageFallback ?? null;
   const onCover = !!coverSrc;
@@ -169,7 +177,7 @@ function FeaturedPostCard({ post, locale }: { post: Post; locale: string }) {
   return (
     <Link
       href={`/posts/${post.slug}`}
-      className="group relative flex h-full min-h-[320px] flex-1 flex-col justify-end overflow-hidden
+      className="home-featured-card group relative flex h-full min-h-[320px] flex-1 flex-col justify-end overflow-hidden
                  rounded-[var(--radius-lg)] border border-[var(--border-subtle)] animate-fade-in-up
                  transition-all duration-[var(--duration-normal)]
                  hover:border-[var(--accent-primary)]/40
@@ -183,41 +191,40 @@ function FeaturedPostCard({ post, locale }: { post: Post; locale: string }) {
             src={coverSrc!}
             alt=""
             aria-hidden="true"
-            className="absolute inset-0 h-full w-full object-cover
+            className="home-featured-image theme-media-image absolute inset-0 h-full w-full object-cover
                        transition-transform duration-[var(--duration-slow)] group-hover:scale-[1.04]"
           />
           <div
             aria-hidden="true"
-            className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/10"
+            className="home-featured-overlay theme-media-overlay-vertical absolute inset-0"
           />
-          <div aria-hidden="true" className="absolute inset-0 bg-black/10" />
         </>
       ) : (
         <div aria-hidden="true" className="absolute inset-0 frosted-glass" />
       )}
 
       {/* 叠加内容 */}
-      <div className="relative z-10 p-6 sm:p-7 lg:p-8">
+      <div className="home-featured-content relative z-10 p-6 sm:p-7 lg:p-8">
         {/* 分类 + 元信息 */}
         <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
           <span
             className={
               onCover
-                ? "rounded-[var(--radius-full)] border border-white/25 bg-white/15 px-3 py-0.5 font-semibold text-white backdrop-blur-md"
+                ? "theme-media-chip rounded-[var(--radius-full)] border px-3 py-0.5 font-semibold"
                 : "rounded-[var(--radius-full)] border border-[var(--accent-primary)]/10 bg-[var(--accent-muted)] px-3 py-0.5 font-semibold text-[var(--accent-primary)]"
             }
           >
             {post.category.name}
           </span>
-          <span className={onCover ? "text-white/60" : "text-[var(--text-tertiary)]"}>·</span>
+          <span className={onCover ? "theme-media-copy" : "text-[var(--text-tertiary)]"}>·</span>
           <time
-            className={onCover ? "text-white/75" : "text-[var(--text-tertiary)]"}
+            className={onCover ? "theme-media-copy" : "text-[var(--text-tertiary)]"}
             dateTime={post.publishedAt}
           >
             {formatDate(post.publishedAt, locale)}
           </time>
-          <span className={onCover ? "text-white/60" : "text-[var(--text-tertiary)]"}>·</span>
-          <span className={`font-mono ${onCover ? "text-white/75" : "text-[var(--text-tertiary)]"}`}>
+          <span className={onCover ? "theme-media-copy" : "text-[var(--text-tertiary)]"}>·</span>
+          <span className={`font-mono ${onCover ? "theme-media-copy" : "text-[var(--text-tertiary)]"}`}>
             {post.readingTime} min
           </span>
         </div>
@@ -226,7 +233,7 @@ function FeaturedPostCard({ post, locale }: { post: Post; locale: string }) {
         <h3
           className={
             onCover
-              ? "mb-3 text-xl font-bold leading-snug text-white sm:text-2xl lg:text-3xl [text-shadow:0_2px_12px_rgba(0,0,0,0.55)]"
+              ? "theme-media-title mb-3 text-xl font-bold leading-snug sm:text-2xl lg:text-3xl"
               : "mb-3 text-xl font-bold leading-snug text-[var(--text-primary)] transition-colors duration-[var(--duration-fast)] group-hover:text-[var(--accent-primary)] sm:text-2xl lg:text-3xl"
           }
           style={{ fontFamily: "var(--font-display)" }}
@@ -238,7 +245,7 @@ function FeaturedPostCard({ post, locale }: { post: Post; locale: string }) {
         <p
           className={
             onCover
-              ? "text-sm leading-relaxed text-white/85 line-clamp-2 [text-shadow:0_1px_6px_rgba(0,0,0,0.6)] sm:line-clamp-3"
+              ? "theme-media-copy text-sm leading-relaxed line-clamp-2 sm:line-clamp-3"
               : "text-sm leading-relaxed text-[var(--text-secondary)] line-clamp-3 sm:line-clamp-4"
           }
         >
@@ -253,7 +260,7 @@ function FeaturedPostCard({ post, locale }: { post: Post; locale: string }) {
                 key={tag.slug}
                 className={
                   onCover
-                    ? "rounded-[var(--radius-sm)] border border-white/20 bg-white/10 px-2.5 py-0.5 text-xs text-white/90 backdrop-blur-sm"
+                    ? "theme-media-chip rounded-[var(--radius-sm)] border px-2.5 py-0.5 text-xs"
                     : "rounded-[var(--radius-sm)] border border-[var(--border-subtle)] bg-[var(--bg-primary)]/30 px-2.5 py-0.5 text-xs text-[var(--text-tertiary)]"
                 }
               >

@@ -27,6 +27,7 @@ interface BlogListViewProps {
  *
  * 由 /blog（activeSlug=null）与 /category/[slug]（activeSlug=slug）共用，
  * 仅传入不同的 title 与分页数据。
+ * --- @ty.aicoding@ ---
  */
 export function BlogListView({
   locale,
@@ -45,9 +46,9 @@ export function BlogListView({
     activeSlug === null ? t("blog.noPosts") : t("post.noCategoryPosts");
 
   return (
-    <main className="flex-1">
+    <main className="flex-1 bg-[var(--bg-primary)]">
       {/* 头部：紧凑筛选条（Tab 栏 + 计数同行，标题转 sr-only），随滚动吸附在导航栏下方 */}
-      <section className="sticky top-16 z-40 border-b border-[var(--border-subtle)] bg-[var(--bg-primary)]/85 backdrop-blur-xl">
+      <section className="sticky top-16 z-40 border-b border-[var(--border-subtle)] bg-[var(--bg-secondary)]/90 backdrop-blur-xl">
         <div className="mx-auto max-w-[1200px] px-6 py-4 sm:py-5">
           <h1 className="sr-only">{title}</h1>
 

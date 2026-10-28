@@ -13,10 +13,10 @@ interface CoverHeroProps {
  * 将封面作为标题区背景，头部内容叠加其上，营造图文融合的沉浸式头部。
  *
  * 可读性保障（无论封面明暗 / 站点明暗主题）：
- * - 横向主蒙版：左侧深 → 右侧透明，文字落在左侧暗区，右侧露出封面主体；
- * - 纵向辅助蒙版：底部轻压暗，兜底底部元信息行；
- * - 头部文字使用固定浅色 + 文字阴影，不随主题切换，确保对比度恒定达标；
- * - 内容限制最大宽度，停留在左侧暗区，避免延伸到右侧亮部。
+ * - 横向与纵向蒙版均使用媒体 token，随主题切换深浅关系；
+ * - 图片在亮色主题提亮降饱和，在暗色主题轻压暗；
+ * - 内容限制最大宽度，停留在高对比度承载区。
+ * --- @ty.aicoding@ ---
  */
 export function CoverHero({ src, children }: CoverHeroProps) {
   return (
@@ -27,20 +27,17 @@ export function CoverHero({ src, children }: CoverHeroProps) {
         src={src}
         alt=""
         aria-hidden="true"
-        className="absolute inset-0 h-full w-full object-cover"
+        className="theme-media-image absolute inset-0 h-full w-full object-cover"
       />
 
-      {/* 可读性蒙版：
-          - 横向主蒙版：左侧深 → 右侧透明，文字落在左侧暗区，右侧露出封面主体；
-          - 纵向辅助蒙版：底部轻压暗，兜底底部元信息行；
-          固定浅色文字 + 文字阴影，确保任意封面 / 任意明暗主题下文字都清晰。 */}
+      {/* 主题化可读性蒙版：横向承载标题，纵向兜底元信息。 */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-transparent"
+        className="theme-media-overlay-horizontal absolute inset-0"
       />
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent"
+        className="theme-media-overlay-vertical absolute inset-0 opacity-35"
       />
 
       {/* 头部内容：底部左对齐，限制宽度以停留在左侧暗区 */}

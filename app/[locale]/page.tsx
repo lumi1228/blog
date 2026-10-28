@@ -105,115 +105,49 @@ function HomeContent({
 
       <main className="flex-1">
         {/* ── Module 1：Hero ─────────────────────────────────────────────────── */}
-        <section className="relative overflow-hidden bg-[var(--bg-primary)] py-16 sm:py-20 lg:py-24">
-          {/* 首屏背景图 + 主题自适应遮罩（保证左侧文字在明暗模式下均可读） */}
-          <div
-            className="absolute inset-0 overflow-hidden pointer-events-none select-none"
-            aria-hidden="true"
-          >
-            <Image
-              src="/hero.jpg"
-              alt=""
-              fill
-              priority
-              sizes="100vw"
-              className="object-cover object-center opacity-100 dark:opacity-100"
-            />
-            {/* 移动端：文字在顶部，用从上到下压暗 */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/25 to-transparent lg:hidden" />
-            {/* 桌面端：文字在左侧，用从左到右压暗（无边界自然过渡） */}
-            <div className="absolute inset-0 hidden bg-gradient-to-r from-black/65 via-black/25 to-transparent lg:block" />
+        <section className="home-hero relative flex min-h-[calc(100svh-12rem)] items-center overflow-hidden border-b border-[var(--border-subtle)] py-10 sm:py-14 lg:py-16">
+          {/* 低速线流画布：以不同周期移动，减少首屏视觉噪声。 */}
+          <div className="home-hero-grid absolute inset-0 pointer-events-none" aria-hidden="true" />
+          <div className="home-flow-field absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+            <span className="home-flow-line home-flow-line-1" />
+            <span className="home-flow-line home-flow-line-2" />
+            <span className="home-flow-line home-flow-line-3" />
+            <span className="home-flow-line home-flow-line-4" />
+            <span className="home-flow-line home-flow-line-5" />
           </div>
 
-          {/* 极简紫色光晕背景 + 流星动画 */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
-            {/* 主光晕 */}
-            <div
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full opacity-0 dark:lg:opacity-10 lg:opacity-8 blur-[140px] animate-aurora-1"
-              style={{ background: "var(--accent-primary)" }}
-            />
-            {/* 次光晕 */}
-            <div
-              className="absolute -right-20 -top-20 h-[400px] w-[400px] rounded-full opacity-0 dark:lg:opacity-8 lg:opacity-6 blur-[120px] animate-aurora-2"
-              style={{ background: "var(--accent-primary)" }}
-            />
-            {/* 流星 */}
-            <div
-              className="absolute top-[10%] -right-[10%] h-[2px] w-[150px] opacity-0"
-              style={{
-                background: "linear-gradient(90deg, transparent, var(--accent-primary), transparent)",
-                boxShadow: "0 0 8px var(--accent-primary)",
-                animation: "shooting-star 3s ease-in-out infinite",
-                animationDelay: "0s",
-              }}
-            />
-            <div
-              className="absolute top-[30%] -right-[5%] h-[1.5px] w-[120px] opacity-0"
-              style={{
-                background: "linear-gradient(90deg, transparent, var(--accent-secondary), transparent)",
-                boxShadow: "0 0 6px var(--accent-secondary)",
-                animation: "shooting-star 4s ease-in-out infinite",
-                animationDelay: "1.5s",
-              }}
-            />
-            <div
-              className="absolute top-[60%] right-[20%] h-[2px] w-[100px] opacity-0"
-              style={{
-                background: "linear-gradient(90deg, transparent, var(--accent-primary), transparent)",
-                boxShadow: "0 0 8px var(--accent-primary)",
-                animation: "shooting-star 3.5s ease-in-out infinite",
-                animationDelay: "3s",
-              }}
-            />
-            <div
-              className="absolute top-[20%] left-[10%] h-[1.5px] w-[130px] opacity-0"
-              style={{
-                background: "linear-gradient(90deg, transparent, var(--accent-tertiary), transparent)",
-                boxShadow: "0 0 6px var(--accent-tertiary)",
-                animation: "shooting-star 4.5s ease-in-out infinite",
-                animationDelay: "2s",
-              }}
-            />
-          </div>
-
-          <div className="relative mx-auto max-w-[1200px] px-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          <div className="relative mx-auto w-full max-w-[1200px] px-6">
+            <div className="grid grid-cols-1 items-center gap-6 lg:grid-cols-[1.08fr_0.92fr] lg:gap-16">
               {/* 左侧：文字内容 */}
               <div className="max-w-2xl relative z-10">
-                {/* 极光微章 */}
                 <div className="mb-6 animate-fade-in-up stagger-1 flex justify-start">
                   <span
-                    className="inline-flex items-center gap-1.5 rounded-full
-                               bg-white/10 px-3.5 py-1 text-xs font-semibold tracking-wider text-white
-                               border border-white/20 backdrop-blur-md shadow-[0_2px_12px_rgba(0,0,0,0.35)]"
+                    className="home-hero-chip inline-flex items-center gap-1.5 rounded-full
+                               border px-3.5 py-1 text-xs font-semibold tracking-wider"
                   >
-                    <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent-primary)] animate-ping" />
+                    <span className="home-hero-status h-1.5 w-1.5 rounded-full bg-[var(--accent-primary)]" />
                     {t("home.badge")}
                   </span>
                 </div>
 
-                {/* 博客标题 */}
                 <h1
-                  className="mb-6 text-4xl font-extrabold leading-tight tracking-tight text-white
-                             sm:text-5xl lg:text-6xl animate-fade-in-up stagger-2
-                             [text-shadow:0_2px_16px_rgba(0,0,0,0.55)]"
+                  className="mb-6 text-4xl font-extrabold leading-tight tracking-tight text-[var(--text-primary)]
+                             sm:text-5xl lg:text-6xl animate-fade-in-up stagger-2"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
                   {t("home.title1")}
                   <br />
-                  <span className="bg-gradient-to-r from-[var(--accent-primary)] via-[var(--accent-secondary)] to-[var(--accent-tertiary)] bg-clip-text text-transparent [filter:drop-shadow(0_2px_10px_rgba(0,0,0,0.45))]">
+                  <span className="bg-gradient-to-r from-[var(--accent-primary)] via-[var(--accent-secondary)] to-[var(--accent-tertiary)] bg-clip-text text-transparent">
                     {t("home.title2")}
                   </span>
                 </h1>
 
-                {/* 描述 */}
-                <p className="mb-10 max-w-xl text-base leading-relaxed text-white/85 sm:text-lg animate-fade-in-up stagger-3 [text-shadow:0_1px_8px_rgba(0,0,0,0.5)]">
+                <p className="mb-9 max-w-xl text-base leading-relaxed text-[var(--text-secondary)] sm:text-lg animate-fade-in-up stagger-3">
                   {t("home.description1")}
                   <br />
                   {t("home.description2")}
                 </p>
 
-                {/* CTA 按钮组 */}
                 <div className="flex flex-wrap items-start gap-4 animate-fade-in-up stagger-4">
                   <a
                     href="#blog"
@@ -229,11 +163,11 @@ function HomeContent({
                   </a>
                   <a
                     href={`/${locale}/about`}
-                    className="frosted-glass inline-flex items-center gap-2 rounded-[var(--radius-md)]
-                               px-7 py-3.5 text-sm font-semibold text-white
-                               border-white/20
+                    className="inline-flex items-center gap-2 rounded-[var(--radius-md)]
+                               border border-[var(--border-default)] bg-[var(--bg-secondary)] px-7 py-3.5
+                               text-sm font-semibold text-[var(--text-primary)]
                                transition-all duration-[var(--duration-fast)]
-                               hover:border-white/50 hover:scale-[1.03]"
+                               hover:border-[var(--accent-primary)]/40 hover:scale-[1.03]"
                   >
                     {t("home.aboutMe")}
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -243,64 +177,34 @@ function HomeContent({
                 </div>
               </div>
 
-              {/* 右侧：头像艺术装置 */}
-              {siteAvatar && (
-                <div className="flex justify-center lg:justify-end">
-                  <div className="relative h-[400px] w-[400px] lg:h-[600px] lg:w-[600px]">
-                    <div
-                      className="absolute inset-0 rounded-full opacity-0 dark:opacity-20 lg:dark:opacity-20 lg:opacity-10 blur-[100px] animate-pulse"
-                      style={{
-                        background: "radial-gradient(circle, var(--accent-primary) 0%, transparent 70%)",
-                        animationDuration: "4s",
-                      }}
-                    />
-                    <div
-                      className="absolute inset-[8%] rounded-full border-2 border-[var(--accent-primary)]/10 opacity-5 dark:opacity-30 lg:dark:opacity-100 lg:opacity-60"
-                      style={{
-                        background: "conic-gradient(from 0deg, transparent 0deg, var(--accent-primary) 60deg, transparent 120deg)",
-                        animation: "spin 20s linear infinite",
-                      }}
-                    />
-                    <div
-                      className="absolute inset-[18%] rounded-full border border-[var(--accent-primary)]/15 opacity-5 dark:opacity-30 lg:dark:opacity-100 lg:opacity-60"
-                      style={{
-                        background: "conic-gradient(from 180deg, transparent 0deg, var(--accent-primary) 90deg, transparent 180deg)",
-                        animation: "spin-reverse 15s linear infinite",
-                      }}
-                    />
-                    <div className="absolute inset-[28%] rounded-full overflow-hidden">
+              {/* 右侧：扫描式头像框，不依赖首屏背景图片。 */}
+              <div className="flex justify-center lg:justify-end">
+                <div className="home-avatar-stage relative h-[220px] w-full max-w-[280px] sm:h-[300px] sm:max-w-[350px] lg:h-[430px] lg:max-w-[420px]">
+                  <div className="home-avatar-axis home-avatar-axis-horizontal absolute" aria-hidden="true" />
+                  <div className="home-avatar-axis home-avatar-axis-vertical absolute" aria-hidden="true" />
+                  <div className="home-avatar-outline absolute inset-[6%]" aria-hidden="true" />
+                  <div className="home-avatar-frame absolute inset-[12%] overflow-hidden bg-[var(--bg-secondary)]">
+                    {siteAvatar ? (
                       <Image
                         src={siteAvatar}
                         alt="头像"
                         fill
-                        className="object-cover opacity-[0.9] dark:opacity-[0.9]"
-                        style={{ filter: "saturate(1.1) contrast(1.05) brightness(1.05)" }}
+                        className="object-cover"
                         priority
                       />
-                      <div
-                        className="absolute inset-0"
-                        style={{
-                          background: "radial-gradient(circle at 30% 30%, transparent 40%, var(--bg-primary) 100%)",
-                          opacity: 0.15,
-                        }}
-                      />
-                    </div>
-                    {/* 装饰粒子 */}
-                    <div
-                      className="absolute top-[15%] right-[20%] h-2 w-2 rounded-full bg-[var(--accent-primary)] opacity-5 dark:opacity-40 lg:dark:opacity-100 lg:opacity-50"
-                      style={{ boxShadow: "0 0 20px var(--accent-primary)", animation: "pulse 3s ease-in-out infinite", animationDelay: "0s" }}
-                    />
-                    <div
-                      className="absolute bottom-[25%] left-[15%] h-1.5 w-1.5 rounded-full bg-[var(--accent-secondary)] opacity-5 dark:opacity-40 lg:dark:opacity-100 lg:opacity-50"
-                      style={{ boxShadow: "0 0 15px var(--accent-secondary)", animation: "pulse 3s ease-in-out infinite", animationDelay: "1s" }}
-                    />
-                    <div
-                      className="absolute top-[55%] right-[12%] h-1 w-1 rounded-full bg-[var(--accent-tertiary)] opacity-5 dark:opacity-40 lg:dark:opacity-100 lg:opacity-50"
-                      style={{ boxShadow: "0 0 10px var(--accent-tertiary)", animation: "pulse 3s ease-in-out infinite", animationDelay: "2s" }}
-                    />
+                    ) : (
+                      <div className="grid h-full place-items-center text-7xl font-bold text-[var(--accent-primary)]/30">
+                        L
+                      </div>
+                    )}
+                    <div className="home-avatar-scan absolute inset-x-0 top-0" aria-hidden="true" />
                   </div>
+                  <span className="home-avatar-corner home-avatar-corner-tl absolute" aria-hidden="true" />
+                  <span className="home-avatar-corner home-avatar-corner-tr absolute" aria-hidden="true" />
+                  <span className="home-avatar-corner home-avatar-corner-bl absolute" aria-hidden="true" />
+                  <span className="home-avatar-corner home-avatar-corner-br absolute" aria-hidden="true" />
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </section>

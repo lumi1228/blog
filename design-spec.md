@@ -1,8 +1,8 @@
 # Design Specification
 
-> **Version**: 2.6.0  
-> **Last Updated**: 2026-10-22
-> **Design Theme**: Midnight Elegance（极夜优雅·深邃暗紫版）  
+> **Version**: 2.8.0
+> **Last Updated**: 2026-10-28
+> **Design Theme**: Midnight Clarity（清晰极夜·柔和日光版）
 > **Purpose**: 前端样式规范文档，确保 AI 和开发者输出一致的视觉设计和样式代码
 
 ---
@@ -29,14 +29,15 @@
 
 ## 2. 设计风格定位
 
-**Midnight Elegance（极夜优雅·深邃暗紫版）**  
-极简克制 × 单色主导 × 深邃神秘 × 女性高贵
+**Midnight Clarity（清晰极夜·柔和日光版）**
+极简克制 × 中性层级 × 清晰阅读 × 紫色品牌强调
 
 **核心理念**：
-- 极深紫黑背景主导，深邃暗紫作为唯一主色
+- 中性蓝黑背景主导，深邃暗紫作为唯一品牌主色
 - 单一主色系统，建立强烈品牌感和视觉聚焦
 - 80-15-5 配色黄金比例：80% 灰度 + 15% 紫色 + 5% 金色
-- 精致的 6 层紫调灰度系统，细腻渐进
+- 明暗主题均使用清晰的中性灰阶，保证正文与小字号元信息对比度
+- 浅色主题使用柔和画布、白色承载面和浅灰蓝色带建立页面层级
 - 深紫色营造神秘、高贵、专业的氛围
 - 极少量金色点缀，强化高级感
 
@@ -61,17 +62,19 @@
 
 #### 背景色（Dark Mode 默认）
 ```css
---bg-primary: #0A0A0F;         /* 极深紫黑 */
---bg-secondary: rgba(19, 19, 24, 0.4); /* 深紫灰（半透明，用于磨砂卡片） */
---bg-tertiary: #1A1A22;        /* 中深紫灰 */
---bg-elevated: #212129;        /* 浮层背景 */
+--bg-primary: #0E1016;         /* 页面画布 */
+--bg-secondary: #171A23;       /* 卡片/导航承载面 */
+--bg-tertiary: #222631;        /* 控件与标签背景 */
+--bg-elevated: #2B303C;        /* 浮层与图片承载面 */
+--bg-soft: #131720;            /* 柔和区块背景 */
+--bg-soft-alt: #11141C;        /* 交替全宽色带 */
 ```
 
 #### 文字色
 ```css
---text-primary: #E8E6F0;       /* 淡紫白（柔和） */
---text-secondary: #A8A3B8;     /* 淡紫灰 */
---text-tertiary: #6B6878;      /* 中紫灰 */
+--text-primary: #F5F6FA;       /* 标题与正文强调 */
+--text-secondary: #C7CBD4;     /* 正文与说明 */
+--text-tertiary: #98A0AE;      /* 日期、计数等小字号元信息 */
 ```
 
 #### 主色 - 深邃暗紫系（唯一主色）
@@ -97,8 +100,8 @@
 
 #### 边框
 ```css
---border-default: rgba(147, 51, 234, 0.08)  /* 深紫色调边框 */
---border-subtle: rgba(147, 51, 234, 0.04)   /* 极细深紫边框 */
+--border-default: rgba(226, 232, 240, 0.14) /* 常规结构边框 */
+--border-subtle: rgba(226, 232, 240, 0.08)  /* 细分隔边框 */
 ```
 
 #### 光晕
@@ -116,14 +119,33 @@
 
 ### 3.2 Light Mode 覆盖
 在 `.light` class 下，颜色系统自动切换至浅色模式：
-- 背景从极深紫黑切换至淡紫白（`#FAFAFC` → `#FFFFFF`）
+- 页面画布使用 `#F5F7FB`，卡片/浮层使用 `#FFFFFF`，交替色带使用 `#EEF2F7` / `#EAF0F8`
 - 主色从中亮度紫切换至深紫（`#9333EA` → `#7C3AED`）
   - **原因**：保证在浅色背景上有足够对比度（≥ 4.5:1）
 - 金色从柔和金切换至深金（`#FCD34D` → `#D97706`）
-- 文字从淡紫白切换至深紫黑（`#E8E6F0` → `#1A1A22`）
+- 文字切换为中性深灰：主文字 `#20242C`、次文字 `#4F5968`、元信息 `#667085`
+
+根节点必须始终明确维护互斥的 `.light` / `.dark` class。Tailwind `dark:` 通过
+`@custom-variant dark (&:where(.dark, .dark *))` 跟随站内主题开关，不跟随系统主题独立变化。
 
 **色彩自适应原则**：
 不同背景需要不同明度的主色以保证对比度和可读性。Dark Mode 用中亮度紫（Purple 600），Light Mode 用深紫（Purple 700），确保两种模式下都符合 WCAG 无障碍标准。
+
+### 3.2a 主题化媒体 Token
+
+精选文章卡片和文章封面统一使用 `--media-*` token，不得再硬编码黑色蒙版与白色文字。首页 Hero 使用独立的纯色画布与线流系统，不属于媒体封面体系。
+
+| Token | Dark | Light | 用途 |
+|-----|------|-------|------|
+| `--media-overlay-start` | 深色高不透明度 | 浅色高不透明度 | 文字侧/底部主蒙版 |
+| `--media-overlay-middle` | 深色中不透明度 | 浅色中不透明度 | 蒙版过渡 |
+| `--media-overlay-end` | 深色低不透明度 | 浅色低不透明度 | 展示图片主体 |
+| `--media-text-primary` | `#F8FAFC` | `#20242C` | 媒体标题 |
+| `--media-text-secondary` | 浅色半透明 | `#4F5968` | 媒体说明与元信息 |
+| `--media-chip-bg` / `--media-chip-border` | 深色磨砂 | 白色磨砂 | 媒体上的标签与次按钮 |
+| `--media-image-filter` | 轻压暗、降饱和 | 提亮、降饱和、降对比 | 缓和图片与主题的冲突 |
+
+正文图片不应用颜色滤镜；使用 `bg-elevated`、轻内边距、边框和轻阴影建立独立承载面。
 
 ### 3.2b 文章详情页阅读主题 · `.article-theme`（主站 + 知识库共用）
 
@@ -266,6 +288,8 @@ className="rounded-[var(--radius-full)]"  // 分类标签
 | `fade-in` | 淡入 | 模态框、提示 |
 | `slide-up` | 底部滑入 | 底部弹窗 |
 | `glow-pulse` | 呼吸光晕 | 强调元素 |
+| `flow-line-drift` | 低速线束横穿 | 首页 Hero 背景线流 |
+| `portrait-scan` | 头像框纵向扫描 | 首页头像装置 |
 | `aurora-float` | 极光流体飘动 | Hero 区域背景极光球 |
 | `snow-drift` | 冰雪微粒飘落 | Hero 区域雪花特效 |
 
@@ -473,11 +497,11 @@ className="rounded-[var(--radius-full)]"  // 分类标签
 **用途**：文章详情页（`/posts/[slug]` 与 `/docs/[set]/[slug]`）将封面作为标题区背景，标题/元信息/分类/标签叠加其上，营造图文融合的沉浸式头部。仅在文章存在封面（自有 `coverImage` 或回退的分类/章节封面）时启用；无封面时回退为常规主题感知标题。
 
 **可读性保障（核心约束：任意封面颜色 / 任意明暗主题下文字都清晰）**：
-- **横向主蒙版**：`bg-gradient-to-r from-black/85 via-black/55 to-transparent`（左侧深 → 右侧透明），文字落在左侧暗区，右侧露出封面主体；
-- **纵向辅助蒙版**：`bg-gradient-to-t from-black/45 via-transparent to-transparent`，兜底底部元信息行；
+- **横向主蒙版**：使用 `.theme-media-overlay-horizontal`；暗色为深色渐变，亮色为浅色渐变；
+- **纵向辅助蒙版**：使用 `.theme-media-overlay-vertical` 兜底底部元信息行；
 - 头部内容**底部左对齐**（`justify-end`）并限制 `max-w-[42rem]`，停留在左侧暗区、不延伸到右侧亮部；
-- 头部文字使用**固定浅色**（`text-white` / `text-white/85`），**不随主题切换**，并叠加文字阴影 `[text-shadow:0_2px_12px_rgba(0,0,0,0.55)]`（标题）/ `[text-shadow:0_1px_6px_rgba(0,0,0,0.65)]`（元信息）；
-- 叠加在封面上的徽章/标签使用**白色磨砂**（`bg-white/10~15` + `border-white/20~25` + `backdrop-blur`），而非主题强调色，确保在任意底图上可辨识。
+- 标题、说明、徽章分别使用 `.theme-media-title`、`.theme-media-copy`、`.theme-media-chip`，随主题切换文字和承载面；
+- 封面图片使用 `.theme-media-image`：亮色主题提亮并降低饱和度，暗色主题轻压暗。
 
 **结构特征**：
 - 容器：`rounded-[var(--radius-lg)]` + `border-[var(--border-subtle)]` + `overflow-hidden`，进场 `animate-fade-in-up`；
@@ -491,7 +515,22 @@ className="rounded-[var(--radius-full)]"  // 分类标签
 
 ---
 
-### 7.10 BlogListView + BlogTabs（博客列表视图 + 筛选 Tab 栏）
+### 7.10 HomeHero（首页首屏）
+**路径**: `app/[locale]/page.tsx` + `app/globals.css`
+
+**用途**：首页品牌首屏，使用主题化纯色画布、低密度网格和低速线流表达技术感，不使用城市背景图或整屏媒体蒙版。
+
+**结构与动效约束**：
+- 画布：暗色使用 `--bg-primary`，亮色使用 `--bg-soft-alt`；网格只使用 `--border-subtle`，不得成为视觉主体；
+- 线流：5 条细线分别使用 14–20 秒周期，错开负延迟，保持低密度和低速，不使用高频流星或闪烁；
+- 头像：矩形裁切，外层仅使用坐标轴、偏转描边和四角定位标记；扫描线周期 7 秒；
+- 内容：标题和说明直接使用 `--text-primary` / `--text-secondary`，不再使用媒体蒙版文字 token；
+- 首屏高度需让下一模块在常见桌面和移动视口底部露出提示；
+- 所有动画必须服从全局 `prefers-reduced-motion` 规则。
+
+---
+
+### 7.11 BlogListView + BlogTabs（博客列表视图 + 筛选 Tab 栏）
 **路径**: `components/blog-list-view.tsx`、`components/blog-tabs.tsx`
 
 **用途**：博客列表统一视图，由 `/blog`（全部）与 `/category/[slug]`（单分类）共用，仅传入不同的 `activeSlug` 与分页数据。
@@ -513,7 +552,7 @@ className="rounded-[var(--radius-full)]"  // 分类标签
 
 ---
 
-### 7.11 DocsCatalog + DocsSidebar（知识库目录与章节导航）
+### 7.12 DocsCatalog + DocsSidebar（知识库目录与章节导航）
 **路径**: `components/docs/docs-catalog.tsx`、`components/docs/docs-sidebar.tsx`
 
 - 在 `.article-theme` 内使用语义颜色 token，目录容器 `max-w-5xl`，内边距 `px-6 sm:px-8 py-10 sm:py-12`。
@@ -523,7 +562,7 @@ className="rounded-[var(--radius-full)]"  // 分类标签
 
 ---
 
-### 7.12 AccessSessionHint（免验证时长提示）
+### 7.13 AccessSessionHint（免验证时长提示）
 
 **路径**: `components/access-session-hint.tsx`
 
@@ -632,17 +671,19 @@ className="rounded-[var(--radius-full)]"  // 分类标签
 
 ## 附录：快速查询表
 
-### CSS 变量速查（Midnight Elegance v2.2）
+### CSS 变量速查（Midnight Clarity v2.8）
 ```css
 /* 背景 */
-var(--bg-primary)    /* #0A0A0F 极深紫黑 */
-var(--bg-secondary)  /* rgba(19,19,24,0.4) 深紫灰（半透明） */
-var(--bg-tertiary)   /* #1A1A22 中深紫灰 */
+var(--bg-primary)    /* #0E1016 页面画布 */
+var(--bg-secondary)  /* #171A23 卡片/导航承载面 */
+var(--bg-tertiary)   /* #222631 控件与标签背景 */
+var(--bg-soft)       /* #131720 柔和区块背景 */
+var(--bg-soft-alt)   /* #11141C 交替全宽色带 */
 
 /* 文字 */
-var(--text-primary)    /* #E8E6F0 淡紫白 */
-var(--text-secondary)  /* #A8A3B8 淡紫灰 */
-var(--text-tertiary)   /* #6B6878 中紫灰 */
+var(--text-primary)    /* #F5F6FA 主文字 */
+var(--text-secondary)  /* #C7CBD4 次文字 */
+var(--text-tertiary)   /* #98A0AE 元信息 */
 
 /* 主色（唯一） */
 var(--accent-primary)    /* #9333EA 深紫（Purple 600）- 神秘高贵 */
@@ -653,8 +694,8 @@ var(--accent-muted)      /* rgba(147,51,234,0.1) 半透明背景 */
 var(--accent-gold)       /* #FCD34D 柔和金色 */
 
 /* 边框 */
-var(--border-default)  /* rgba(255,255,255,0.08) 标准边框 */
-var(--border-subtle)   /* rgba(255,255,255,0.04) 极细冰晶边框 */
+var(--border-default)  /* rgba(226,232,240,0.14) 标准边框 */
+var(--border-subtle)   /* rgba(226,232,240,0.08) 细分隔边框 */
 
 /* 圆角 */
 var(--radius-sm)    /* 6px 小标签 */
@@ -717,13 +758,35 @@ className="rounded-[var(--radius-sm)] border border-[var(--border-subtle)]
 
 ---
 
-**文档结束**  
-最后更新：2026-06-23  
-设计主题：Midnight Elegance（极夜优雅·深邃暗紫版）v2.2
+**快速查询结束**
+最后更新：2026-10-28
+设计主题：Midnight Clarity（清晰极夜·柔和日光版）v2.8
 
 ---
 
 ## 附录：设计更新日志
+
+### v2.8.0 (2026-10-28)
+**首页 Hero 无背景图重构**
+
+1. 移除首页城市背景图、主题媒体蒙版、流星和旋转圆环装置。
+2. 新增主题化纯色画布、低密度网格与 14–20 秒低速线流动画。
+3. 头像改为矩形扫描框，使用坐标轴、偏转描边和四角定位标记建立技术感。
+4. 首页标题与说明回归语义文字 token，亮暗主题不再依赖图片滤镜保证可读性。
+5. 收敛首屏高度，使下一模块在常见桌面和移动视口中保持可见提示。
+
+---
+
+### v2.7.0 (2026-10-28)
+**明暗主题清晰度与媒体适配优化**
+
+1. 暗色主题改用中性蓝黑背景和更亮的三级文字，提升小字号元信息对比度。
+2. 亮色主题增加柔和页面画布、白色卡片承载面和全宽浅灰蓝色带，减少纯白扁平感。
+3. 新增 `--media-*` token 与 `.theme-media-*` 公共类，精选卡片、文章封面不再固定黑幕白字。
+4. 正文图片增加独立承载面，不对图片内容做全局滤镜。
+5. 根节点明确维护 `.light` / `.dark`，Tailwind `dark:` 与站内主题开关保持同步。
+
+---
 
 ### v2.6.0 (2026-06-26)
 **文章详情页封面 Hero 化（图文融合头部）**

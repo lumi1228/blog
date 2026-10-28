@@ -139,6 +139,10 @@ interface MarkdownRendererProps {
 // 4. 主组件
 // ─────────────────────────────────────────────
 
+/**
+ * 将 Markdown 渲染为主题化、可访问的文章内容。
+ * --- @ty.aicoding@ ---
+ */
 export async function MarkdownRenderer({
   content,
 }: MarkdownRendererProps): Promise<React.ReactElement> {
@@ -269,7 +273,8 @@ export async function MarkdownRenderer({
           src={src}
           alt={alt ?? ""}
           loading="lazy"
-          className="my-4 max-w-full rounded-[var(--radius-lg)] border border-[var(--border-subtle)]"
+          className="my-5 max-w-full rounded-[var(--radius-lg)] border border-[var(--border-default)]
+                     bg-[var(--bg-elevated)] p-1.5 shadow-[var(--shadow-sm)]"
           {...props}
         />
       );

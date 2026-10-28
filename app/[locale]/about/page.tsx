@@ -49,6 +49,10 @@ export default async function AboutPage({ params }: PageProps) {
   return <AboutContent siteAvatar={siteAvatar} />;
 }
 
+/**
+ * 渲染关于页，并通过全宽背景色带区分信息层级。
+ * --- @ty.aicoding@ ---
+ */
 function AboutContent({ siteAvatar }: { siteAvatar: string | null }) {
   const t = useTranslations("about");
 
@@ -58,7 +62,7 @@ function AboutContent({ siteAvatar }: { siteAvatar: string | null }) {
 
       <main className="flex-1">
         {/* Hero 区域 - 极光名片 */}
-        <section className="relative overflow-hidden border-b border-[var(--border-subtle)] bg-[var(--bg-primary)] py-20 sm:py-32">
+        <section className="relative overflow-hidden border-b border-[var(--border-subtle)] bg-[var(--bg-soft)] py-20 sm:py-32">
           {/* 极简紫色光晕背景 */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             {/* 主光晕 - 中央偏上 */}
@@ -204,7 +208,7 @@ function AboutContent({ siteAvatar }: { siteAvatar: string | null }) {
           </section>
 
           {/* 技能矩阵 - 冰晶卡片 */}
-          <section>
+          <section className="relative isolate py-8 before:absolute before:inset-y-0 before:left-1/2 before:-z-10 before:w-screen before:-translate-x-1/2 before:bg-[var(--bg-soft-alt)] sm:py-12">
             <SectionTitle number="02" title={t("sectionSkills")} />
             <div className="grid gap-5 sm:grid-cols-2">
               {Object.entries(aboutConfig.skills).map(([category, data], index) => (
